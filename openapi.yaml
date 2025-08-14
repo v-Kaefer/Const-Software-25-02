@@ -1,32 +1,273 @@
 openapi: 3.0.3
 info:
-  title: Sample API
-  description: A simple API example
+  title: Trabalho 1 - Construção de Software
+  description: API RESTful para gestão de alunos e matrículas
   version: "1.0.0"
 
 servers:
-  - url: https://api.example.com/v1
+  - url: https://api.trabalho1.com/v1
+    description: Servidor principal
+
+components:
+  securitySchemes:
+    Auth0:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://your-auth0-domain/authorize
+          tokenUrl: https://your-auth0-domain/oauth/token
+          scopes: {}
+  schemas:
+    Aluno:
+      type: object
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        genero:
+          type: string
+        nascimento:
+          type: string
+          format: date
+      required: [nome, genero, nascimento]
+    Matricula:
+      type: object
+      properties:
+        id:
+          type: integer
+        semestre:
+          type: string
+        curso:
+          type: string
+      required: [semestre, curso]
+
+security:
+  - Auth0: []
 
 paths:
-  /users:
+  /alunos:
     get:
-      summary: Get all users
+      summary: Recupera todos os alunos
       responses:
         '200':
-          description: A list of users
+          description: Lista de alunos
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
+                  $ref: '#/components/schemas/Aluno'
+    post:
+      summary: Cria um novo aluno
+      security:
+        - Auth0: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+      responses:
+        '201':
+          description: Aluno criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
 
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
+  /alunos/{id_aluno}:
+    get:
+      summary: Recupera aluno pelo ID
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Aluno encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
+        '404':
+          description: Aluno não encontrado
+    put:
+      summary: Atualiza aluno por ID
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+      responses:
+        '200':
+          description: Aluno atualizado
+    patch:
+      summary: Atualiza parcialmente aluno por ID
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+      responses:
+        '200':
+          description: Aluno atualizado parcialmente
+    delete:
+      summary: Deleta aluno por ID
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Aluno deletado
+
+  /alunos/{id_aluno}/matriculas:
+    get:
+      summary: Recupera todas as matrículas do aluno
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de matrículas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Matricula'
+    post:
+      summary: Cria nova matrícula para o aluno
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Matricula'
+      responses:
+        '201':
+          description: Matrícula criada
+
+  /alunos/{id_aluno}/matriculas/{id_matricula}:
+    get:
+      summary: Recupera matrícula específica do aluno
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: id_matricula
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Matrícula encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Matricula'
+    put:
+      summary: Atualiza matrícula por ID
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: id_matricula
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Matricula'
+      responses:
+        '200':
+          description: Matrícula atualizada
+    patch:
+      summary: Atualiza parcialmente matrícula por ID
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: id_matricula
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Matricula'
+      responses:
+        '200':
+          description: Matrícula parcialmente atualizada
+    delete:
+      summary: Remove matrícula do aluno
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: id_matricula
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Matrícula removida

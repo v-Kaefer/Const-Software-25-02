@@ -1,0 +1,314 @@
+openapi: 3.1.0
+info:
+  title: Trabalho 1 - Construção de Software
+  description: API RESTful para gestão de alunos e matrículas
+  version: 1.0.0
+servers:
+- url: https://api.trabalho1.com/v1
+  description: Servidor principal
+- url: http://localhost:8080
+  description: Ambiente local (Docker Compose)
+tags:
+- name: Users
+  description: Operações sobre usuários
+paths:
+  /v1/users:
+    get:
+      tags:
+      - Users
+      summary: Listar usuários
+      operationId: listUsers
+      parameters:
+      - $ref: '#/components/parameters/PageParam'
+      - $ref: '#/components/parameters/PageSizeParam'
+      - $ref: '#/components/parameters/QParam'
+      responses:
+        '200':
+          description: Lista paginada de usuários
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  meta:
+                    $ref: '#/components/schemas/PageMeta'
+    post:
+      tags:
+      - Users
+      summary: Criar usuário
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: Criado
+          headers:
+            Location:
+              description: URL do recurso criado
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/users/{userId}:
+    parameters:
+    - $ref: '#/components/parameters/UserIdParam'
+    get:
+      tags:
+      - Users
+      summary: Obter usuário por ID
+      operationId: getUser
+      responses:
+        '200':
+          description: Usuário encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+      - Users
+      summary: Substituir usuário (atualização completa)
+      description: Atualiza **todos** os campos do recurso. Use **PUT** quando você possuir a
+        representação completa.
+      operationId: replaceUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPut'
+      responses:
+        '200':
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    patch:
+      tags:
+      - Users
+      summary: Atualizar parcialmente usuário (merge-patch)
+      description: Atualiza **alguns** campos do recurso. Usa `application/merge-patch+json`;
+        campos omitidos **não** são alterados; campos nulos podem **anular** valores.
+      operationId: patchUser
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/UserPatch'
+      responses:
+        '200':
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags:
+      - Users
+      summary: Remover usuário
+      operationId: deleteUser
+      responses:
+        '204':
+          description: Removido
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  parameters:
+    UserIdParam:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: UUID do usuário
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Página
+    PageSizeParam:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      description: Tamanho da página (máx. 100)
+    QParam:
+      name: q
+      in: query
+      schema:
+        type: string
+      description: Texto de busca (ex.: nome/email)
+  schemas:
+    User:
+      type: object
+      required:
+      - id
+      - name
+      - email
+      - isActive
+      - createdAt
+      - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    UserCreate:
+      type: object
+      required:
+      - name
+      - email
+      - password
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+    UserPut:
+      type: object
+      required:
+      - name
+      - email
+      - isActive
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        isActive:
+          type: boolean
+    UserPatch:
+      type: object
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 120
+        email:
+          type:
+          - string
+          - 'null'
+          format: email
+          maxLength: 254
+        isActive:
+          type:
+          - boolean
+          - 'null'
+    PageMeta:
+      type: object
+      required:
+      - page
+      - pageSize
+      - total
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+          minimum: 0
+    Error:
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          type: string
+          example: BAD_REQUEST
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+  responses:
+    BadRequest:
+      description: Requisição inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: 'Conflito (ex.: email já utilizado)'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  headers: {}
+  links: {}
+  callbacks: {}
+  examples: {}
+  requestBodies: {}

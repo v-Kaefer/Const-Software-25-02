@@ -6,33 +6,45 @@ services:
     container_name: userdb
     restart: unless-stopped
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-      POSTGRES_DB: app
+      POSTGRES_USER: ${DB_USER:-app}
+      POSTGRES_PASSWORD: ${DB_PASS:-app}
+      POSTGRES_DB: ${DB_NAME:-app}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./migrations:/migrations:ro
+      # Para scripts .sql/.sh executarem no primeiro start:
+      - ./migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-app} -d ${DB_NAME:-app}"]
       interval: 5s
-      timeout: 5s
-      retries: 20
+      timeout: 3s
+      retries: 10
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: usersvc
     depends_on:
       db:
         condition: service_healthy
     environment:
-      APP_PORT: 8080
-      DATABASE_URL: postgres://app:app@db:5432/app?sslmode=disable
-      GIN_MODE: release
+      APP_ENV: ${APP_ENV:-development}
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-app}
+      DB_PASS: ${DB_PASS:-app}
+      DB_NAME: ${DB_NAME:-app}
+      DB_SSLMODE: "disable"
     ports:
       - "8080:8080"
-    command: ["/app/usersvc"]
+    restart: unless-stopped
+    # Se quiser bind-mount do código em dev, descomente:
+    # volumes:
+    #   - ./:/app
+    # Se você precisa de um comando específico, descomente/ajuste:
+    # command: ["/app/usersvc"]
 
   swagger:
     image: swaggerapi/swagger-ui:latest
@@ -40,9 +52,10 @@ services:
     environment:
       SWAGGER_JSON: /openapi/openapi.yaml
     volumes:
-      - ./openapi:/openapi:ro      # <— aponta para ./openapi/openapi.yaml
+      - ./openapi:/openapi:ro
     ports:
       - "8081:8080"
+    restart: unless-stopped
 
 volumes:
   pgdata: {}

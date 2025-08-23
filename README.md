@@ -3,6 +3,46 @@ Grupo L
 
 https://github.com/v-Kaefer/Const-Software-25-02
 
+
+# Sprint 0 - Update
+
+```mermaid
+flowchart TD
+  subgraph Client
+    B["HTTP Client (curl, browser, Postman)"]
+    SW[Swagger UI]
+  end
+
+  subgraph API["YourApp (processo)"]
+    H["HTTP Router (net/http)"]
+    S["Service (Regras/Transações)"]
+    R["Repository (GORM)"]
+    M[(Model / Entidades)]
+    CFG["Config (env)"]
+  end
+
+  subgraph Infra
+    PG[(Postgres)]
+  end
+
+  B -->|JSON/HTTP| H
+  SW -->|/openapi/openapi.yaml| B
+
+  H -->|chama casos de uso| S
+  S -->|usa| R
+  R -->|CRUD| PG
+  S -->|entidades| M
+
+  CFG --> H
+  CFG --> S
+  CFG --> R
+
+```
+
+---
+
+
+
 # Sprint 0 – Setup de Time, Stack e Projeto
 
 Este pacote entrega um **arquivo fonte OpenAPI** para o domínio `User` (com **POST**, **PATCH** e **PUT**), um **README** passo‑a‑passo, além de arquivos básicos de infraestrutura (Docker/Docker Compose e migração SQL) para iniciar o projeto com Go, Gin e PostgreSQL.
@@ -59,7 +99,7 @@ Este pacote entrega um **arquivo fonte OpenAPI** para o domínio `User` (com **P
 Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do domínio `User` com **CRUD** completo definido em OpenAPI.
 
 ## Stack definida
-- **Linguagem:** Go 1.22+
+- **Linguagem:** Go 1.24+
 - **Framework web:** Gin (v1.10+)
 - **Banco:** PostgreSQL 16
 - **Infra:** Docker + Docker Compose
@@ -68,7 +108,7 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
 
 ## Pré-requisitos
 - Docker Desktop/Engine e Docker Compose
-- Go 1.22+ (para desenvolvimento local fora do container)
+- Go 1.24+ (para desenvolvimento local fora do container)
 
 ## Como rodar com Docker Compose
 1. Crie seu `.env` a partir do exemplo:

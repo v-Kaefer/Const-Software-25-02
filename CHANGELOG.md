@@ -3,6 +3,23 @@
 * Instalação local e setup do [GORM](https://gorm.io/docs/)
 - Preparo da geração do banco de dados, para setup do Docker.
 
+- O comando `go mod tidy`, instala e atualiza dependências locais necessárias.
+- o comando `go test ./...`, quando executado na raiz do projeto, percorre todas as pastas e roda todos os testes.
+
+### GORM
+Por que cada import é necessário?
+
+* `internal/config`: carrega/expõe AppConfig e o DSN do banco. Sem ele, o db.Open não sabe como conectar.
+
+* `internal/db`: concentra a abertura do GORM, tuning do pool e migrações. Mantém o main limpo e evita duplicar setup.
+
+* `internal/user`: contém o domínio (model), o repositório (acesso a dados via GORM) e o serviço (regras/transactions). O main cria as instâncias e injeta onde precisa.
+
+* `internal/http`: camada de entrega. Recebe apenas o serviço (interface/struct) — não importa gorm. Facilita testes e troca de persistência.
+
+#### Estrutura atualizada
+
+
 
 ## Update 01 - 23/08
 

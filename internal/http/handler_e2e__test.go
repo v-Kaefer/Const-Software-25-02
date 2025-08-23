@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/http"
-	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
+	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/pkg/http"
+	"github.com/v-Kaefer/Const-Software-25-02/internal/pkg/user"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

@@ -2,7 +2,7 @@ package db
 
 import (
 	"gorm.io/gorm"
-	"github.com/v-Kaefer/Const-Software-25-02/internal/pkg/user"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
 )
 
 // AutoMigrate roda as migrações a partir dos models.

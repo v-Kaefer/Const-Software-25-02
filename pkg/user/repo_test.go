@@ -3,7 +3,7 @@ package user_test
 import (
 	"context"
 	"testing"
-	"github.com/v-Kaefer/Const-Software-25-02/internal/pkg/user"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

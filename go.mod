@@ -1,4 +1,4 @@
-module Const-Software-25-02
+module github.com/v-Kaefer/Const-Software-25-02
 
 go 1.22
 

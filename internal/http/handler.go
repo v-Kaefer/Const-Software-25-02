@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
-	"github.com/v-Kaefer/Const-Software-25-02/internal/pkg/user"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
 )
 
 // Router simples usando net/http para não adicionar dependências.

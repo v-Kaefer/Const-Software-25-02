@@ -6,6 +6,12 @@
 - O comando `go mod tidy`, instala e atualiza dependências locais necessárias.
 - o comando `go test ./...`, quando executado na raiz do projeto, percorre todas as pastas e roda todos os testes.
 
+### Docker
+- Implementação e atualização em
+- Comando `docker run --rm hello-world` roda um teste de conteiner, sem precisar configurar nada.
+- Comando `docker compose up --build` sobe o conteiner usando os parâmetros do compose. Mas para atualizar os parâmetros, é necessário reiniciar.
+- Comando `docker compose down -v` encerra o conteiner.
+
 ### GORM
 Por que cada import é necessário?
 

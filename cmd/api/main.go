@@ -24,8 +24,8 @@ func main() {
 	// 1) Config (env, DSN, env=development|production)
 	cfg := config.Load()
 
-	// 2) DB (GORM + pool + dblocal + logger)
-	gormDB, db, err := appdb.Open(cfg)
+	// 2) DB (GORM + pool + logger)
+	gormDB, err := appdb.Open(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

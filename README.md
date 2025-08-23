@@ -3,6 +3,9 @@ Grupo L
 
 https://github.com/v-Kaefer/Const-Software-25-02
 
+![Tests](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/tests.yaml/badge.svg)
+![Docker Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/docker-build.yaml/badge.svg)
+
 
 # Sprint 0 - Update
 

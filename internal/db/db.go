@@ -2,7 +2,7 @@ package db
 
 import (
 	"time"
-	"Const-Software-25-02/internal/config"
+	"github.com/v-Kaefer/Const-Software-25-02/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

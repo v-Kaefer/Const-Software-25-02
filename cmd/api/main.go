@@ -9,10 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	"Const-Software-25-02/internal/config"
-	appdb "Const-Software-25-02/internal/db"
-	httpapi "Const-Software-25-02/internal/http"
-	"Const-Software-25-02/internal/user"
+	"github.com/v-Kaefer/Const-Software-25-02/internal/config"
+	appdb "github.com/v-Kaefer/Const-Software-25-02/internal/db"
+	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/http"
+	"github.com/v-Kaefer/Const-Software-25-02/internal/user"
 )
 
 func main() {

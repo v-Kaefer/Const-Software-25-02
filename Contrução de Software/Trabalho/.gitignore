@@ -1,0 +1,7 @@
+# Infra
+infra/.aws/*
+infra/.terraform/*
+.terraform.*
+.tfstate
+
+# EXTRAS

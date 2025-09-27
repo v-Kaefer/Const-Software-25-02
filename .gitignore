@@ -1,3 +1,7 @@
-.env
-attReadmeChangelog.md
-Const-Software-25-02/api
+# Infra
+infra/.aws/*
+infra/.terraform/*
+.terraform.*
+.tfstate
+
+# EXTRAS

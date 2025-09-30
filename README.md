@@ -3,13 +3,78 @@ Grupo L
 
 https://github.com/v-Kaefer/Const-Software-25-02
 
+![Tests](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/tests.yaml/badge.svg)
+![Docker Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/docker-build.yaml/badge.svg)
+
+
+# Sprint 0 - Update
+
+```mermaid
+flowchart TD
+  subgraph Client
+    B["HTTP Client (curl, browser, Postman)"]
+    SW[Swagger UI]
+  end
+
+  subgraph API["YourApp (processo)"]
+    H["HTTP Router (net/http)"]
+    S["Service (Regras/Transações)"]
+    R["Repository (GORM)"]
+    M[(Model / Entidades)]
+    CFG["Config (env)"]
+  end
+
+  subgraph Infra
+    PG[(Postgres)]
+  end
+
+  B -->|JSON/HTTP| H
+  SW -->|/openapi/openapi.yaml| B
+
+  H -->|chama casos de uso| S
+  S -->|usa| R
+  R -->|CRUD| PG
+  S -->|entidades| M
+
+  CFG --> H
+  CFG --> S
+  CFG --> R
+
+```
+
 ---
 
-# Infrastructure - Terraform + AWS + Github Actions + Docker
 
-**Sprint 1 - Setup de Infraestrutura com Terraform (IaC), para AWS**
 
-> 
+# Sprint 0 – Setup de Time, Stack e Projeto
+
+Este pacote entrega um **arquivo fonte OpenAPI** para o domínio `User` (com **POST**, **PATCH** e **PUT**), um **README** passo‑a‑passo, além de arquivos básicos de infraestrutura (Docker/Docker Compose e migração SQL) para iniciar o projeto com Go, Gin e PostgreSQL.
+
+---
+
+## 📦 Estrutura do repositório
+
+```
+.
+├── cmd/
+│   └── api/
+│       └── main.go                # (stub futuro) inicialização do servidor Gin
+├── internal/
+│   ├── config/                    # (stub futuro) leitura de envs/config
+│   ├── http/                      # (stub futuro) middlewares e roteamento
+│   └── user/                      # (stub futuro) handlers, service e repository
+├── migrations/
+│   └── 0001_init.sql              # criação da tabela users
+├── openapi/
+│   └── openapi.yaml               # especificação da API
+├── Dockerfile                     # build da API
+├── docker-compose.yml             # orquestração (db, api, swagger)
+├── .env.example                   # variáveis de ambiente padrão
+└── README.md                      # instruções de build/run/test
+```
+
+---
+
 
 # User Service – Go + Gin + PostgreSQL
 

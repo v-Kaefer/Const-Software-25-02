@@ -1,0 +1,12 @@
+# Infra
+infra/.aws/*
+infra/.terraform/*
+.terraform.*
+.tfstate
+
+# Infra local
+infra-localstack/
+infra-localstack/.aws/*
+infra-localstack/.terraform/*
+
+# EXTRAS

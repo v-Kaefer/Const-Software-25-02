@@ -4,7 +4,7 @@ infra/.terraform/*
 .terraform.*
 .tfstate
 
-# Infra local
+# Infra local (localstack)
 infra-localstack/.terraform/*
 
 # EXTRAS

@@ -33,4 +33,4 @@ jobs:
           context: .
           file: Dockerfile
           push: false
-          tags: COnst-Software-25-02:ci
+          tags: const-software-25-02:ci

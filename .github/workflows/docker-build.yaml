@@ -4,6 +4,8 @@ on:
   push:
     branches: [ main, develop, feat/Sprint0]
     tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ main, develop]
 
 permissions:
   contents: read
@@ -15,6 +17,7 @@ concurrency:
 jobs:
   build:
     name: Build container image
+    needs: [build, unit-and-e2e]
     runs-on: ubuntu-latest
 
     steps:

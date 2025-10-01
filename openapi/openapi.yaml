@@ -2,7 +2,6 @@ openapi: 3.1.0
 info:
   title: Trabalho 1 - Construção de Software
   description: API RESTful para gestão de alunos e matrículas
-<<<<<<< HEAD
   version: 1.0.0
 servers:
 - url: https://api.trabalho1.com/v1
@@ -314,6 +313,8 @@ components:
   examples: {}
   requestBodies: {}
 =======
+=======
+>>>>>>> c2ec7885ede422bfb2fb6872931c4b780ee9a33d
   version: "1.0.0"
 
 servers:
@@ -583,4 +584,7 @@ paths:
       responses:
         '204':
           description: Matrícula removida
+<<<<<<< HEAD
 >>>>>>> c2ec788 (fix repo folders)
+=======
+>>>>>>> c2ec7885ede422bfb2fb6872931c4b780ee9a33d

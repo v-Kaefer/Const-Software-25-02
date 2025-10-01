@@ -6,3 +6,9 @@ infra/.terraform/*
 
 # Infra local (localstack)
 infra-localstack/.terraform/*
+
+# Build artifacts
+main
+*.out
+coverage.out
+coverage.html

@@ -5,6 +5,7 @@ on:
     branches: [ main, develop, feat/Sprint0]
   pull_request:
     branches: [ main, develop, feat/Sprint0]
+  workflow_call:
 
 permissions:
   contents: read

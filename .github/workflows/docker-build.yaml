@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main, develop, feat/Sprint0]
     tags: [ 'v*.*.*' ]
+  workflow_call:
 
 permissions:
   contents: read

@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop, feat/Sprint0 ]
+  pull_request:
+    branches: [ main, develop, feat/Sprint0 ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Test
+    uses: ./.github/workflows/build.yaml
+
+  unit-and-e2e-tests:
+    name: Unit and E2E Tests
+    needs: build
+    uses: ./.github/workflows/tests.yaml
+
+  docker-build:
+    name: Docker Build
+    needs: [build, unit-and-e2e-tests]
+    uses: ./.github/workflows/docker-build.yaml

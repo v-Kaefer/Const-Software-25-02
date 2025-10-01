@@ -2,309 +2,265 @@ openapi: 3.1.0
 info:
   title: Trabalho 1 - Construção de Software
   description: API RESTful para gestão de alunos e matrículas
-  version: 1.0.0
+  version: "1.0.0"
+
 servers:
-- url: https://api.trabalho1.com/v1
-  description: Servidor principal
-- url: http://localhost:8080
-  description: Ambiente local (Docker Compose)
-tags:
-- name: Users
-  description: Operações sobre usuários
-paths:
-  /v1/users:
-    get:
-      tags:
-      - Users
-      summary: Listar usuários
-      operationId: listUsers
-      parameters:
-      - $ref: '#/components/parameters/PageParam'
-      - $ref: '#/components/parameters/PageSizeParam'
-      - $ref: '#/components/parameters/QParam'
-      responses:
-        '200':
-          description: Lista paginada de usuários
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/User'
-                  meta:
-                    $ref: '#/components/schemas/PageMeta'
-    post:
-      tags:
-      - Users
-      summary: Criar usuário
-      operationId: createUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserCreate'
-      responses:
-        '201':
-          description: Criado
-          headers:
-            Location:
-              description: URL do recurso criado
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
-  /v1/users/{userId}:
-    parameters:
-    - $ref: '#/components/parameters/UserIdParam'
-    get:
-      tags:
-      - Users
-      summary: Obter usuário por ID
-      operationId: getUser
-      responses:
-        '200':
-          description: Usuário encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    put:
-      tags:
-      - Users
-      summary: Substituir usuário (atualização completa)
-      description: Atualiza **todos** os campos do recurso. Use **PUT** quando você possuir a
-        representação completa.
-      operationId: replaceUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserPut'
-      responses:
-        '200':
-          description: Usuário atualizado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-    patch:
-      tags:
-      - Users
-      summary: Atualizar parcialmente usuário (merge-patch)
-      description: Atualiza **alguns** campos do recurso. Usa `application/merge-patch+json`;
-        campos omitidos **não** são alterados; campos nulos podem **anular** valores.
-      operationId: patchUser
-      requestBody:
-        required: true
-        content:
-          application/merge-patch+json:
-            schema:
-              $ref: '#/components/schemas/UserPatch'
-      responses:
-        '200':
-          description: Usuário atualizado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-    delete:
-      tags:
-      - Users
-      summary: Remover usuário
-      operationId: deleteUser
-      responses:
-        '204':
-          description: Removido
-        '404':
-          $ref: '#/components/responses/NotFound'
+  - url: https://api.trabalho1.com/v1
+    description: Servidor principal
+
 components:
-  parameters:
-    UserIdParam:
-      name: userId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: UUID do usuário
-    PageParam:
-      name: page
-      in: query
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-      description: Página
-    PageSizeParam:
-      name: pageSize
-      in: query
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 20
-      description: Tamanho da página (máx. 100)
-    QParam:
-      name: q
-      in: query
-      schema:
-        type: string
-      description: Texto de busca (ex.: nome/email)
+  securitySchemes:
+    Auth0:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://your-auth0-domain/authorize
+          tokenUrl: https://your-auth0-domain/oauth/token
+          scopes: {}
   schemas:
-    User:
+    Aluno:
       type: object
-      required:
-      - id
-      - name
-      - email
-      - isActive
-      - createdAt
-      - updatedAt
       properties:
         id:
-          type: string
-          format: uuid
-        name:
-          type: string
-          minLength: 1
-          maxLength: 120
-        email:
-          type: string
-          format: email
-          maxLength: 254
-        isActive:
-          type: boolean
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-    UserCreate:
-      type: object
-      required:
-      - name
-      - email
-      - password
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 120
-        email:
-          type: string
-          format: email
-          maxLength: 254
-        password:
-          type: string
-          minLength: 8
-          maxLength: 128
-    UserPut:
-      type: object
-      required:
-      - name
-      - email
-      - isActive
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 120
-        email:
-          type: string
-          format: email
-          maxLength: 254
-        isActive:
-          type: boolean
-    UserPatch:
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - 'null'
-          minLength: 0
-          maxLength: 120
-        email:
-          type:
-          - string
-          - 'null'
-          format: email
-          maxLength: 254
-        isActive:
-          type:
-          - boolean
-          - 'null'
-    PageMeta:
-      type: object
-      required:
-      - page
-      - pageSize
-      - total
-      properties:
-        page:
           type: integer
-        pageSize:
-          type: integer
-        total:
-          type: integer
-          minimum: 0
-    Error:
+        nome:
+          type: string
+        genero:
+          type: string
+        nascimento:
+          type: string
+          format: date
+      required: [nome, genero, nascimento]
+    Matricula:
       type: object
-      required:
-      - code
-      - message
       properties:
-        code:
+        id:
+          type: integer
+        semestre:
           type: string
-          example: BAD_REQUEST
-        message:
+        curso:
           type: string
-        details:
-          type: object
-          additionalProperties: true
-  responses:
-    BadRequest:
-      description: Requisição inválida
-      content:
-        application/json:
+      required: [semestre, curso]
+
+security:
+  - Auth0: []
+
+paths:
+  /alunos:
+    get:
+      summary: Recupera todos os alunos
+      responses:
+        '200':
+          description: Lista de alunos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Aluno'
+    post:
+      summary: Cria um novo aluno
+      security:
+        - Auth0: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+      responses:
+        '201':
+          description: Aluno criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
+
+  /alunos/{id_aluno}:
+    get:
+      summary: Recupera aluno pelo ID
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
           schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: Recurso não encontrado
-      content:
-        application/json:
+            type: integer
+      responses:
+        '200':
+          description: Aluno encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
+        '404':
+          description: Aluno não encontrado
+    put:
+      summary: Atualiza aluno por ID
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
           schema:
-            $ref: '#/components/schemas/Error'
-    Conflict:
-      description: 'Conflito (ex.: email já utilizado)'
-      content:
-        application/json:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+      responses:
+        '200':
+          description: Aluno atualizado
+    patch:
+      summary: Atualiza parcialmente aluno por ID
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+      responses:
+        '200':
+          description: Aluno atualizado parcialmente
+    delete:
+      summary: Deleta aluno por ID
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Aluno deletado
+
+  /alunos/{id_aluno}/matriculas:
+    get:
+      summary: Recupera todas as matrículas do aluno
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de matrículas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Matricula'
+    post:
+      summary: Cria nova matrícula para o aluno
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Matricula'
+      responses:
+        '201':
+          description: Matrícula criada
+
+  /alunos/{id_aluno}/matriculas/{id_matricula}:
+    get:
+      summary: Recupera matrícula específica do aluno
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: id_matricula
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Matrícula encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Matricula'
+    put:
+      summary: Atualiza matrícula por ID
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: id_matricula
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Matricula'
+      responses:
+        '200':
+          description: Matrícula atualizada
+    patch:
+      summary: Atualiza parcialmente matrícula por ID
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: id_matricula
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Matricula'
+      responses:
+        '200':
+          description: Matrícula parcialmente atualizada
+    delete:
+      summary: Remove matrícula do aluno
+      security:
+        - Auth0: []
+      parameters:
+        - in: path
+          name: id_aluno
+          required: true
           schema:
             $ref: '#/components/schemas/Error'
   headers: {}
@@ -312,9 +268,6 @@ components:
   callbacks: {}
   examples: {}
   requestBodies: {}
-=======
-=======
->>>>>>> c2ec7885ede422bfb2fb6872931c4b780ee9a33d
   version: "1.0.0"
 
 servers:
@@ -584,7 +537,3 @@ paths:
       responses:
         '204':
           description: Matrícula removida
-<<<<<<< HEAD
->>>>>>> c2ec788 (fix repo folders)
-=======
->>>>>>> c2ec7885ede422bfb2fb6872931c4b780ee9a33d

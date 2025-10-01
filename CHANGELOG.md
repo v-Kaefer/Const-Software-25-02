@@ -1,3 +1,8 @@
+## Add LocalStack
+
+https://docs.localstack.cloud/aws/getting-started/installation/
+
+
 # **Sprint 1 – Definição e Gerenciamento de Infraestrutura como Código (IaC)**
 
 ## Objetivo:

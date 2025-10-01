@@ -1,6 +1,8 @@
 # Infra
 infra/.aws/*
 infra/.terraform/*
+infra-localstack/.aws/*
+infra-localstack/.terraform/*
 .terraform.*
 .tfstate
 

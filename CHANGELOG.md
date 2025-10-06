@@ -1,47 +1,30 @@
-## Update 02 - 23/08
+## Add LocalStack
 
-* Instalação local e setup do [GORM](https://gorm.io/docs/)
-- Preparo da geração do banco de dados, para setup do Docker.
-
-- O comando `go mod tidy`, instala e atualiza dependências locais necessárias.
-- o comando `go test ./...`, quando executado na raiz do projeto, percorre todas as pastas e roda todos os testes.
-
-### Docker
-- Implementação e atualização em
-- Comando `docker run --rm hello-world` roda um teste de conteiner, sem precisar configurar nada.
-- Comando `docker compose up --build` sobe o conteiner usando os parâmetros do compose. Mas para atualizar os parâmetros, é necessário reiniciar.
-- Comando `docker compose down -v` encerra o conteiner.
-
-### GORM
-Por que cada import é necessário?
-
-* `internal/config`: carrega/expõe AppConfig e o DSN do banco. Sem ele, o db.Open não sabe como conectar.
-
-* `internal/db`: concentra a abertura do GORM, tuning do pool e migrações. Mantém o main limpo e evita duplicar setup.
-
-* `internal/user`: contém o domínio (model), o repositório (acesso a dados via GORM) e o serviço (regras/transactions). O main cria as instâncias e injeta onde precisa.
-
-* `internal/http`: camada de entrega. Recebe apenas o serviço (interface/struct) — não importa gorm. Facilita testes e troca de persistência.
-
-#### Estrutura atualizada
+https://docs.localstack.cloud/aws/getting-started/installation/
 
 
+# **Sprint 1 – Definição e Gerenciamento de Infraestrutura como Código (IaC)**
 
-## Update 01 - 23/08
+## Objetivo:
+Ampliar o projeto atual de provisionamento e configuração de infraestrutura para incluir a definição e o gerenciamento da infraestrutura como código (IaC) utilizando ferramentas como Terraform, AWS SAM, Serverless Framework, Pulumi, ou outra solução adequada.
 
-* fix/Github Actions
+> **O objetivo é definir e automatizar a criação de todos os recursos necessários na AWS para hospedar e executar o projeto de software.**
 
-* Add Go Tests 
-- Comando `go mod init cmd/tests`, onde "cmd/tests" é a definição da pasta onde os testes serão buscados. Gerando o arquivo de módulos `go.mod`. O comando `go test`, deve ser executado na pasta de testes `cmd/tests`.
+### Pré-requisitos:
 
-### Por que separar os testes?
-- A classes que desejam ser testadas, devem estar na mesma pasta que o teste.
-- A separação, ajuda no controle de classes nos repositórios `main`, `develop`, `tests` & `features`.
-Assim, os commits podem ser submetidos, com as classes "bagunçadas", na pasta de testes e ajustadas para o merge em `develop`.
+* Conta AWS com permissões necessárias.
+
+* Projeto de software hospedado no GitHub.
+
+* Conhecimento básico de AWS, GitHub Actions e Docker.
+
+* Conhecimento básico em IaC.
 
 
-**Sprint 0 – Setup de Time, Stack e Projeto**
+# **Sprint 0 – Setup de Time, Stack e Projeto**
 
-# User Service – Go + Gin + PostgreSQL
+## User Service – Go + Gin + PostgreSQL
+
+Este pacote entrega um **arquivo fonte OpenAPI** para o domínio `User` (com **POST**, **PATCH** e **PUT**), um **README** passo‑a‑passo, além de arquivos básicos de infraestrutura (Docker/Docker Compose e migração SQL) para iniciar o projeto com Go, Gin e PostgreSQL.
 
 > Serviço base para o domínio **User**, com especificação **OpenAPI**, infraestrutura Docker, migração SQL e CI simples em GitHub Actions.

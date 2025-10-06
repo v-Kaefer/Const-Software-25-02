@@ -22,6 +22,5 @@ COPY --from=builder /out/usersvc /app/usersvc
 EXPOSE 8080
 USER nonroot:nonroot
 ENTRYPOINT ["/app/usersvc"]
-```
 
 #> **Nota:** O `go.mod`/`go.sum` e o código em `cmd/api` serão adicionados quando você iniciar a implementação do servidor Gin (Sprint 1). O Compose e o Swagger já funcionam agora para documentação.

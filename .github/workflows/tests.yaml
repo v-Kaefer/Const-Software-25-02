@@ -4,7 +4,8 @@ on:
   push:
     branches: [ main, develop, feat/Sprint0]
   pull_request:
-    branches: [ main, develop, feat/Sprint0, clean-sprint1]
+    branches: [ main, develop, feat/Sprint0]
+  workflow_call:
 
 permissions:
   contents: read

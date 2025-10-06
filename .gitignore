@@ -9,6 +9,7 @@ infra-localstack/.terraform/*
 
 # Build artifacts
 main
+api
 *.out
 coverage.out
 coverage.html

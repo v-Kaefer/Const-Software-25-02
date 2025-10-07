@@ -1,14 +1,14 @@
 # Infra
 infra/.aws/*
 infra/.terraform/*
-.terraform.*
-.tfstate
-
-# Infra local (localstack)
 infra-localstack/.terraform/*
+.terraform.*
 
 # Build artifacts
 main
 *.out
 coverage.out
 coverage.html
+
+# EXTRAS
+.env

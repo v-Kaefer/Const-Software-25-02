@@ -42,7 +42,7 @@ jobs:
 
       - name: Run tests (race + coverage)
         run: |
-          go test ./cmd/tests -race -covermode=atomic -coverprofile=coverage.out -v
+          go test ./... -race -covermode=atomic -coverprofile=coverage.out -v
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4

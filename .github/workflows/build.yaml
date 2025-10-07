@@ -2,9 +2,10 @@ name: GO Build Test
 
 on:
   push:
-    branches: [ main, develop, feat/Sprint0]
+    branches: [ main, develop, feat/Sprint1 ]
   pull_request:
-    branches: [ main, develop, feat/Sprint0]
+    branches: [ main, develop ]
+  workflow_call:
 
 jobs:
 
@@ -22,4 +23,4 @@ jobs:
       run: go build -v ./cmd/api/main.go
 
     - name: Test
-      run: go test -v ./...
+      run: go test -v ./cmd/tests

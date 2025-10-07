@@ -4,5 +4,11 @@ infra/.terraform/*
 infra-localstack/.terraform/*
 .terraform.*
 
+# Build artifacts
+main
+*.out
+coverage.out
+coverage.html
+
 # EXTRAS
 .env

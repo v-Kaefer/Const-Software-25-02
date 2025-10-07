@@ -19,8 +19,6 @@ func main() {
 
 	fmt.Println("Hello, 世界")
 
-
-
 	// 1) Config (env, DSN, env=development|production)
 	cfg := config.Load()
 

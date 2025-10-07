@@ -5,8 +5,7 @@ import (
     "regexp"
 )
 
-// TestHelloName calls greetings.Hello with a name, checking
-// for a valid return value.
+// TestHelloName calls greetings.Hello with a name, checking for a valid return value.
 func TestHelloName(t *testing.T) {
     name := "Gladys"
     want := regexp.MustCompile(`\b`+name+`\b`)
@@ -16,8 +15,7 @@ func TestHelloName(t *testing.T) {
     }
 }
 
-// TestHelloEmpty calls greetings.Hello with an empty string,
-// checking for an error.
+// TestHelloEmpty calls greetings.Hello with an empty string, checking for an error.
 func TestHelloEmpty(t *testing.T) {
     msg, err := Hello("")
     if msg != "" || err == nil {

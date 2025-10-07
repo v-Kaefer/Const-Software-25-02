@@ -10,3 +10,4 @@ func Hello(name string) (string, error) {
     message := "Hi, " + name + ". Welcome!"
     return message, nil
 }
+

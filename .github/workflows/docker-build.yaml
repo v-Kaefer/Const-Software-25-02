@@ -2,7 +2,9 @@ name: Docker Build
 
 on:
   push:
-    branches: [ main, develop, feat/Sprint0]
+    branches: [ main, develop, feat/Sprint1 ]
+  pull_request:
+    branches: [ main, develop ]
     tags: [ 'v*.*.*' ]
   workflow_call:
 

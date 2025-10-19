@@ -3,17 +3,8 @@ Grupo L
 
 https://github.com/v-Kaefer/Const-Software-25-02
 
-
 ![Tests](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/tests.yaml/badge.svg)
 ![Docker Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/docker-build.yaml/badge.svg)
-
-# **Sprint 1 - Setup de Infraestrutura com Terraform (IaC), para AWS**
-
-Infrastructure - Terraform + AWS + Github Actions + Docker
-
-# Sprint 0 – Setup de Time, Stack e Projeto
-
-Este pacote entrega um **arquivo fonte OpenAPI** para o domínio `User` (com **POST**, **PATCH** e **PUT**), um **README** passo‑a‑passo, além de arquivos básicos de infraestrutura (Docker/Docker Compose e migração SQL) para iniciar o projeto com Go, Gin e PostgreSQL.
 
 ---
 
@@ -40,8 +31,6 @@ Este pacote entrega um **arquivo fonte OpenAPI** para o domínio `User` (com **P
 
 # User Service – Go + Gin + PostgreSQL
 
-**Sprint 0 – Setup de Time, Stack e Projeto**
-
 > Serviço base para o domínio **User**, com especificação **OpenAPI**, infraestrutura Docker, migração SQL e CI simples em GitHub Actions.
 
 ## Sumário
@@ -49,8 +38,8 @@ Este pacote entrega um **arquivo fonte OpenAPI** para o domínio `User` (com **P
 2. [Pré-requisitos](#pré-requisitos)
 3. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
 4. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
-5. [Entregas da Sprint 0 (Definition of Done)](#entregas-da-sprint-0-definition-of-done)
-6. [Entregas da Sprint 1 (Definition of Done)](#entregas-da-sprint-1-definition-of-done)
+5. [GitHub Copilot Contributions](#github-copilot-contributions)
+6. [Additional Resources](#additional-resources)
 
 
 ## Objetivo
@@ -106,23 +95,45 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
    go run ./cmd/api
    ```
 
+---
 
+## GitHub Copilot Contributions
 
-# Entregas da Sprint 0 (Definition of Done)
+This project leverages GitHub Copilot to accelerate development and maintain high code quality. Below is a summary of the key areas where Copilot has contributed to the project:
 
-* **Stack definida** (Go, Gin, PostgreSQL)
-* **Repositório Git com estrutura** (diretórios e arquivos guia)
-* **Docker + docker-compose com banco rodando** (serviço `db`, `api` e `swagger` prontos)
-* **CRUD para User (definição OpenAPI)** com **POST**, **PATCH** e **PUT** detalhados (GET/DELETE incluídos)
-* **README** com instruções de build/run/test
+### Core Application Components
+- **Go + Gin Framework Setup**: Complete REST API structure with handlers, services, and repositories
+- **User Domain Implementation**: Full CRUD operations for user management
+- **Database Integration**: PostgreSQL connection, GORM ORM, and migration tools
+- **Configuration Management**: Environment-based configuration system
 
-# Entregas da Sprint 1 (Definition of Done)
+### Infrastructure & DevOps
+- **Containerization**: Dockerfile and docker-compose.yaml for multi-service orchestration
+- **AWS Infrastructure**: Terraform configurations for VPC, S3, DynamoDB, and IAM
+- **LocalStack Setup**: Local AWS simulation for development and testing
+- **CI/CD Pipelines**: GitHub Actions workflows for build, test, and deployment
 
-**Infraestrutura do projeto definida e gerenciada na AWS:**
-* Scripts e configurações IaC.
-* Todos os artefatos necessários para a configuração da infraestrutura na AWS.
-* Projeto no GitHub contendo a pasta (infra)
-* 
-Entrega Final:
-O trabalho deve ser entregue em um arquivo .zip contendo o repositório de fontes completo, incluindo a pasta
+### Testing & Quality
+- **Comprehensive Test Suite**: Unit tests, integration tests, and E2E tests
+- **Test Coverage**: Automated coverage reporting in CI/CD
+- **Mock Implementations**: In-memory database for testing
+
+### API Documentation
+- **OpenAPI Specification**: Complete API documentation with request/response schemas
+- **Swagger UI**: Interactive API documentation via Docker
+
+### Development Tools
+- **Database Migrations**: SQL-based migration system
+- **Code Quality Tools**: Go formatting, linting, and best practices
+- **Documentation**: Contributing guidelines, changelog, and setup instructions
+
+For detailed information about all Copilot contributions, see [COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md).
+
+---
+
+## Additional Resources
+
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines, conventions, and detailed setup instructions
+- **[CHANGELOG.md](./CHANGELOG.md)**: Sprint reviews and project history
+- **[COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md)**: Complete tracking of GitHub Copilot contributions
 

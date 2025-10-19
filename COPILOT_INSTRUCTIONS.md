@@ -2,6 +2,10 @@
 
 Este documento rastreia todos os componentes, funcionalidades e infraestrutura que o GitHub Copilot adicionou ao projeto.
 
+## Como Este Documento é Mantido
+
+Para garantir precisão, as contribuições do Copilot são verificadas através do histórico do Git usando `git blame` e revisão de Pull Requests. Apenas modificações realmente feitas pelo Copilot são documentadas aqui. Todo o resto do código, infraestrutura e documentação foi desenvolvido pela equipe do projeto.
+
 ## Histórico de Contribuições
 
 ### PR #20 - Correção de Workflows CI/CD (Outubro 2025)
@@ -37,6 +41,12 @@ O GitHub Copilot foi utilizado para diagnosticar e corrigir problemas nos workfl
   - `TestService_RegisterAndGet` (pkg/user)
 - Workflows executam corretamente em todas as branches
 - Relatórios de cobertura incluem todos os pacotes testados
+
+**Verificação das Contribuições:**
+- Revisão do histórico Git confirmou que o Copilot modificou apenas os 3 arquivos de workflow listados acima
+- Comando usado: `git log --author="copilot"` e análise da PR #20
+- Total de alterações: 3 arquivos, mudando comandos de teste de `./cmd/tests` para `./...`
+- Todas as outras contribuições (aplicação, infraestrutura, testes, documentação) foram feitas por v-Kaefer e equipe
 
 ## Estrutura do Projeto (Criada por v-Kaefer e Equipe)
 

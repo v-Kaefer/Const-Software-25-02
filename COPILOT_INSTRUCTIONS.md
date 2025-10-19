@@ -1,98 +1,70 @@
-# GitHub Copilot Contributions
+# Contribuições do GitHub Copilot
 
-This document tracks all components, features, and infrastructure that GitHub Copilot has added to the project.
+Este documento rastreia todos os componentes, funcionalidades e infraestrutura que o GitHub Copilot adicionou ao projeto.
 
-## Project Structure
+## Histórico de Contribuições
 
-### Application Core
-- **Go Application Setup**: Main application structure with Go 1.22+ and Gin framework
-- **cmd/api/main.go**: API server entry point with Gin initialization
-- **cmd/tests/**: Test utilities and greeting examples
+### PR #20 - Correção de Workflows CI/CD (Outubro 2025)
 
-### Domain Logic
-- **pkg/user/**: Complete User domain implementation
-  - **model.go**: User data model
-  - **service.go**: Business logic layer
-  - **service_test.go**: Service unit tests
-  - **repo.go**: Data access layer
-  - **repo_test.go**: Repository unit tests
+O GitHub Copilot foi utilizado para diagnosticar e corrigir problemas nos workflows de CI/CD que impediam a execução completa dos testes.
 
-### Internal Components
-- **internal/config/config.go**: Configuration management
-- **internal/db/**: Database connection and migration utilities
-  - **db.go**: Database connection setup
-  - **migrate.go**: Migration runner
-  - **migrate_test.go**: Migration tests
-- **internal/http/**: HTTP layer
-  - **handler.go**: HTTP handlers
-  - **handler_e2e__test.go**: End-to-end tests
+**Problema Identificado:**
+- Apenas 2 de 6 testes estavam sendo executados nos pipelines de CI
+- Workflows falhavam ao serem executados diretamente nas branches `main` e `develop`
+- Erro de sintaxe YAML no workflow `docker-build.yaml`
 
-## Infrastructure
+**Arquivos Modificados pelo Copilot:**
 
-### Containerization
-- **Dockerfile**: Application containerization
-- **docker-compose.yaml**: Multi-service orchestration (API, PostgreSQL, Swagger)
+1. **`.github/workflows/build.yaml`**
+   - Alterou comando de teste de `go test -v ./cmd/tests` para `go test -v ./...`
+   - Permite execução de todos os testes em todos os pacotes
 
-### Database
-- **migrations/0001_init.sql**: Initial database schema for users table
+2. **`.github/workflows/tests.yaml`**
+   - Alterou comando de teste de `go test ./cmd/tests -race -covermode=atomic -coverprofile=coverage.out -v` para `go test ./... -race -covermode=atomic -coverprofile=coverage.out -v`
+   - Garante cobertura completa de todos os pacotes
 
-### AWS Infrastructure (Terraform)
-- **infra/**: Production AWS infrastructure
-  - **main.tf**: Main Terraform configuration
-  - **terraform.tf**: Terraform provider setup
-  - **vpc.tf**: VPC and networking configuration
-  - **s3.tf**: S3 bucket configuration
-  - **dynamodb.tf**: DynamoDB table configuration
-  - **iam.tf**: IAM roles and policies
+3. **`.github/workflows/docker-build.yaml`**
+   - Moveu trigger `tags: [ 'v*.*.*' ]` de `pull_request:` para `push:` (correção de sintaxe)
+   - Removeu dependência inválida `needs: [build, unit-and-e2e]` que causava falhas
 
-### Local Development (LocalStack)
-- **infra-localstack/**: Local AWS simulation
-  - Complete mirror of production infrastructure for local testing
-  - Same resources as infra/ but configured for LocalStack
+**Resultado:**
+- Todos os 6 testes agora executam com sucesso no CI:
+  - `TestHelloName` (cmd/tests)
+  - `TestHelloEmpty` (cmd/tests)
+  - `TestAutoMigrate` (internal/db)
+  - `TestHTTP_CreateAndGetUser` (internal/http)
+  - `TestRepo_CreateAndFind` (pkg/user)
+  - `TestService_RegisterAndGet` (pkg/user)
+- Workflows executam corretamente em todas as branches
+- Relatórios de cobertura incluem todos os pacotes testados
 
-## API Documentation
-- **openapi/openapi.yaml**: Complete OpenAPI 3.0 specification
-- **openapi.yaml**: Root-level API specification
-- Swagger UI integration via Docker Compose
+## Estrutura do Projeto (Criada por v-Kaefer e Equipe)
 
-## CI/CD Pipelines
-- **.github/workflows/build.yaml**: Build pipeline
-- **.github/workflows/ci.yaml**: Continuous integration
-- **.github/workflows/docker-build.yaml**: Docker image building
-- **.github/workflows/tests.yaml**: Automated testing
+O restante da estrutura do projeto, incluindo toda a arquitetura, código da aplicação, infraestrutura e documentação, foi desenvolvido pela equipe (v-Kaefer e colaboradores):
 
-## Testing Infrastructure
-- Unit tests for all major components
-- Integration test setup with in-memory SQLite
-- E2E test framework
-- Test coverage reporting
+### Núcleo da Aplicação
+- Configuração Go + Gin Framework
+- Implementação completa do domínio User (CRUD)
+- Camadas de handler, service e repository
+- Gerenciamento de configuração
 
-## Dependencies
-- **go.mod**: Go module dependencies
-- **go.sum**: Dependency checksums
-- Core libraries:
-  - Gin Web Framework
-  - GORM (ORM)
-  - PostgreSQL driver
-  - SQLite driver (for testing)
+### Infraestrutura
+- Containerização com Docker e Docker Compose
+- Infraestrutura AWS com Terraform (VPC, S3, DynamoDB, IAM)
+- Configuração LocalStack para desenvolvimento local
+- Migrações de banco de dados PostgreSQL
 
-## Development Tools
-- Go formatting and linting setup
-- Docker-based development environment
-- Database migration tooling
-- Environment configuration via .env files
+### Testes
+- Testes unitários para todos os componentes principais
+- Testes de integração com SQLite em memória
+- Testes E2E
+- Framework de cobertura de código
 
-## Documentation
-- **CONTRIBUTING.md**: Development guidelines and conventions
-- **CHANGELOG.md**: Sprint history and changes
-- **README.md**: Project overview and setup instructions
+### Documentação da API
+- Especificação completa OpenAPI 3.0
+- Integração com Swagger UI
 
-## Key Features Implemented
-1. **RESTful API**: Complete CRUD operations for User resource
-2. **Database Integration**: PostgreSQL with migrations
-3. **Testing**: Comprehensive test coverage
-4. **CI/CD**: Automated build, test, and deployment pipelines
-5. **Infrastructure as Code**: Terraform for AWS provisioning
-6. **Local Development**: Docker Compose for easy local setup
-7. **API Documentation**: Interactive Swagger UI
-8. **Authentication Ready**: Bearer auth structure in OpenAPI (not enforced yet)
+### Documentação
+- README.md com instruções de setup
+- CONTRIBUTING.md com guias de desenvolvimento
+- CHANGELOG.md com histórico de sprints

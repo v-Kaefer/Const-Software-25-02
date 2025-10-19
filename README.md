@@ -38,8 +38,8 @@ https://github.com/v-Kaefer/Const-Software-25-02
 2. [Pré-requisitos](#pré-requisitos)
 3. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
 4. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
-5. [GitHub Copilot Contributions](#github-copilot-contributions)
-6. [Additional Resources](#additional-resources)
+5. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
+6. [Recursos Adicionais](#recursos-adicionais)
 
 
 ## Objetivo
@@ -97,43 +97,23 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
 
 ---
 
-## GitHub Copilot Contributions
+## Contribuições do GitHub Copilot
 
-This project leverages GitHub Copilot to accelerate development and maintain high code quality. Below is a summary of the key areas where Copilot has contributed to the project:
+Este projeto utilizou o GitHub Copilot para auxiliar no diagnóstico e correção de problemas técnicos específicos.
 
-### Core Application Components
-- **Go + Gin Framework Setup**: Complete REST API structure with handlers, services, and repositories
-- **User Domain Implementation**: Full CRUD operations for user management
-- **Database Integration**: PostgreSQL connection, GORM ORM, and migration tools
-- **Configuration Management**: Environment-based configuration system
+### Correção de Workflows CI/CD
+O Copilot foi utilizado para identificar e corrigir problemas nos workflows de CI/CD:
+- **Correção de Execução de Testes**: Alterou comandos de teste para executar todos os testes (`./...`) ao invés de apenas um pacote
+- **Correção de Sintaxe YAML**: Corrigiu triggers de tags no workflow docker-build
+- **Remoção de Dependências Inválidas**: Removeu dependências de jobs que causavam falhas nos workflows
 
-### Infrastructure & DevOps
-- **Containerization**: Dockerfile and docker-compose.yaml for multi-service orchestration
-- **AWS Infrastructure**: Terraform configurations for VPC, S3, DynamoDB, and IAM
-- **LocalStack Setup**: Local AWS simulation for development and testing
-- **CI/CD Pipelines**: GitHub Actions workflows for build, test, and deployment
-
-### Testing & Quality
-- **Comprehensive Test Suite**: Unit tests, integration tests, and E2E tests
-- **Test Coverage**: Automated coverage reporting in CI/CD
-- **Mock Implementations**: In-memory database for testing
-
-### API Documentation
-- **OpenAPI Specification**: Complete API documentation with request/response schemas
-- **Swagger UI**: Interactive API documentation via Docker
-
-### Development Tools
-- **Database Migrations**: SQL-based migration system
-- **Code Quality Tools**: Go formatting, linting, and best practices
-- **Documentation**: Contributing guidelines, changelog, and setup instructions
-
-For detailed information about all Copilot contributions, see [COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md).
+Para informações detalhadas sobre as contribuições do Copilot, consulte [COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md).
 
 ---
 
-## Additional Resources
+## Recursos Adicionais
 
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Development guidelines, conventions, and detailed setup instructions
-- **[CHANGELOG.md](./CHANGELOG.md)**: Sprint reviews and project history
-- **[COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md)**: Complete tracking of GitHub Copilot contributions
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Guias de desenvolvimento, convenções e instruções detalhadas de setup
+- **[CHANGELOG.md](./CHANGELOG.md)**: Revisões de sprints e histórico do projeto
+- **[COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md)**: Rastreamento completo das contribuições do GitHub Copilot
 

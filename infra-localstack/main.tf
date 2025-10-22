@@ -16,6 +16,8 @@ provider "aws" {
     apigatewayv2   = "http://localhost:4566"
     cloudformation = "http://localhost:4566"
     cloudwatch     = "http://localhost:4566"
+    cognitoidentity = "http://localhost:4566"  # ← Identity Pool
+    cognitoidp     = "http://localhost:4566"   # ← User Pool
     dynamodb       = "http://localhost:4566"
     ec2            = "http://localhost:4566"
     es             = "http://localhost:4566"
@@ -35,7 +37,7 @@ provider "aws" {
     ssm            = "http://localhost:4566"
     stepfunctions  = "http://localhost:4566"
     sts            = "http://localhost:4566"
-  }  
+  }
 }
 
 data "aws_caller_identity" "current" {}

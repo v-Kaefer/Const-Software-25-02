@@ -345,12 +345,50 @@ make cognito-local-setup
 
 ## 🐛 Troubleshooting
 
+### Container para logo após iniciar
+
+Se o container `cognito-local` para/encerra logo após iniciar:
+
+```bash
+# 1. Verificar logs do container
+docker logs cognito-local
+
+# 2. Verificar se o container está rodando
+docker ps -a | grep cognito-local
+
+# 3. Se estiver com status "Exited", verificar o erro
+docker logs cognito-local
+
+# 4. Causas comuns:
+# - Porta 9229 já em uso
+# - Problema com volume/permissões
+
+# 5. Solução: Limpar e reiniciar
+make cognito-local-clean
+make cognito-local-start
+
+# 6. Verificar status novamente
+docker ps | grep cognito-local
+```
+
+**Se o problema persistir:**
+```bash
+# Executar manualmente para ver erros em tempo real
+docker-compose -f docker-compose.cognito-local.yaml up
+
+# Ou ver logs continuamente
+docker-compose -f docker-compose.cognito-local.yaml logs -f
+```
+
 ### Erro: "Connection refused"
 ```bash
 # Verificar se o container está rodando
 docker ps | grep cognito-local
 
-# Ver logs
+# Se não estiver, ver logs
+docker logs cognito-local
+
+# Ver logs do compose
 docker-compose -f docker-compose.cognito-local.yaml logs
 
 # Reiniciar

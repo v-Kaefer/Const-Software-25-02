@@ -2,21 +2,53 @@
 
 * Para uma visualização geral da infra definida aqui utilize o comando ```terraform graph```
 
-## ⚠️ IMPORTANTE: Limitação do Cognito no Free Tier
+## 🔥 RECOMENDADO: cognito-local (100% Gratuito)
 
-**O Cognito NÃO está disponível no LocalStack free tier!** Para usar Cognito, você precisa:
+**Para testar Cognito localmente SEM CUSTOS, use cognito-local:**
+
+```bash
+# Do diretório raiz do projeto:
+
+# 1. Iniciar cognito-local
+make cognito-local-start
+
+# 2. Configurar (replica estrutura do cognito.tf)
+make cognito-local-setup
+
+# 3. Testar
+make cognito-local-test
+
+# 4. Parar
+make cognito-local-stop
+```
+
+**📖 Guia completo**: [COGNITO-LOCAL-SETUP.md](./COGNITO-LOCAL-SETUP.md)
+
+---
+
+## ⚠️ IMPORTANTE: Limitação do Cognito no LocalStack Free Tier
+
+**O Cognito NÃO está disponível no LocalStack free tier!** Para usar Cognito com LocalStack, você precisa:
 1. **LocalStack Pro** (pago) - [Saiba mais](https://localstack.cloud/pricing/)
-2. **Alternativas**: Use [cognito-local](https://github.com/jagregory/cognito-local) ou desabilite temporariamente o Cognito
+2. **Alternativa GRATUITA**: Use **cognito-local** (veja acima) ✅
 
 ### Opções para testar a infraestrutura:
 
-#### Opção A: Com LocalStack Pro (Cognito completo)
+#### Opção A: cognito-local (GRATUITO - Recomendado)
+```bash
+# Veja seção acima "RECOMENDADO: cognito-local"
+make cognito-local-start
+make cognito-local-setup
+make cognito-local-test
+```
+
+#### Opção B: LocalStack Pro (Cognito completo - Pago)
 ```bash
 export LOCALSTACK_API_KEY=seu-api-key
 make infra-up
 ```
 
-#### Opção B: Free Tier (S3 e DynamoDB apenas)
+#### Opção C: Free Tier (S3 e DynamoDB apenas - Sem Cognito)
 ```bash
 # Renomear cognito.tf temporariamente
 mv cognito.tf cognito.tf.disabled
@@ -29,17 +61,18 @@ make infra-up
 **Do diretório raiz do projeto**, você pode usar o Makefile para gerenciar toda a infraestrutura:
 
 ```bash
-# Ver todos os comandos disponíveis
+# Ver todos os comandos disponíveis (inclui cognito-local)
 make help
 
-# Iniciar LocalStack e aplicar Terraform
-make infra-up
+# Para Cognito (GRATUITO):
+make cognito-local-start   # Inicia cognito-local
+make cognito-local-setup   # Configura
+make cognito-local-test    # Testa
 
-# Testar a infraestrutura
-make infra-test
-
-# Destruir infraestrutura e parar LocalStack
-make infra-down
+# Para LocalStack (sem Cognito):
+make infra-up              # Iniciar LocalStack
+make infra-test            # Testar recursos
+make infra-down            # Destruir tudo
 ```
 
 ## Teste local (Manual)

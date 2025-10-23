@@ -78,15 +78,48 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
 ---
 
 
-## Como testar a infraestrutura localmente (Localstack)
+## Como testar a infraestrutura localmente
 
-**Usando o Makefile (Recomendado):**
+### 🔥 Opção 1: cognito-local (RECOMENDADO - 100% Gratuito)
+
+**Teste completo do Cognito localmente sem custos:**
+
+```bash
+# Passo 1: Iniciar cognito-local
+make cognito-local-start
+
+# Passo 2: Configurar (cria estrutura igual ao Terraform cognito.tf)
+make cognito-local-setup
+
+# Passo 3: Testar
+make cognito-local-test
+
+# Passo 4: Parar quando terminar
+make cognito-local-stop
+```
+
+**O que é criado:**
+- ✅ User Pool com políticas de senha
+- ✅ App Client
+- ✅ 3 Grupos (admin, reviewers, user)
+- ✅ 3 Usuários de exemplo
+- ✅ Arquivo de configuração JSON para integração
+
+>**📖 Guia completo**: [infra-localstack/COGNITO-LOCAL-SETUP.md](./infra-localstack/COGNITO-LOCAL-SETUP.md)
+
+---
+
+### Opção 2: LocalStack (S3 + DynamoDB - Sem Cognito)
+
+**Usando o Makefile:**
 
 ```bash
 # Ver todos os comandos disponíveis
 make help
 
-# Iniciar LocalStack e aplicar Terraform
+# Iniciar LocalStack e aplicar Terraform (sem Cognito)
+# Primeiro, desabilite o Cognito:
+cd infra-localstack && mv cognito.tf cognito.tf.disabled && cd ..
 make infra-up
 
 # Testar a infraestrutura
@@ -94,25 +127,10 @@ make infra-test
 
 # Destruir tudo
 make infra-down
+
+# Restaurar cognito.tf
+cd infra-localstack && mv cognito.tf.disabled cognito.tf && cd ..
 ```
-
-**Para testar Cognito GRATUITAMENTE com cognito-local:**
-
-```bash
-# 1. Iniciar cognito-local
-make cognito-local-start
-
-# 2. Configurar (cria estrutura igual ao Terraform)
-make cognito-local-setup
-
-# 3. Testar
-make cognito-local-test
-
-# 4. Parar quando terminar
-make cognito-local-stop
-```
-
->**✅ SOLUÇÃO IMPLEMENTADA**: cognito-local permite testar Cognito gratuitamente! Veja o guia completo em [infra-localstack/COGNITO-LOCAL-SETUP.md](./infra-localstack/COGNITO-LOCAL-SETUP.md).
 
 **Manualmente:**
 
@@ -135,7 +153,7 @@ make cognito-local-stop
    terraform apply
    ```
 
->**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro. Para usar o free tier com Cognito, use cognito-local (veja acima) ou renomeie temporariamente `cognito.tf` para `cognito.tf.disabled`. Veja detalhes em [infra-localstack/README.md](./infra-localstack/README.md).
+>**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro (pago). Para testar Cognito gratuitamente, use **cognito-local** (Opção 1 acima).
 
 ---
 ## Contribuições do GitHub Copilot

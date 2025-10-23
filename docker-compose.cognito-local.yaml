@@ -10,10 +10,4 @@ services:
       - ./infra-localstack/cognito-local-config:/app/.cognito
     environment:
       - COGNITO_LOCAL_DATABASE=/app/.cognito/db.json
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9229/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 5s
     restart: unless-stopped

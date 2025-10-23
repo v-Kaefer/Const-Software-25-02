@@ -129,8 +129,12 @@ cognito-local-start:
 	@echo "🚀 Iniciando cognito-local..."
 	@docker-compose -f docker-compose.cognito-local.yaml up -d
 	@echo "⏳ Aguardando cognito-local ficar pronto..."
-	@sleep 5
+	@sleep 10
+	@echo "🔍 Verificando status do container..."
+	@docker ps | grep cognito-local || (echo "❌ Container não está rodando" && docker logs cognito-local && exit 1)
 	@echo "✅ cognito-local iniciado em http://localhost:9229"
+	@echo ""
+	@echo "💡 Próximo passo: make cognito-local-setup"
 
 cognito-local-stop:
 	@echo "🛑 Parando cognito-local..."

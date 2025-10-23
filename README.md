@@ -80,17 +80,44 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
 
 ## Como testar a infraestrutura localmente (Localstack)
 
+**Usando o Makefile (Recomendado):**
+
+```bash
+# Ver todos os comandos disponíveis
+make help
+
+# Iniciar LocalStack e aplicar Terraform
+make infra-up
+
+# Testar a infraestrutura
+make infra-test
+
+# Destruir tudo
+make infra-down
+```
+
+**Manualmente:**
+
 1. No terminal, inicialize o localstack
    ```bash
    localstack start
    ```
 
-2. Na pasta ``infra-localstack``, execute o deploy com o terraform
-
+2. Na pasta ``infra-localstack``, configure as variáveis (opcional):
    ```bash
-   terraform plan
+   cd infra-localstack
+   cp terraform.tfvars.example terraform.tfvars
+   # Edite terraform.tfvars conforme necessário
    ```
->Aqui, você já deve receber a confirmação visual, das estruturas que serão criadas ou possíveis erros encontrados.
+
+3. Execute o deploy com o terraform:
+   ```bash
+   terraform init
+   terraform plan
+   terraform apply
+   ```
+
+>**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro. Para usar o free tier, renomeie temporariamente `cognito.tf` para `cognito.tf.disabled`. Veja detalhes em [infra-localstack/README.md](./infra-localstack/README.md).
 
 ---
 ## Contribuições do GitHub Copilot

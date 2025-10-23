@@ -4,6 +4,11 @@ infra/.terraform/*
 infra-localstack/.terraform/*
 .terraform.*
 infra-localstack/credentials.tf
+*.tfvars
+!*.tfvars.example
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
 
 # Build artifacts
 main

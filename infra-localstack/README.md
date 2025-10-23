@@ -52,12 +52,12 @@ make infra-down
 * [Docker](https://www.docker.com/)
 * [Terraform](https://www.terraform.io/)
 
-### 1. Configure as variáveis (Opcional)
+### 1. Configure as credenciais
 
 ```bash
 cd infra-localstack
-cp terraform.tfvars.example terraform.tfvars
-# Edite terraform.tfvars com seus valores para usuários Cognito
+cp credentials.tf.example credentials.tf
+# Edite credentials.tf com seus usuários (opcional - tem valores padrão)
 ```
 
 ### 2. Execute o Localstack

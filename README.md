@@ -121,11 +121,11 @@ make cognito-local-stop
    localstack start
    ```
 
-2. Na pasta ``infra-localstack``, configure as variáveis (opcional):
+2. Na pasta ``infra-localstack``, configure as credenciais:
    ```bash
    cd infra-localstack
-   cp terraform.tfvars.example terraform.tfvars
-   # Edite terraform.tfvars conforme necessário
+   cp credentials.tf.example credentials.tf
+   # Edite credentials.tf com seus usuários (opcional - tem valores padrão)
    ```
 
 3. Execute o deploy com o terraform:

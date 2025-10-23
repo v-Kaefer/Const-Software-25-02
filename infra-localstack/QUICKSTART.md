@@ -66,11 +66,11 @@ mv infra-localstack/cognito.tf.disabled infra-localstack/cognito.tf
 export LOCALSTACK_API_KEY=seu-api-key-aqui
 ```
 
-### Passo 3: Configurar usuários Cognito (opcional)
+### Passo 3: Configurar credenciais
 ```bash
 cd infra-localstack
-cp terraform.tfvars.example terraform.tfvars
-# Edite terraform.tfvars com seus usuários
+cp credentials.tf.example credentials.tf
+# Edite credentials.tf com seus usuários (opcional - tem valores padrão)
 ```
 
 ### Passo 4: Iniciar tudo

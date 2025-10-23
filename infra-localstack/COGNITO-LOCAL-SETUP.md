@@ -112,26 +112,39 @@ Use estes valores na sua aplicação.
 
 ### Customizar Usuários
 
-Para criar usuários personalizados, edite `terraform.tfvars.example` e copie para `terraform.tfvars`:
+Para criar usuários personalizados, copie `credentials.tf.example` para `credentials.tf` e edite:
 
+```bash
+cd infra-localstack
+cp credentials.tf.example credentials.tf
+# Edite credentials.tf com seus usuários
+```
+
+Exemplo de `credentials.tf`:
 ```hcl
-admin_users = [
-  {
-    email = "seu.admin@empresa.com"
-    name  = "Seu Admin"
-  }
-]
+variable "admin_users" {
+  default = [
+    {
+      email = "seu.admin@empresa.com"
+      name  = "Seu Admin"
+    }
+  ]
+}
 
-reviewer_users = [
-  {
-    email = "revisor@empresa.com"
-    name  = "Revisor"
-  }
-]
+variable "reviewer_users" {
+  default = [
+    {
+      email = "revisor@empresa.com"
+      name  = "Revisor"
+    }
+  ]
+}
 
-user_cognito = {
-  email = "usuario@empresa.com"
-  name  = "Usuario Padrão"
+variable "user_cognito" {
+  default = {
+    email = "usuario@empresa.com"
+    name  = "Usuario Padrão"
+  }
 }
 ```
 

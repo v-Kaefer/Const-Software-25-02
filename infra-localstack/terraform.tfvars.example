@@ -1,0 +1,24 @@
+# Example Terraform variables for LocalStack
+# Copy this file to terraform.tfvars and adjust the values
+
+# Admin users (can have multiple)
+admin_users = [
+  {
+    email = "admin@example.com"
+    name  = "Admin User"
+  }
+]
+
+# Reviewer users (can have multiple)
+reviewer_users = [
+  {
+    email = "reviewer@example.com"
+    name  = "Reviewer User"
+  }
+]
+
+# Main user configuration
+user_cognito = {
+  email = "user@example.com"
+  name  = "Main User"
+}

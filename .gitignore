@@ -10,6 +10,10 @@ terraform.tfstate
 terraform.tfstate.backup
 .terraform.lock.hcl
 
+# cognito-local
+infra-localstack/cognito-local-config/*.json
+infra-localstack/cognito-local-config/db.json
+
 # Build artifacts
 main
 *.out

@@ -96,6 +96,24 @@ make infra-test
 make infra-down
 ```
 
+**Para testar Cognito GRATUITAMENTE com cognito-local:**
+
+```bash
+# 1. Iniciar cognito-local
+make cognito-local-start
+
+# 2. Configurar (cria estrutura igual ao Terraform)
+make cognito-local-setup
+
+# 3. Testar
+make cognito-local-test
+
+# 4. Parar quando terminar
+make cognito-local-stop
+```
+
+>**✅ SOLUÇÃO IMPLEMENTADA**: cognito-local permite testar Cognito gratuitamente! Veja o guia completo em [infra-localstack/COGNITO-LOCAL-SETUP.md](./infra-localstack/COGNITO-LOCAL-SETUP.md).
+
 **Manualmente:**
 
 1. No terminal, inicialize o localstack
@@ -117,7 +135,7 @@ make infra-down
    terraform apply
    ```
 
->**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro. Para usar o free tier, renomeie temporariamente `cognito.tf` para `cognito.tf.disabled`. Veja detalhes em [infra-localstack/README.md](./infra-localstack/README.md).
+>**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro. Para usar o free tier com Cognito, use cognito-local (veja acima) ou renomeie temporariamente `cognito.tf` para `cognito.tf.disabled`. Veja detalhes em [infra-localstack/README.md](./infra-localstack/README.md).
 
 ---
 ## Contribuições do GitHub Copilot

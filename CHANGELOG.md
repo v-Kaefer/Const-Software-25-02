@@ -1,3 +1,28 @@
+## Add Autenticação 
+
+https://aws.amazon.com/pt/getting-started/hands-on/build-serverless-web-app-lambda-apigateway-s3-dynamodb-cognito/
+
+## Arquitetura do AWS Cognito
+O Cognito tem dois componentes principais:
+
+* User Pools: Autenticação (quem você é)
+* Identity Pools: Autorização (o que você pode fazer)
+
+### Estrutura
+
+* AWS Amplify
+Hospedagem de site estático (HTML, CSS, JavaScript, etc.)
+--
+* Amazon Cognito
+Gerenciamento de usuários
+--
+* Amazon API Gateway
+Back-end sem servidor
+--
+* Amazon DynamoDB
+AI RESTful
+
+
 ## Add LocalStack
 
 https://docs.localstack.cloud/aws/getting-started/installation/

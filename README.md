@@ -49,6 +49,7 @@ Este pacote entrega um **arquivo fonte OpenAPI** para o domínio `User` (com **P
 2. [Pré-requisitos](#pré-requisitos)
 3. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
 4. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
+5. [Como testar a infraestrutura localmente (Localstack)](#como-testar-a-infraestrutura-localmente-localstack)
 5. [Entregas da Sprint 0 (Definition of Done)](#entregas-da-sprint-0-definition-of-done)
 6. [Entregas da Sprint 1 (Definition of Done)](#entregas-da-sprint-1-definition-of-done)
 
@@ -107,6 +108,19 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
    ```
 
 
+## Como testar a infraestrutura localmente (Localstack)
+
+1. No terminal, inicialize o localstack
+   ```bash
+   localstack start
+   ```
+
+2. Na pasta ``infra-localstack``, execute o deploy com o terraform
+
+   ```bash
+   terraform plan
+   ```
+>Aqui, você já deve receber a confirmação visual, das estruturas que serão criadas ou possíveis erros encontrados.
 
 # Entregas da Sprint 0 (Definition of Done)
 
@@ -126,3 +140,6 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
 Entrega Final:
 O trabalho deve ser entregue em um arquivo .zip contendo o repositório de fontes completo, incluindo a pasta
 
+# Entregas da Sprint 2 (D.O.D.)
+
+* **Autenticação**

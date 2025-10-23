@@ -3,44 +3,12 @@ Grupo L
 
 https://github.com/v-Kaefer/Const-Software-25-02
 
-
+![CI](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/ci.yaml/badge.svg)
 ![Tests](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/tests.yaml/badge.svg)
+![Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/build.yaml/badge.svg)
 ![Docker Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/docker-build.yaml/badge.svg)
 
-# **Sprint 1 - Setup de Infraestrutura com Terraform (IaC), para AWS**
-
-Infrastructure - Terraform + AWS + Github Actions + Docker
-
-# Sprint 0 – Setup de Time, Stack e Projeto
-
-Este pacote entrega um **arquivo fonte OpenAPI** para o domínio `User` (com **POST**, **PATCH** e **PUT**), um **README** passo‑a‑passo, além de arquivos básicos de infraestrutura (Docker/Docker Compose e migração SQL) para iniciar o projeto com Go, Gin e PostgreSQL.
-
----
-
-## 📦 Estrutura do repositório
-
-```
-.
-├── cmd/
-│   └── api/
-│       └── main.go                # (stub futuro) inicialização do servidor Gin
-├── internal/
-│   ├── config/                    # (stub futuro) leitura de envs/config
-│   ├── http/                      # (stub futuro) middlewares e roteamento
-│   └── user/                      # (stub futuro) handlers, service e repository
-├── migrations/
-│   └── 0001_init.sql              # criação da tabela users
-├── openapi/
-│   └── openapi.yaml               # especificação da API
-├── Dockerfile                     # build da API
-├── docker-compose.yml             # orquestração (db, api, swagger)
-├── .env.example                   # variáveis de ambiente padrão
-└── README.md                      # instruções de build/run/test
-```
-
 # User Service – Go + Gin + PostgreSQL
-
-**Sprint 0 – Setup de Time, Stack e Projeto**
 
 > Serviço base para o domínio **User**, com especificação **OpenAPI**, infraestrutura Docker, migração SQL e CI simples em GitHub Actions.
 
@@ -49,8 +17,9 @@ Este pacote entrega um **arquivo fonte OpenAPI** para o domínio `User` (com **P
 2. [Pré-requisitos](#pré-requisitos)
 3. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
 4. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
-5. [Entregas da Sprint 0 (Definition of Done)](#entregas-da-sprint-0-definition-of-done)
-6. [Entregas da Sprint 1 (Definition of Done)](#entregas-da-sprint-1-definition-of-done)
+5. [Como testar a infraestrutura localmente (Localstack)](#como-testar-a-infraestrutura-localmente-localstack)
+6. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
+7. [Recursos Adicionais](#recursos-adicionais)
 
 
 ## Objetivo
@@ -106,23 +75,41 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
    go run ./cmd/api
    ```
 
+---
 
 
-# Entregas da Sprint 0 (Definition of Done)
+## Como testar a infraestrutura localmente (Localstack)
 
-* **Stack definida** (Go, Gin, PostgreSQL)
-* **Repositório Git com estrutura** (diretórios e arquivos guia)
-* **Docker + docker-compose com banco rodando** (serviço `db`, `api` e `swagger` prontos)
-* **CRUD para User (definição OpenAPI)** com **POST**, **PATCH** e **PUT** detalhados (GET/DELETE incluídos)
-* **README** com instruções de build/run/test
+1. No terminal, inicialize o localstack
+   ```bash
+   localstack start
+   ```
 
-# Entregas da Sprint 1 (Definition of Done)
+2. Na pasta ``infra-localstack``, execute o deploy com o terraform
 
-**Infraestrutura do projeto definida e gerenciada na AWS:**
-* Scripts e configurações IaC.
-* Todos os artefatos necessários para a configuração da infraestrutura na AWS.
-* Projeto no GitHub contendo a pasta (infra)
-* 
-Entrega Final:
-O trabalho deve ser entregue em um arquivo .zip contendo o repositório de fontes completo, incluindo a pasta
+   ```bash
+   terraform plan
+   ```
+>Aqui, você já deve receber a confirmação visual, das estruturas que serão criadas ou possíveis erros encontrados.
 
+---
+## Contribuições do GitHub Copilot
+
+Este projeto utilizou o GitHub Copilot para auxiliar no diagnóstico e correção de problemas técnicos específicos.
+
+
+### Correção de Workflows CI/CD
+O Copilot foi utilizado para identificar e corrigir problemas nos workflows de CI/CD:
+- **Correção de Execução de Testes**: Alterou comandos de teste para executar todos os testes (`./...`) ao invés de apenas um pacote
+- **Correção de Sintaxe YAML**: Corrigiu triggers de tags no workflow docker-build
+- **Remoção de Dependências Inválidas**: Removeu dependências de jobs que causavam falhas nos workflows
+
+Para informações detalhadas sobre as contribuições do Copilot, consulte [COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md).
+
+---
+
+## Recursos Adicionais
+
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Guias de desenvolvimento, convenções e instruções detalhadas de setup
+- **[CHANGELOG.md](./CHANGELOG.md)**: Revisões de sprints e histórico do projeto
+- **[COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md)**: Rastreamento completo das contribuições do GitHub Copilot

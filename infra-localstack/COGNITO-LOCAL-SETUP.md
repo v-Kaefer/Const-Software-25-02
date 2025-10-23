@@ -2,6 +2,32 @@
 
 Este guia mostra como usar **cognito-local** para testar a configuração Cognito do Terraform **gratuitamente**, sem precisar do LocalStack Pro.
 
+## 📋 Pré-requisitos
+
+**IMPORTANTE**: Você precisa ter instalado:
+
+1. **Docker** e **Docker Compose**
+   ```bash
+   docker --version
+   docker-compose --version
+   ```
+
+2. **AWS CLI** (necessário para configurar o cognito-local)
+   ```bash
+   # Verificar se está instalado
+   aws --version
+   
+   # Instalar se necessário:
+   # Ubuntu/Debian
+   sudo apt install awscli
+   
+   # macOS
+   brew install awscli
+   
+   # Via pip (todas as plataformas)
+   pip install awscli
+   ```
+
 ## 📋 O que é cognito-local?
 
 [cognito-local](https://github.com/jagregory/cognito-local) é um emulador open-source do AWS Cognito que roda localmente em Docker. Ele permite testar funcionalidades do Cognito sem custo.

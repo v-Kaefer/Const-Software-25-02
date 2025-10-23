@@ -4,6 +4,12 @@
 
 ## 🔥 RECOMENDADO: cognito-local (100% Gratuito)
 
+**📋 Pré-requisitos para cognito-local:**
+- ✅ Docker e Docker Compose
+- ✅ **AWS CLI** - Necessário para configurar o cognito-local
+  - **Instalar**: `pip install awscli` ou `brew install awscli` (macOS)
+  - **Verificar**: `aws --version`
+
 **Para testar Cognito localmente SEM CUSTOS, use cognito-local:**
 
 ```bash

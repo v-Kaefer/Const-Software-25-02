@@ -82,6 +82,10 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
 
 ### 🔥 Opção 1: cognito-local (RECOMENDADO - 100% Gratuito)
 
+**📋 Pré-requisitos:**
+- Docker e Docker Compose instalados
+- AWS CLI instalado: `pip install awscli` ou `brew install awscli`
+
 **Teste completo do Cognito localmente sem custos:**
 
 ```bash

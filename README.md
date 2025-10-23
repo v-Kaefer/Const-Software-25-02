@@ -8,29 +8,6 @@ https://github.com/v-Kaefer/Const-Software-25-02
 ![Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/build.yaml/badge.svg)
 ![Docker Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/docker-build.yaml/badge.svg)
 
----
-
-## 📦 Estrutura do repositório
-
-```
-.
-├── cmd/
-│   └── api/
-│       └── main.go                # (stub futuro) inicialização do servidor Gin
-├── internal/
-│   ├── config/                    # (stub futuro) leitura de envs/config
-│   ├── http/                      # (stub futuro) middlewares e roteamento
-│   └── user/                      # (stub futuro) handlers, service e repository
-├── migrations/
-│   └── 0001_init.sql              # criação da tabela users
-├── openapi/
-│   └── openapi.yaml               # especificação da API
-├── Dockerfile                     # build da API
-├── docker-compose.yml             # orquestração (db, api, swagger)
-├── .env.example                   # variáveis de ambiente padrão
-└── README.md                      # instruções de build/run/test
-```
-
 # User Service – Go + Gin + PostgreSQL
 
 > Serviço base para o domínio **User**, com especificação **OpenAPI**, infraestrutura Docker, migração SQL e CI simples em GitHub Actions.
@@ -40,8 +17,9 @@ https://github.com/v-Kaefer/Const-Software-25-02
 2. [Pré-requisitos](#pré-requisitos)
 3. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
 4. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
-5. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
-6. [Recursos Adicionais](#recursos-adicionais)
+5. [Como testar a infraestrutura localmente (Localstack)](#como-testar-a-infraestrutura-localmente-localstack)
+6. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
+7. [Recursos Adicionais](#recursos-adicionais)
 
 
 ## Objetivo
@@ -99,9 +77,26 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
 
 ---
 
+
+## Como testar a infraestrutura localmente (Localstack)
+
+1. No terminal, inicialize o localstack
+   ```bash
+   localstack start
+   ```
+
+2. Na pasta ``infra-localstack``, execute o deploy com o terraform
+
+   ```bash
+   terraform plan
+   ```
+>Aqui, você já deve receber a confirmação visual, das estruturas que serão criadas ou possíveis erros encontrados.
+
+---
 ## Contribuições do GitHub Copilot
 
 Este projeto utilizou o GitHub Copilot para auxiliar no diagnóstico e correção de problemas técnicos específicos.
+
 
 ### Correção de Workflows CI/CD
 O Copilot foi utilizado para identificar e corrigir problemas nos workflows de CI/CD:
@@ -118,4 +113,3 @@ Para informações detalhadas sobre as contribuições do Copilot, consulte [COP
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Guias de desenvolvimento, convenções e instruções detalhadas de setup
 - **[CHANGELOG.md](./CHANGELOG.md)**: Revisões de sprints e histórico do projeto
 - **[COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md)**: Rastreamento completo das contribuições do GitHub Copilot
-

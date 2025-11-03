@@ -13,6 +13,12 @@ NC='\033[0m' # No Color
 ENDPOINT="http://localhost:9229"
 REGION="us-east-1"
 
+# Set dummy AWS credentials for cognito-local (as per cognito-local documentation)
+# cognito-local doesn't validate credentials but AWS CLI requires them
+export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-local}"
+export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-local}"
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+
 echo -e "${GREEN}╔═══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║     Setup cognito-local (Alternativa ao LocalStack Pro)   ║${NC}"
 echo -e "${GREEN}╚═══════════════════════════════════════════════════════════╝${NC}"
@@ -23,6 +29,10 @@ if ! command -v aws &> /dev/null; then
     echo -e "${RED}❌ AWS CLI não encontrado. Instale com: pip install awscli${NC}"
     exit 1
 fi
+
+echo -e "${GREEN}✅ AWS CLI encontrado${NC}"
+echo -e "${YELLOW}ℹ️  Usando credenciais dummy para cognito-local (AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID})${NC}"
+echo ""
 
 # Check if cognito-local is running
 echo -e "${YELLOW}🔍 Verificando se cognito-local está rodando...${NC}"

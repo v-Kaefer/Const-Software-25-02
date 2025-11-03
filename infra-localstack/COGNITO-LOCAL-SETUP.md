@@ -35,14 +35,23 @@ Este guia mostra como usar **cognito-local** para testar a configuração Cognit
 ### ✅ Vantagens
 - Gratuito e open source
 - Roda em Docker (fácil de configurar)
-- API compatível com AWS SDK
+- **API compatível com AWS CLI** - usa comandos `aws cognito-idp` padrão
 - Suporta User Pools, grupos, usuários, autenticação
 - Ideal para desenvolvimento e testes
 
 ### ⚠️ Limitações
 - Não suporta 100% das features do Cognito (mas cobre os casos comuns)
 - Não funciona diretamente com Terraform AWS provider
-- Requer configuração manual via AWS CLI
+- Requer configuração manual via AWS CLI com `--endpoint-url`
+
+### 🔑 Importante: Credenciais AWS
+
+O cognito-local **não valida credenciais AWS**, mas o AWS CLI as requer. Os scripts usam credenciais dummy automaticamente:
+- `AWS_ACCESS_KEY_ID=local`
+- `AWS_SECRET_ACCESS_KEY=local`
+- `AWS_DEFAULT_REGION=us-east-1`
+
+Você pode usar suas próprias credenciais AWS se preferir - elas não serão validadas pelo cognito-local.
 
 ## 🚀 Início Rápido
 
@@ -60,7 +69,7 @@ O cognito-local estará disponível em: `http://localhost:9229`
 
 ### Passo 2: Configurar com base no Terraform
 
-Este script cria automaticamente a mesma estrutura definida no `cognito.tf`:
+Este script cria automaticamente a mesma estrutura definida no `cognito.tf` usando **comandos AWS CLI padrão** com `--endpoint-url`:
 
 ```bash
 # Usando Make (recomendado)

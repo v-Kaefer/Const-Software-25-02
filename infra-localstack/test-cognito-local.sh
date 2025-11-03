@@ -13,6 +13,11 @@ NC='\033[0m' # No Color
 ENDPOINT="http://localhost:9229"
 REGION="us-east-1"
 
+# Set dummy AWS credentials for cognito-local (as per cognito-local documentation)
+export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-local}"
+export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-local}"
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+
 echo -e "${GREEN}╔═══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║          Testando cognito-local Configuration             ║${NC}"
 echo -e "${GREEN}╚═══════════════════════════════════════════════════════════╝${NC}"

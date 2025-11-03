@@ -422,13 +422,31 @@ make cognito-local-stop
 make cognito-local-start
 ```
 
-### Erro: "User pool already exists"
+### Erro: "User pool already exists" ou conflito com Terraform
+
+**Problema**: O script falha ao criar User Pool porque já existe um com o mesmo nome.
+
+**Causa**: O nome "CognitoUserPool" pode conflitar com:
+- User Pool criado por execução anterior do script
+- User Pool criado por Terraform (se você usou LocalStack Pro)
+- Dados persistentes do cognito-local
+
+**Solução Automática** (implementada no script):
+O script agora detecta e remove automaticamente pools existentes antes de criar novos.
+
+**Solução Manual** (se necessário):
 ```bash
 # Limpar e reconfigurar
 make cognito-local-clean
 make cognito-local-start
 make cognito-local-setup
 ```
+
+**Importante**: O script de setup (`setup-cognito-local.sh`) é independente do Terraform. Ele cria recursos no cognito-local usando AWS CLI, não usando Terraform. Isso significa:
+- ✅ Não conflita com arquivos `.tf`
+- ✅ Pode rodar mesmo sem Terraform instalado
+- ✅ Limpa automaticamente pools existentes
+- ⚠️ Não persiste após `make cognito-local-clean`
 
 ### Porta 9229 já em uso
 ```bash

@@ -43,6 +43,32 @@ else
 fi
 echo ""
 
+# Check for existing User Pools and clean them up
+echo -e "${YELLOW}🔍 Verificando User Pools existentes...${NC}"
+EXISTING_POOLS=$(aws cognito-idp list-user-pools \
+    --max-results 60 \
+    --endpoint-url "$ENDPOINT" \
+    --region "$REGION" \
+    --output json 2>/dev/null || echo '{"UserPools":[]}')
+
+# Delete any existing pools with the same name to avoid conflicts
+POOL_IDS=$(echo "$EXISTING_POOLS" | grep -o '"Id": "[^"]*"' | cut -d'"' -f4)
+if [ ! -z "$POOL_IDS" ]; then
+    echo -e "${YELLOW}⚠️  Encontrados User Pools existentes. Removendo para evitar conflitos...${NC}"
+    while IFS= read -r pool_id; do
+        if [ ! -z "$pool_id" ]; then
+            aws cognito-idp delete-user-pool \
+                --user-pool-id "$pool_id" \
+                --endpoint-url "$ENDPOINT" \
+                --region "$REGION" \
+                2>/dev/null || true
+            echo -e "${YELLOW}   Removido pool: ${pool_id}${NC}"
+        fi
+    done <<< "$POOL_IDS"
+fi
+echo -e "${GREEN}✅ Limpeza concluída${NC}"
+echo ""
+
 echo -e "${GREEN}🏗️  Criando User Pool...${NC}"
 
 # Create User Pool with similar configuration to Terraform
@@ -63,10 +89,20 @@ USER_POOL_OUTPUT=$(aws cognito-idp create-user-pool \
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Erro ao criar User Pool${NC}"
     echo "$USER_POOL_OUTPUT"
+    echo ""
+    echo -e "${YELLOW}💡 Dica: Se o erro é sobre pool já existente, execute:${NC}"
+    echo -e "${YELLOW}   make cognito-local-clean${NC}"
+    echo -e "${YELLOW}   make cognito-local-start${NC}"
+    echo -e "${YELLOW}   make cognito-local-setup${NC}"
     exit 1
 fi
 
 USER_POOL_ID=$(echo "$USER_POOL_OUTPUT" | grep -o '"Id": "[^"]*"' | head -1 | cut -d'"' -f4)
+if [ -z "$USER_POOL_ID" ]; then
+    echo -e "${RED}❌ Não foi possível extrair o User Pool ID${NC}"
+    echo "$USER_POOL_OUTPUT"
+    exit 1
+fi
 echo -e "${GREEN}✅ User Pool criado: ${USER_POOL_ID}${NC}"
 echo ""
 

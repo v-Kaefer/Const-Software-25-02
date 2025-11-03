@@ -28,6 +28,11 @@ make cognito-local-test
 make cognito-local-stop
 ```
 
+**⚠️ Nota Importante**:
+- O script de setup limpa automaticamente User Pools existentes para evitar conflitos
+- Não conflita com arquivos Terraform (usa AWS CLI diretamente no cognito-local)
+- Para recomeçar do zero: `make cognito-local-clean && make cognito-local-start && make cognito-local-setup`
+
 **📖 Guia completo**: [COGNITO-LOCAL-SETUP.md](./COGNITO-LOCAL-SETUP.md)
 
 ---

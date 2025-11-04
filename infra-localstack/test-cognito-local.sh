@@ -184,5 +184,5 @@ echo -e "   3. Usar IDs da configuração em: ${GREEN}cognito-local-config/confi
 echo ""
 echo -e "${YELLOW}💡 Dica:${NC}"
 echo -e "   Para parar o cognito-local:"
-echo -e "   ${GREEN}docker-compose -f docker-compose.cognito-local.yaml down${NC}"
+echo -e "   ${GREEN}make cognito-local-stop${NC}"
 echo ""

@@ -212,6 +212,42 @@ curl -H "Authorization: Bearer eyJhbGc..." \
 >Aqui, você já deve receber a confirmação visual, das estruturas que serão criadas ou possíveis erros encontrados.
 
 ---
+
+## Testes
+
+### Testes Unitários e E2E
+
+Execute todos os testes:
+```bash
+go test ./... -v
+```
+
+Com cobertura:
+```bash
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out
+```
+
+### Testes de Integração com Cognito-Local
+
+O projeto inclui testes de integração que validam a autenticação JWT com Cognito usando Localstack:
+
+```bash
+# Executar testes de integração
+go test -tags=integration ./internal/auth/... -v -timeout 10m
+```
+
+**Características dos testes de integração:**
+- Iniciam um container Localstack automaticamente
+- Criam user pool, app client e grupos do Cognito
+- Testam autenticação de usuários e geração de tokens JWT
+- Validam a estrutura dos tokens
+
+**Nota**: O suporte completo ao Cognito requer Localstack Pro. Os testes pulam graciosamente na versão gratuita.
+
+Para mais detalhes, consulte [internal/auth/INTEGRATION_TESTS.md](./internal/auth/INTEGRATION_TESTS.md).
+
+---
 ## Contribuições do GitHub Copilot
 
 Este projeto utilizou o GitHub Copilot para auxiliar no diagnóstico e correção de problemas técnicos específicos.

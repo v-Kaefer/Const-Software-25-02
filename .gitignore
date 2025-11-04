@@ -3,6 +3,7 @@ infra/.aws/*
 infra/.terraform/*
 infra-localstack/.terraform/*
 .terraform.*
+infra-localstack/credentials.tf
 
 # Build artifacts
 main

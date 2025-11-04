@@ -1,4 +1,4 @@
-// +build integration
+//go:build integration
 
 package auth_test
 
@@ -313,20 +313,7 @@ func authenticateUser(ctx context.Context, client *cognitoidentityprovider.Clien
 // parseJWTToken parses a JWT token into its parts
 func parseJWTToken(token string) []string {
 	// JWT format: header.payload.signature
-	parts := []string{}
-	current := ""
-	for _, char := range token {
-		if char == '.' {
-			parts = append(parts, current)
-			current = ""
-		} else {
-			current += string(char)
-		}
-	}
-	if current != "" {
-		parts = append(parts, current)
-	}
-	return parts
+	return strings.Split(token, ".")
 }
 
 // TestCognitoLocalDockerCompose tests integration with docker-compose setup

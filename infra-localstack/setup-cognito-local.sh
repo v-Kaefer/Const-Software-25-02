@@ -261,13 +261,48 @@ echo ""
 CONFIG_DIR="${SCRIPT_DIR}/cognito-local-config"
 CONFIG_FILE="${CONFIG_DIR}/config.json"
 
+# Remove old config file if it exists to avoid permission issues
+if [ -f "${CONFIG_FILE}" ]; then
+    rm -f "${CONFIG_FILE}" 2>/dev/null || {
+        echo -e "${YELLOW}⚠️  Não foi possível remover config antigo. Tentando sobrescrever...${NC}"
+    }
+fi
+
 mkdir -p "${CONFIG_DIR}"
 chmod 755 "${CONFIG_DIR}"
 
-# Use printf instead of cat with heredoc to avoid issues with paths containing special characters
-printf '{\n  "userPoolId": "%s",\n  "clientId": "%s",\n  "endpoint": "%s",\n  "region": "%s"\n}\n' \
-  "${USER_POOL_ID}" "${CLIENT_ID}" "${ENDPOINT}" "${REGION}" > "${CONFIG_FILE}"
+# Validate variables before writing
+if [ -z "${USER_POOL_ID}" ] || [ -z "${CLIENT_ID}" ]; then
+    echo -e "${RED}❌ Erro: Variáveis USER_POOL_ID ou CLIENT_ID estão vazias${NC}"
+    echo -e "${YELLOW}USER_POOL_ID: ${USER_POOL_ID}${NC}"
+    echo -e "${YELLOW}CLIENT_ID: ${CLIENT_ID}${NC}"
+    exit 1
+fi
 
-chmod 644 "${CONFIG_FILE}"
+# Use printf instead of cat with heredoc to avoid issues with paths containing special characters
+# Write to a temporary file first, then move it
+TEMP_FILE="${CONFIG_DIR}/config.json.tmp"
+printf '{\n  "userPoolId": "%s",\n  "clientId": "%s",\n  "endpoint": "%s",\n  "region": "%s"\n}\n' \
+  "${USER_POOL_ID}" "${CLIENT_ID}" "${ENDPOINT}" "${REGION}" > "${TEMP_FILE}" 2>/dev/null
+
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Erro ao criar arquivo de configuração${NC}"
+    echo -e "${YELLOW}Path: ${TEMP_FILE}${NC}"
+    echo -e "${YELLOW}💡 Verifique permissões do diretório:${NC}"
+    echo -e "${YELLOW}   ls -la ${CONFIG_DIR}${NC}"
+    exit 1
+fi
+
+# Move temp file to final location
+mv "${TEMP_FILE}" "${CONFIG_FILE}" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Erro ao mover arquivo de configuração${NC}"
+    echo -e "${YELLOW}Tentando copiar ao invés de mover...${NC}"
+    cp "${TEMP_FILE}" "${CONFIG_FILE}" 2>/dev/null && rm -f "${TEMP_FILE}"
+fi
+
+chmod 644 "${CONFIG_FILE}" 2>/dev/null
 
 echo -e "${GREEN}✅ Configuração salva em: ${SCRIPT_DIR}/cognito-local-config/config.json${NC}"
+echo -e "${GREEN}   User Pool ID: ${USER_POOL_ID}${NC}"
+echo -e "${GREEN}   Client ID: ${CLIENT_ID}${NC}"

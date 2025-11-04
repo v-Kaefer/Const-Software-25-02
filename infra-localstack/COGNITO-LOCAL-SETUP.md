@@ -479,26 +479,71 @@ lsof -i :9229
 
 **Sintoma**: `Permission denied` ao tentar salvar `cognito-local-config/config.json`
 
-**Causa**: Geralmente ocorre por problemas com paths que contêm espaços ou caracteres especiais, ou permissões de diretório.
+**Causa**: Geralmente ocorre por:
+1. Problemas com paths que contêm espaços ou caracteres especiais
+2. Arquivo existente com permissões incorretas
+3. Diretório com permissões restritivas
+4. Config file vazio (`{}`) indica que variáveis não foram extraídas corretamente
 
-**Solução**:
+**Soluções**:
+
+**Opção 1 - Remover arquivo antigo e tentar novamente**:
 ```bash
-# 1. Verificar permissões do diretório
+# Remover config antigo
+rm -f infra-localstack/cognito-local-config/config.json
+
+# Tentar novamente
+make cognito-local-setup
+```
+
+**Opção 2 - Recriar completamente o ambiente**:
+```bash
+# Limpar tudo
+make cognito-local-clean
+
+# Iniciar novamente
+make cognito-local-start
+
+# Configurar (aguardar 10s após start)
+make cognito-local-setup
+```
+
+**Opção 3 - Verificar e corrigir permissões manualmente**:
+```bash
+# 1. Verificar permissões
 ls -la infra-localstack/cognito-local-config/
 
-# 2. Se o diretório não existir ou tiver permissões incorretas, recriá-lo
-mkdir -p infra-localstack/cognito-local-config
-chmod 755 infra-localstack/cognito-local-config
+# 2. Remover diretório e arquivo antigos
+rm -rf infra-localstack/cognito-local-config
 
 # 3. Tentar novamente
 make cognito-local-setup
+```
 
-# 4. Se persistir, executar manualmente do diretório correto
+**Opção 4 - Executar manualmente do diretório correto**:
+```bash
 cd infra-localstack
 ./setup-cognito-local.sh
 ```
 
-**Nota**: O script foi atualizado para lidar automaticamente com paths contendo espaços e caracteres especiais, definindo permissões adequadas (755 para diretórios, 644 para arquivos).
+**Se config.json está vazio (`{}`)**: Indica que as variáveis `USER_POOL_ID` ou `CLIENT_ID` não foram extraídas. Verifique:
+```bash
+# Ver logs completos do script
+cd infra-localstack
+./setup-cognito-local.sh
+
+# O script agora mostra os IDs extraídos
+# Se aparecer "Erro: Variáveis USER_POOL_ID ou CLIENT_ID estão vazias"
+# significa que a criação do User Pool ou Client falhou
+```
+
+**Nota**: O script foi atualizado para:
+- ✅ Remover automaticamente config.json antigo antes de criar novo
+- ✅ Validar variáveis antes de escrever no arquivo
+- ✅ Usar arquivo temporário e movê-lo para evitar corrupção
+- ✅ Lidar automaticamente com paths contendo espaços e caracteres especiais
+- ✅ Definir permissões adequadas (755 para diretórios, 644 para arquivos)
+- ✅ Mostrar IDs extraídos para verificação
 
 ## 📚 Diferenças do Terraform
 

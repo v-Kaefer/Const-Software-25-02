@@ -10,6 +10,9 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 ENDPOINT="http://localhost:9229"
 REGION="us-east-1"
 
@@ -45,7 +48,7 @@ echo -e "${GREEN}✅ cognito-local está rodando${NC}"
 echo ""
 
 # Load variables from terraform.tfvars if it exists
-if [ -f "terraform.tfvars" ]; then
+if [ -f "${SCRIPT_DIR}/terraform.tfvars" ]; then
     echo -e "${YELLOW}📂 Carregando variáveis de terraform.tfvars...${NC}"
     # This is a simplified parser - in production you might want to use hcl2json
 else
@@ -255,7 +258,8 @@ echo -e "   Configure o endpoint: ${GREEN}${ENDPOINT}${NC}"
 echo ""
 
 # Save configuration to file
-cat > cognito-local-config/config.json << EOF
+mkdir -p "${SCRIPT_DIR}/cognito-local-config"
+cat > "${SCRIPT_DIR}/cognito-local-config/config.json" << EOF
 {
   "userPoolId": "${USER_POOL_ID}",
   "clientId": "${CLIENT_ID}",
@@ -264,4 +268,4 @@ cat > cognito-local-config/config.json << EOF
 }
 EOF
 
-echo -e "${GREEN}✅ Configuração salva em: cognito-local-config/config.json${NC}"
+echo -e "${GREEN}✅ Configuração salva em: ${SCRIPT_DIR}/cognito-local-config/config.json${NC}"

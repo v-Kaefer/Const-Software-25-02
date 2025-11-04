@@ -86,6 +86,13 @@ O script irá criar:
 - ✅ 3 Grupos (admin-group, reviewers-group, user-group)
 - ✅ 3 Usuários de exemplo
 - ✅ Associação de usuários aos grupos
+- ✅ **Arquivo de configuração** `cognito-local-config/config.json` com IDs para integração
+
+**Importante**: O arquivo `config.json` é essencial pois contém:
+- User Pool ID
+- App Client ID
+- Endpoint e região
+- Usado pelos scripts de teste e integração com aplicações
 
 ### Passo 3: Testar a configuração
 
@@ -98,7 +105,7 @@ cd infra-localstack
 ./test-cognito-local.sh
 ```
 
-Este script valida que tudo foi criado corretamente.
+Este script valida que tudo foi criado corretamente e usa o `config.json` gerado no passo anterior.
 
 ## 📊 Estrutura Criada
 

@@ -10,6 +10,9 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 ENDPOINT="http://localhost:9229"
 REGION="us-east-1"
 
@@ -24,15 +27,15 @@ echo -e "${GREEN}╚════════════════════
 echo ""
 
 # Check if config file exists
-if [ ! -f "cognito-local-config/config.json" ]; then
+if [ ! -f "${SCRIPT_DIR}/cognito-local-config/config.json" ]; then
     echo -e "${RED}❌ Arquivo de configuração não encontrado!${NC}"
-    echo -e "${YELLOW}   Execute primeiro: ./setup-cognito-local.sh${NC}"
+    echo -e "${YELLOW}   Execute primeiro: make cognito-local-setup${NC}"
     exit 1
 fi
 
 # Load configuration
-USER_POOL_ID=$(cat cognito-local-config/config.json | grep -o '"userPoolId": "[^"]*"' | cut -d'"' -f4)
-CLIENT_ID=$(cat cognito-local-config/config.json | grep -o '"clientId": "[^"]*"' | cut -d'"' -f4)
+USER_POOL_ID=$(cat "${SCRIPT_DIR}/cognito-local-config/config.json" | grep -o '"userPoolId": "[^"]*"' | cut -d'"' -f4)
+CLIENT_ID=$(cat "${SCRIPT_DIR}/cognito-local-config/config.json" | grep -o '"clientId": "[^"]*"' | cut -d'"' -f4)
 
 echo -e "${YELLOW}📋 Configuração carregada:${NC}"
 echo -e "   User Pool ID: ${GREEN}${USER_POOL_ID}${NC}"

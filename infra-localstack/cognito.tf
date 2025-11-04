@@ -359,3 +359,23 @@ resource "aws_cognito_identity_pool_roles_attachment" "main" {
     }
   }
 }
+# Outputs para configuração da API
+output "cognito_user_pool_id" {
+  description = "ID do Cognito User Pool"
+  value       = aws_cognito_user_pool.cognito_pool.id
+}
+
+output "cognito_client_id" {
+  description = "ID do App Client - use como JWT_AUDIENCE"
+  value       = aws_cognito_user_pool_client.client.id
+}
+
+output "jwt_issuer" {
+  description = "JWT Issuer para Localstack - use como JWT_ISSUER"
+  value       = "http://localhost:4566"
+}
+
+output "jwks_uri" {
+  description = "JWKS URI para Localstack - use como JWKS_URI"
+  value       = "http://localhost:4566/.well-known/jwks.json"
+}

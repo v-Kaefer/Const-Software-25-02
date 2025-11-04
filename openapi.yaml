@@ -143,9 +143,13 @@ paths:
     get:
       summary: Get user by ID
       description: |
-        Retrieve a specific user by ID. 
+        Retrieve a specific user by ID or email. 
         Users can access their own profile, admins can access any profile.
         **Required role:** owner or admin-group
+        
+        **Note:** The `id` parameter can be either:
+        - A numeric user ID (e.g., `123`)
+        - An email address (e.g., `user@example.com`)
       security:
         - BearerAuth: []
       parameters:
@@ -154,7 +158,8 @@ paths:
           required: true
           schema:
             type: string
-          description: User ID or email
+          description: User ID (numeric) or email address
+          example: "123"
       responses:
         '200':
           description: User found

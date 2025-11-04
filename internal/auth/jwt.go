@@ -143,11 +143,6 @@ func (m *JWTMiddleware) ValidateToken(tokenString string) (*Claims, error) {
 		return nil, errors.New("invalid audience")
 	}
 
-	// Validate expiration
-	if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(time.Now()) {
-		return nil, ErrExpiredToken
-	}
-
 	// Validate not before
 	if claims.NotBefore != nil && claims.NotBefore.Time.After(time.Now()) {
 		return nil, errors.New("token not yet valid")

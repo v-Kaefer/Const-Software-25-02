@@ -3,7 +3,6 @@ package auth
 import (
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 // RequireAdmin is a middleware that requires the user to be an admin
@@ -39,33 +38,31 @@ func RequireOwnerOrAdmin(next http.Handler) http.Handler {
 		}
 
 		// Extract user ID from path (e.g., /users/123)
-		path := r.URL.Path
-		parts := strings.Split(strings.Trim(path, "/"), "/")
+		requestedUserID, ok := ExtractUserIDFromPath(r.URL.Path)
+		if !ok {
+			http.Error(w, "invalid path", http.StatusBadRequest)
+			return
+		}
 		
-		// Expecting pattern: /users/{id}
-		if len(parts) >= 2 && parts[0] == "users" {
-			requestedUserID := parts[1]
-			
-			// Check if user is admin - admins can access any resource
-			if claims.IsAdmin() {
-				next.ServeHTTP(w, r)
-				return
-			}
+		// Check if user is admin - admins can access any resource
+		if claims.IsAdmin() {
+			next.ServeHTTP(w, r)
+			return
+		}
 
-			// Check if user is accessing their own resource
-			// claims.Subject contains the user's ID from the JWT
-			if claims.Subject == requestedUserID {
-				next.ServeHTTP(w, r)
-				return
-			}
+		// Check if user is accessing their own resource
+		// claims.Subject contains the user's ID from the JWT
+		if claims.Subject == requestedUserID {
+			next.ServeHTTP(w, r)
+			return
+		}
 
-			// Try to compare as integers if both can be parsed
-			claimsID, err1 := strconv.ParseUint(claims.Subject, 10, 64)
-			reqID, err2 := strconv.ParseUint(requestedUserID, 10, 64)
-			if err1 == nil && err2 == nil && claimsID == reqID {
-				next.ServeHTTP(w, r)
-				return
-			}
+		// Try to compare as integers if both can be parsed
+		claimsID, err1 := strconv.ParseUint(claims.Subject, 10, 64)
+		reqID, err2 := strconv.ParseUint(requestedUserID, 10, 64)
+		if err1 == nil && err2 == nil && claimsID == reqID {
+			next.ServeHTTP(w, r)
+			return
 		}
 
 		http.Error(w, "forbidden: insufficient permissions", http.StatusForbidden)

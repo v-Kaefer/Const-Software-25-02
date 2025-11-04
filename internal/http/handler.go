@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/v-Kaefer/Const-Software-25-02/internal/auth"
@@ -94,25 +93,21 @@ func (r *Router) handleListUsers(w http.ResponseWriter, req *http.Request) {
 }
 
 func (r *Router) handleGetUser(w http.ResponseWriter, req *http.Request) {
-	// Extract ID from path
-	path := strings.Trim(req.URL.Path, "/")
-	parts := strings.Split(path, "/")
-	
-	if len(parts) < 2 {
-		http.Error(w, "user id required", http.StatusBadRequest)
+	// Extract ID from path using utility function
+	userID, ok := auth.ExtractUserIDFromPath(req.URL.Path)
+	if !ok {
+		http.Error(w, "invalid path - expected /users/{id}", http.StatusBadRequest)
 		return
 	}
 	
-	userID := parts[1]
-	
-	// For now, try to get by ID if it's numeric, otherwise treat as email
+	// Try to parse as numeric ID
 	id, err := strconv.ParseUint(userID, 10, 32)
 	if err == nil {
 		r.handleGetUserByID(w, req, uint(id))
 		return
 	}
 	
-	// Fallback to email
+	// Fallback: treat as email
 	ctx, cancel := context.WithTimeout(req.Context(), 5*time.Second)
 	defer cancel()
 	u, err := r.userSvc.GetByEmail(ctx, userID)

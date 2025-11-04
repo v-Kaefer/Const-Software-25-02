@@ -1,0 +1,47 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch:  # Manual trigger only
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC (optional)
+    - cron: '0 2 * * 0'
+
+permissions:
+  contents: read
+
+jobs:
+  integration-tests:
+    name: Cognito Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+          cache: true
+
+      - name: Go env
+        run: |
+          go env
+          go version
+
+      - name: Tidy
+        run: go mod tidy
+
+      - name: Run integration tests
+        run: |
+          go test -tags=integration ./internal/auth/... -v -timeout 10m
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Integration Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Integration tests completed. Check logs above for details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Cognito tests require Localstack Pro for full validation." >> $GITHUB_STEP_SUMMARY
+          echo "Tests will skip gracefully if running on free tier." >> $GITHUB_STEP_SUMMARY

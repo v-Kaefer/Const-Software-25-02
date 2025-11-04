@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/v-Kaefer/Const-Software-25-02/internal/auth"
 	"github.com/v-Kaefer/Const-Software-25-02/internal/config"
 	appdb "github.com/v-Kaefer/Const-Software-25-02/internal/db"
 	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/http"
@@ -39,10 +40,27 @@ func main() {
 	userRepo := user.NewRepo(gormDB)
 	userSvc := user.NewService(gormDB, userRepo)
 
-	// 5) HTTP router (camada de entrega, não conhece GORM)
-	router := httpapi.NewRouter(userSvc)
+	// 5) JWT Middleware
+	var jwtMiddleware *auth.JWTMiddleware
+	if cfg.JWT.JWKSURI != "" {
+		jwtConfig := &auth.JWTConfig{
+			Issuer:   cfg.JWT.Issuer,
+			Audience: cfg.JWT.Audience,
+			JWKSURI:  cfg.JWT.JWKSURI,
+		}
+		jwtMiddleware, err = auth.NewJWTMiddleware(jwtConfig)
+		if err != nil {
+			log.Printf("Warning: Failed to initialize JWT middleware: %v", err)
+			log.Println("API will run without authentication")
+		}
+	} else {
+		log.Println("Warning: JWT configuration not provided. API will run without authentication")
+	}
 
-	// 6) Servidor + graceful shutdown
+	// 6) HTTP router (camada de entrega, não conhece GORM)
+	router := httpapi.NewRouter(userSvc, jwtMiddleware)
+
+	// 7) Servidor + graceful shutdown
 	srv := &http.Server{Addr: ":8080", Handler: router}
 
 	go func() {

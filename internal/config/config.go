@@ -22,9 +22,16 @@ func (c DBConfig) DSN() string {
 	)
 }
 
+type JWTConfig struct {
+	Issuer   string
+	Audience string
+	JWKSURI  string
+}
+
 type AppConfig struct {
 	Env string
 	DB  DBConfig
+	JWT JWTConfig
 }
 
 func Load() AppConfig {
@@ -37,6 +44,11 @@ func Load() AppConfig {
 			Pass: getenv("DB_PASS", "postgres"),
 			Name: getenv("DB_NAME", "yourapp"),
 			SSL:  getenv("DB_SSLMODE", "disable"),
+		},
+		JWT: JWTConfig{
+			Issuer:   getenv("JWT_ISSUER", ""),
+			Audience: getenv("JWT_AUDIENCE", ""),
+			JWKSURI:  getenv("JWKS_URI", ""),
 		},
 	}
 }

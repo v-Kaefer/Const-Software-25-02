@@ -15,11 +15,12 @@ https://github.com/v-Kaefer/Const-Software-25-02
 ## Sumário
 1. [Objetivo](#objetivo)
 2. [Pré-requisitos](#pré-requisitos)
-3. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
-4. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
-5. [Como testar a infraestrutura localmente (Localstack)](#como-testar-a-infraestrutura-localmente-localstack)
-6. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
-7. [Recursos Adicionais](#recursos-adicionais)
+3. [Autenticação e Autorização](#autenticação-e-autorização)
+4. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
+5. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
+6. [Como testar a infraestrutura localmente (Localstack)](#como-testar-a-infraestrutura-localmente-localstack)
+7. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
+8. [Recursos Adicionais](#recursos-adicionais)
 
 
 ## Objetivo
@@ -29,6 +30,124 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
 - Docker Desktop/Engine e Docker Compose
 - Go 1.22+ (para desenvolvimento local fora do container)
 - Terraform (apenas para desenvolvimento e deploy de infra)
+
+## Autenticação e Autorização
+
+Esta API utiliza **JWT (JSON Web Tokens)** para autenticação e **RBAC (Role-Based Access Control)** para autorização.
+
+### Configuração JWT
+
+As seguintes variáveis de ambiente são necessárias (veja `.env.example`):
+
+```bash
+JWT_ISSUER=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_XXXXXXXXX
+JWT_AUDIENCE=your-app-client-id
+JWKS_URI=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_XXXXXXXXX/.well-known/jwks.json
+```
+
+### Como obter um Access Token
+
+#### Opção 1: AWS Cognito com Localstack (Desenvolvimento Local)
+
+1. Inicie o Localstack (veja seção [Como testar a infraestrutura localmente](#como-testar-a-infraestrutura-localmente-localstack))
+
+2. Deploy da infraestrutura Cognito:
+   ```bash
+   cd infra-localstack
+   terraform init
+   terraform apply
+   ```
+
+3. Obtenha um token usando o AWS CLI:
+   ```bash
+   # Autenticar um usuário
+   aws cognito-idp initiate-auth \
+     --auth-flow USER_PASSWORD_AUTH \
+     --client-id <your-client-id> \
+     --auth-parameters USERNAME=user@example.com,PASSWORD=YourPassword123! \
+     --endpoint-url http://localhost:4566
+
+   # O token estará em: AuthenticationResult.IdToken
+   ```
+
+4. Configure as variáveis para Localstack:
+   ```bash
+   JWT_ISSUER=http://localhost:4566
+   JWT_AUDIENCE=<your-client-id-from-terraform-output>
+   JWKS_URI=http://localhost:4566/.well-known/jwks.json
+   ```
+
+#### Opção 2: AWS Cognito em Produção
+
+1. Deploy da infraestrutura (veja `infra/README.md`)
+
+2. Use o Hosted UI ou Client Credentials:
+   ```bash
+   # Via Hosted UI (navegador):
+   https://<your-cognito-domain>.auth.us-east-1.amazoncognito.com/oauth2/authorize?client_id=<client-id>&response_type=token&scope=openapi&redirect_uri=<redirect-uri>
+
+   # Via Client Credentials:
+   aws cognito-idp initiate-auth \
+     --auth-flow USER_PASSWORD_AUTH \
+     --client-id <your-client-id> \
+     --auth-parameters USERNAME=user@example.com,PASSWORD=YourPassword
+   ```
+
+#### Opção 3: Mock Token para Testes (Desenvolvimento)
+
+Para testes locais sem IdP, você pode desabilitar a autenticação não fornecendo as variáveis JWT. A API permitirá todas as requisições:
+
+```bash
+# Não defina JWT_ISSUER, JWT_AUDIENCE, JWKS_URI
+# A API irá logar um warning e permitir acesso sem autenticação
+```
+
+### Usando o Token
+
+Inclua o token no header `Authorization`:
+
+```bash
+curl -H "Authorization: Bearer <your-jwt-token>" \
+  http://localhost:8080/users
+```
+
+### Controle de Acesso (RBAC)
+
+Os seguintes roles são suportados (no claim `cognito:groups`):
+
+- **admin-group**: Acesso total a todos os recursos
+- **user-group**: Acesso limitado aos próprios recursos
+
+Regras de autorização por endpoint:
+
+| Endpoint | Método | Permissão Necessária |
+|----------|--------|---------------------|
+| `/users` | GET | Admin apenas |
+| `/users/{id}` | GET | Dono do recurso ou Admin |
+| `/users/{id}` | PUT | Dono do recurso ou Admin |
+| `/users/{id}` | PATCH | Dono do recurso ou Admin |
+| `/users/{id}` | DELETE | Admin apenas |
+| `/users` | POST | Qualquer usuário autenticado |
+
+### Exemplo de Request Autenticado
+
+```bash
+# Criar usuário
+curl -X POST http://localhost:8080/users \
+  -H "Authorization: Bearer eyJhbGc..." \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","name":"Test User"}'
+
+# Listar usuários (admin apenas)
+curl -H "Authorization: Bearer eyJhbGc..." \
+  http://localhost:8080/users?email=user@example.com
+
+# Buscar usuário específico
+curl -H "Authorization: Bearer eyJhbGc..." \
+  http://localhost:8080/users/123
+```
+
+---
 
 ## Como rodar com Docker Compose
 1. Crie seu `.env` a partir do exemplo:

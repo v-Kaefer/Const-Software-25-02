@@ -28,7 +28,8 @@ func newTestServer(t *testing.T) *httptest.Server {
 
 	repo := user.NewRepo(db)
 	svc := user.NewService(db, repo)
-	router := httpapi.NewRouter(svc) // seu handler implementa http.Handler
+	// Pass nil for JWT middleware in tests (authentication disabled for testing)
+	router := httpapi.NewRouter(svc, nil) // seu handler implementa http.Handler
 
 	return httptest.NewServer(router)
 }
@@ -44,8 +45,8 @@ func TestHTTP_CreateAndGetUser(t *testing.T) {
 		t.Fatalf("POST /users: %v", err)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("POST status = %d, want 200", resp.StatusCode)
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("POST status = %d, want 201", resp.StatusCode)
 	}
 
 	var created user.User

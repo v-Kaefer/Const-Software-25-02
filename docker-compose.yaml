@@ -35,6 +35,10 @@ services:
       DB_PASS: ${DB_PASS:-app}
       DB_NAME: ${DB_NAME:-app}
       DB_SSLMODE: "disable"
+      # JWT Configuration
+      JWT_ISSUER: ${JWT_ISSUER:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
+      JWKS_URI: ${JWKS_URI:-}
     ports:
       - "8080:8080"
     restart: unless-stopped

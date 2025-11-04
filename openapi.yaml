@@ -1,15 +1,38 @@
 openapi: 3.0.3
 info:
   title: Trabalho 1 - Construção de Software
-  description: API RESTful para gestão de alunos e matrículas
+  description: |
+    API RESTful para gestão de alunos e matrículas com autenticação JWT.
+    
+    ## Authentication
+    This API uses JWT Bearer tokens for authentication. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    ## Authorization (RBAC)
+    - **admin-group**: Full access to all resources
+    - **user-group**: Limited access to own resources
+    
+    Endpoints require specific roles:
+    - GET /users - Admin only
+    - DELETE /users/{id} - Admin only
+    - GET/PUT/PATCH /users/{id} - Owner or Admin
   version: "1.0.0"
 
 servers:
   - url: https://api.trabalho1.com/v1
     description: Servidor principal
+  - url: http://localhost:8080
+    description: Servidor local
 
 components:
   securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from AWS Cognito or Auth0
     Auth0:
       type: oauth2
       flows:
@@ -18,6 +41,26 @@ components:
           tokenUrl: https://your-auth0-domain/oauth/token
           scopes: {}
   schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: User ID
+        email:
+          type: string
+          format: email
+          description: User email address
+        name:
+          type: string
+          description: User full name
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [email, name]
     Aluno:
       type: object
       properties:
@@ -43,9 +86,173 @@ components:
       required: [semestre, curso]
 
 security:
-  - Auth0: []
+  - BearerAuth: []
 
 paths:
+  /users:
+    get:
+      summary: List all users
+      description: |
+        Retrieve a list of all users. Requires admin role.
+        **Required role:** admin-group
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: email
+          schema:
+            type: string
+          description: Filter by email address
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized - missing or invalid token
+        '403':
+          description: Forbidden - admin access required
+    post:
+      summary: Create a new user
+      description: Register a new user in the system
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid request body
+        '401':
+          description: Unauthorized
+
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      description: |
+        Retrieve a specific user by ID. 
+        Users can access their own profile, admins can access any profile.
+        **Required role:** owner or admin-group
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: User ID or email
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - insufficient permissions
+        '404':
+          description: User not found
+    put:
+      summary: Update user
+      description: |
+        Update a user's information.
+        Users can update their own profile, admins can update any profile.
+        **Required role:** owner or admin-group
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User updated
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+    patch:
+      summary: Partially update user
+      description: |
+        Partially update a user's information.
+        Users can update their own profile, admins can update any profile.
+        **Required role:** owner or admin-group
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User partially updated
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: User not found
+    delete:
+      summary: Delete user
+      description: |
+        Delete a user from the system. 
+        Only admins can delete users.
+        **Required role:** admin-group
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: User ID
+      responses:
+        '204':
+          description: User deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - admin access required
+        '404':
+          description: User not found
+
   /alunos:
     get:
       summary: Recupera todos os alunos

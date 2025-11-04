@@ -4,6 +4,15 @@ infra/.terraform/*
 infra-localstack/.terraform/*
 .terraform.*
 infra-localstack/credentials.tf
+*.tfvars
+!*.tfvars.example
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+
+# cognito-local
+infra-localstack/cognito-local-config/*.json
+infra-localstack/cognito-local-config/db.json
 
 # Build artifacts
 main

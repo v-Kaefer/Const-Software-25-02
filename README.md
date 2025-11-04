@@ -78,19 +78,86 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
 ---
 
 
-## Como testar a infraestrutura localmente (Localstack)
+## Como testar a infraestrutura localmente
+
+### 🔥 Opção 1: cognito-local (RECOMENDADO - 100% Gratuito)
+
+**📋 Pré-requisitos:**
+- Docker e Docker Compose instalados
+- AWS CLI instalado: `pip install awscli` ou `brew install awscli`
+
+**Teste completo do Cognito localmente sem custos:**
+
+```bash
+# Passo 1: Iniciar cognito-local
+make cognito-local-start
+
+# Passo 2: Configurar (cria estrutura igual ao Terraform cognito.tf)
+make cognito-local-setup
+
+# Passo 3: Testar
+make cognito-local-test
+
+# Passo 4: Parar quando terminar
+make cognito-local-stop
+```
+
+**O que é criado:**
+- ✅ User Pool com políticas de senha
+- ✅ App Client
+- ✅ 3 Grupos (admin, reviewers, user)
+- ✅ 3 Usuários de exemplo
+- ✅ Arquivo de configuração JSON para integração
+
+>**📖 Guia completo**: [infra-localstack/COGNITO-LOCAL-SETUP.md](./infra-localstack/COGNITO-LOCAL-SETUP.md)
+
+---
+
+### Opção 2: LocalStack (S3 + DynamoDB - Sem Cognito)
+
+**Usando o Makefile:**
+
+```bash
+# Ver todos os comandos disponíveis
+make help
+
+# Iniciar LocalStack e aplicar Terraform (sem Cognito)
+# Primeiro, desabilite o Cognito:
+cd infra-localstack && mv cognito.tf cognito.tf.disabled && cd ..
+make infra-up
+
+# Testar a infraestrutura
+make infra-test
+
+# Destruir tudo
+make infra-down
+
+# Restaurar cognito.tf
+cd infra-localstack && mv cognito.tf.disabled cognito.tf && cd ..
+```
+
+**Manualmente:**
 
 1. No terminal, inicialize o localstack
    ```bash
    localstack start
    ```
 
-2. Na pasta ``infra-localstack``, execute o deploy com o terraform
-
+2. Na pasta ``infra-localstack``, configure as credenciais:
    ```bash
-   terraform plan
+   cd infra-localstack
+   cp credentials.tf.example credentials.tf
+   # Edite credentials.tf com seus usuários (opcional - tem valores padrão)
    ```
->Aqui, você já deve receber a confirmação visual, das estruturas que serão criadas ou possíveis erros encontrados.
+
+3. Execute o deploy com o terraform:
+   ```bash
+   terraform init
+   terraform plan
+   terraform apply
+   ```
+
+>**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro (pago). Para testar Cognito gratuitamente, use **cognito-local** (Opção 1 acima).
 
 ---
 ## Contribuições do GitHub Copilot

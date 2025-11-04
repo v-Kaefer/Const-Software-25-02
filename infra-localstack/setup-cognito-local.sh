@@ -258,14 +258,16 @@ echo -e "   Configure o endpoint: ${GREEN}${ENDPOINT}${NC}"
 echo ""
 
 # Save configuration to file
-mkdir -p "${SCRIPT_DIR}/cognito-local-config"
-cat > "${SCRIPT_DIR}/cognito-local-config/config.json" << EOF
-{
-  "userPoolId": "${USER_POOL_ID}",
-  "clientId": "${CLIENT_ID}",
-  "endpoint": "${ENDPOINT}",
-  "region": "${REGION}"
-}
-EOF
+CONFIG_DIR="${SCRIPT_DIR}/cognito-local-config"
+CONFIG_FILE="${CONFIG_DIR}/config.json"
+
+mkdir -p "${CONFIG_DIR}"
+chmod 755 "${CONFIG_DIR}"
+
+# Use printf instead of cat with heredoc to avoid issues with paths containing special characters
+printf '{\n  "userPoolId": "%s",\n  "clientId": "%s",\n  "endpoint": "%s",\n  "region": "%s"\n}\n' \
+  "${USER_POOL_ID}" "${CLIENT_ID}" "${ENDPOINT}" "${REGION}" > "${CONFIG_FILE}"
+
+chmod 644 "${CONFIG_FILE}"
 
 echo -e "${GREEN}✅ Configuração salva em: ${SCRIPT_DIR}/cognito-local-config/config.json${NC}"

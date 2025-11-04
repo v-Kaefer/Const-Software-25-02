@@ -94,6 +94,8 @@ O script irá criar:
 - Endpoint e região
 - Usado pelos scripts de teste e integração com aplicações
 
+**Nota sobre permissões**: O script automaticamente define permissões corretas (755 para diretório, 644 para arquivo) e funciona com paths que contêm espaços e caracteres especiais.
+
 ### Passo 3: Testar a configuração
 
 ```bash
@@ -472,6 +474,31 @@ lsof -i :9229
 # Ou alterar a porta no docker-compose.cognito-local.yaml
 # Mude "9229:9229" para "9230:9229"
 ```
+
+### Erro: "Permissão negada" ao salvar config.json
+
+**Sintoma**: `Permission denied` ao tentar salvar `cognito-local-config/config.json`
+
+**Causa**: Geralmente ocorre por problemas com paths que contêm espaços ou caracteres especiais, ou permissões de diretório.
+
+**Solução**:
+```bash
+# 1. Verificar permissões do diretório
+ls -la infra-localstack/cognito-local-config/
+
+# 2. Se o diretório não existir ou tiver permissões incorretas, recriá-lo
+mkdir -p infra-localstack/cognito-local-config
+chmod 755 infra-localstack/cognito-local-config
+
+# 3. Tentar novamente
+make cognito-local-setup
+
+# 4. Se persistir, executar manualmente do diretório correto
+cd infra-localstack
+./setup-cognito-local.sh
+```
+
+**Nota**: O script foi atualizado para lidar automaticamente com paths contendo espaços e caracteres especiais, definindo permissões adequadas (755 para diretórios, 644 para arquivos).
 
 ## 📚 Diferenças do Terraform
 

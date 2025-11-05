@@ -413,6 +413,9 @@ func NewJWTValidator(userPoolID, region, clientID string) (*JWTValidator, error)
 
 func (v *JWTValidator) downloadJWKS() error {
     // Cognito JWKS endpoint format
+    // Note: For cognito-local testing, you'll need to modify this to use
+    // the local endpoint (http://localhost:9229) instead of AWS endpoint
+    // For production, this downloads from the real Cognito JWKS endpoint
     jwksURL := fmt.Sprintf("https://cognito-idp.%s.amazonaws.com/%s/.well-known/jwks.json",
         v.region, v.userPoolID)
     

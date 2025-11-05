@@ -29,7 +29,6 @@ make cognito-local-setup
 **Run the example:**
 ```bash
 # Install dependencies first (if not already installed)
-cd /home/runner/work/Const-Software-25-02/Const-Software-25-02
 go get github.com/aws/aws-sdk-go-v2/aws@latest
 go get github.com/aws/aws-sdk-go-v2/config@latest
 go get github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider@latest
@@ -155,13 +154,18 @@ make cognito-local-start
 # 3. Setup Cognito infrastructure (creates users, groups, etc.)
 make cognito-local-setup
 
-# 4. Run the example
+# 4. Install dependencies (if running the example)
+go get github.com/aws/aws-sdk-go-v2/aws@latest
+go get github.com/aws/aws-sdk-go-v2/config@latest
+go get github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider@latest
+
+# 5. Run the example
 go run examples/jwt-auth-example.go
 
-# 5. View the generated tokens
+# 6. View the generated tokens
 cat tokens.json
 
-# 6. Decode tokens at https://jwt.io/
+# 7. Decode tokens at https://jwt.io/
 ```
 
 ### Troubleshooting

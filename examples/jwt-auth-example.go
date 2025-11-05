@@ -33,7 +33,7 @@ type AuthResult struct {
 
 // JWTAuthClient demonstrates JWT authentication with Terraform-provisioned Cognito
 type JWTAuthClient struct {
-	client       *cognitoidentityprovider.Client
+	client        *cognitoidentityprovider.Client
 	cognitoConfig *CognitoConfig
 }
 
@@ -54,7 +54,7 @@ func NewJWTAuthClient(configPath string) (*JWTAuthClient, error) {
 	}
 
 	return &JWTAuthClient{
-		client:       client,
+		client:        client,
 		cognitoConfig: cognitoConfig,
 	}, nil
 }
@@ -192,9 +192,24 @@ func printTokenInfo(authResult *AuthResult) {
 	fmt.Println("\n📝 JWT Tokens:")
 	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-	fmt.Printf("\n🔑 ID Token (first 80 chars):\n%s...\n", authResult.IDToken[:80])
-	fmt.Printf("\n🎫 Access Token (first 80 chars):\n%s...\n", authResult.AccessToken[:80])
-	fmt.Printf("\n🔄 Refresh Token (first 80 chars):\n%s...\n", authResult.RefreshToken[:80])
+	// Safely display token previews with length checks
+	if len(authResult.IDToken) > 80 {
+		fmt.Printf("\n🔑 ID Token (first 80 chars):\n%s...\n", authResult.IDToken[:80])
+	} else {
+		fmt.Printf("\n🔑 ID Token:\n%s\n", authResult.IDToken)
+	}
+	
+	if len(authResult.AccessToken) > 80 {
+		fmt.Printf("\n🎫 Access Token (first 80 chars):\n%s...\n", authResult.AccessToken[:80])
+	} else {
+		fmt.Printf("\n🎫 Access Token:\n%s\n", authResult.AccessToken)
+	}
+	
+	if len(authResult.RefreshToken) > 80 {
+		fmt.Printf("\n🔄 Refresh Token (first 80 chars):\n%s...\n", authResult.RefreshToken[:80])
+	} else {
+		fmt.Printf("\n🔄 Refresh Token:\n%s\n", authResult.RefreshToken)
+	}
 
 	fmt.Println("\n💡 What these tokens do:")
 	fmt.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -284,8 +299,16 @@ Or use a different configuration file path.
 		log.Printf("Failed to refresh tokens: %v", err)
 	} else {
 		fmt.Println("✅ Tokens refreshed successfully!")
-		fmt.Printf("New ID Token (first 80 chars): %s...\n", newAuth.IDToken[:80])
-		fmt.Printf("New Access Token (first 80 chars): %s...\n", newAuth.AccessToken[:80])
+		if len(newAuth.IDToken) > 80 {
+			fmt.Printf("New ID Token (first 80 chars): %s...\n", newAuth.IDToken[:80])
+		} else {
+			fmt.Printf("New ID Token: %s\n", newAuth.IDToken)
+		}
+		if len(newAuth.AccessToken) > 80 {
+			fmt.Printf("New Access Token (first 80 chars): %s...\n", newAuth.AccessToken[:80])
+		} else {
+			fmt.Printf("New Access Token: %s\n", newAuth.AccessToken)
+		}
 	}
 
 	fmt.Println("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")

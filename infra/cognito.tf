@@ -1,3 +1,11 @@
+# IMPORTANT NOTES / NOTAS IMPORTANTES:
+# 1. This file was copied from infra-localstack and may need adjustments for production
+# 2. Known issues to fix before production deployment:
+#    - custom:role attribute is used but not properly defined in schema (lines 54-64)
+#    - Hard-coded bucket name 'meu-bucket' should be updated to match s3.tf
+#    - Consider using random password generation instead of hard-coded passwords
+# 3. Remember to create credentials.tf from credentials.tf.example before applying
+#
 # User user pool -> Pense nele como seu banco de dados de autenticação
 # Armazena usuários (emails, senhas, atributos personalizados)
 # Gerencia registro, login, recuperação de senha
@@ -77,7 +85,7 @@ resource "aws_cognito_user_pool" "cognito_pool" {
   }
 
   tags = {
-    Environment = "test"
+    Environment = "production"
     ManagedBy   = "terraform"
   }
 }

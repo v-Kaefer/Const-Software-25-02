@@ -4,6 +4,22 @@ Todas as modificações e entregas de sprints para esse projeto, estão document
 
 ## Sprint 2 Updates
 
+### Documentation Update (2025-11-05)
+
+#### OpenAPI Specification Updated to Match User Service Implementation
+
+* **Atualização da especificação OpenAPI**:
+  - Substituída especificação antiga de "Alunos" e "Matriculas" por User service
+  - Schema User atualizado com campos corretos: id, email, name, createdAt, updatedAt
+  - Endpoints atualizados para refletir implementação real:
+    - `POST /users` - Criar novo usuário
+    - `GET /users?email=...` - Buscar usuário por email
+  - Removidos endpoints não implementados de Alunos e Matriculas
+  - Atualizado security scheme de Auth0 para CognitoAuth (alinhado com infraestrutura)
+  - Adicionados exemplos de requisições e respostas
+  - URLs dos servidores atualizadas (localhost:8080 para dev, api.trabalho1.com para prod)
+  - Documentação agora reflete precisamente o código Go implementado
+
 ### Infrastructure Consolidation (2025-11-05)
 
 #### Integrate cognito-local into tflocal pipeline (2025-11-05)

@@ -8,27 +8,90 @@ https://github.com/v-Kaefer/Const-Software-25-02
 ![Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/build.yaml/badge.svg)
 ![Docker Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/docker-build.yaml/badge.svg)
 
-# User Service – Go + Gin + PostgreSQL
+# User Service – Go + PostgreSQL + JWT
 
-> Serviço base para o domínio **User**, com especificação **OpenAPI**, infraestrutura Docker, migração SQL e CI simples em GitHub Actions.
+> Serviço base para o domínio **User**, com autenticação **JWT**, especificação **OpenAPI**, infraestrutura Docker, migração SQL e CI simples em GitHub Actions.
 
 ## Sumário
 1. [Objetivo](#objetivo)
 2. [Pré-requisitos](#pré-requisitos)
-3. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
-4. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
-5. [Como testar a infraestrutura localmente (Localstack)](#como-testar-a-infraestrutura-localmente-localstack)
-6. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
-7. [Recursos Adicionais](#recursos-adicionais)
+3. [Autenticação JWT](#autenticação-jwt)
+4. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
+5. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
+6. [Como testar a infraestrutura localmente (Localstack)](#como-testar-a-infraestrutura-localmente-localstack)
+7. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
+8. [Recursos Adicionais](#recursos-adicionais)
 
 
 ## Objetivo
-Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do domínio `User` com **CRUD** completo definido em OpenAPI.
+Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do domínio `User` com **CRUD** completo definido em OpenAPI e autenticação JWT.
 
 ## Pré-requisitos
 - Docker Desktop/Engine e Docker Compose
 - Go 1.22+ (para desenvolvimento local fora do container)
 - Terraform (apenas para desenvolvimento e deploy de infra)
+
+## Autenticação JWT
+
+A aplicação implementa autenticação JWT (JSON Web Token) para proteger endpoints sensíveis.
+
+### Variáveis de Ambiente
+
+Configure a chave secreta JWT:
+
+```bash
+export JWT_SECRET="sua-chave-secreta-aqui"
+```
+
+**IMPORTANTE**: Nunca use a chave padrão em produção!
+
+### Endpoints Disponíveis
+
+#### Registro de Usuário (Público)
+```bash
+POST /auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "name": "Nome do Usuário",
+  "password": "senha-segura"
+}
+```
+
+#### Login (Público)
+```bash
+POST /auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "senha-segura"
+}
+
+# Resposta:
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": { "id": 1, "email": "user@example.com", "name": "Nome do Usuário" }
+}
+```
+
+#### Endpoints Protegidos
+
+Para acessar endpoints protegidos, use o token no header:
+
+```bash
+POST /users
+Authorization: Bearer <seu-token-aqui>
+Content-Type: application/json
+
+{
+  "email": "newuser@example.com",
+  "name": "Novo Usuário"
+}
+```
+
+Para mais detalhes sobre JWT, consulte [pkg/jwt/README.md](./pkg/jwt/README.md).
 
 ## Como rodar com Docker Compose
 1. Crie seu `.env` a partir do exemplo:

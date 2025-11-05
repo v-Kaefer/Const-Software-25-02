@@ -23,13 +23,15 @@ func (c DBConfig) DSN() string {
 }
 
 type AppConfig struct {
-	Env string
-	DB  DBConfig
+	Env       string
+	DB        DBConfig
+	JWTSecret string
 }
 
 func Load() AppConfig {
 	return AppConfig{
-		Env: getenv("APP_ENV", "development"),
+		Env:       getenv("APP_ENV", "development"),
+		JWTSecret: getenv("JWT_SECRET", "default-secret-change-in-production"),
 		DB: DBConfig{
 			Host: getenv("DB_HOST", "localhost"),
 			Port: getenv("DB_PORT", "5432"),

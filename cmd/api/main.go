@@ -12,6 +12,7 @@ import (
 	"github.com/v-Kaefer/Const-Software-25-02/internal/config"
 	appdb "github.com/v-Kaefer/Const-Software-25-02/internal/db"
 	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/http"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/jwt"
 	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
 )
 
@@ -39,10 +40,13 @@ func main() {
 	userRepo := user.NewRepo(gormDB)
 	userSvc := user.NewService(gormDB, userRepo)
 
-	// 5) HTTP router (camada de entrega, não conhece GORM)
-	router := httpapi.NewRouter(userSvc)
+	// 5) JWT Generator
+	jwtGenerator := jwt.NewGenerator(cfg.JWTSecret)
 
-	// 6) Servidor + graceful shutdown
+	// 6) HTTP router (camada de entrega, não conhece GORM)
+	router := httpapi.NewRouter(userSvc, jwtGenerator)
+
+	// 7) Servidor + graceful shutdown
 	srv := &http.Server{Addr: ":8080", Handler: router}
 
 	go func() {

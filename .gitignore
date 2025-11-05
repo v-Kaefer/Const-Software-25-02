@@ -14,6 +14,9 @@ terraform.tfstate.backup
 infra-localstack/cognito-local-config/*.json
 infra-localstack/cognito-local-config/db.json
 
+# JWT tokens (sensitive)
+tokens.json
+
 # Build artifacts
 main
 *.out

@@ -108,8 +108,11 @@ make cognito-local-stop
 - ✅ 3 Grupos (admin, reviewers, user)
 - ✅ 3 Usuários de exemplo
 - ✅ Arquivo de configuração JSON para integração
+- ✅ **JWT tokens** emitidos automaticamente após autenticação
 
 >**📖 Guia completo**: [infra-localstack/COGNITO-LOCAL-SETUP.md](./infra-localstack/COGNITO-LOCAL-SETUP.md)
+>
+>**🔐 Implementação JWT**: [infra-localstack/JWT-WITH-TERRAFORM.md](./infra-localstack/JWT-WITH-TERRAFORM.md)
 
 ---
 
@@ -180,3 +183,5 @@ Para informações detalhadas sobre as contribuições do Copilot, consulte [COP
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Guias de desenvolvimento, convenções e instruções detalhadas de setup
 - **[CHANGELOG.md](./CHANGELOG.md)**: Revisões de sprints e histórico do projeto
 - **[COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md)**: Rastreamento completo das contribuições do GitHub Copilot
+- **[JWT-WITH-TERRAFORM.md](./infra-localstack/JWT-WITH-TERRAFORM.md)**: 🔐 Implementação completa de JWT com Terraform e AWS Cognito
+- **[examples/](./examples/)**: Exemplos práticos de autenticação JWT

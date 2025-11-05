@@ -1,12 +1,22 @@
 # Infra
 infra/.aws/*
 infra/.terraform/*
-infra-localstack/.terraform/*
 .terraform.*
-infra-localstack/credentials.tf
+infra/credentials.tf
+*.tfvars
+!*.tfvars.example
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+*.tf.skip
+
+# cognito-local
+infra/cognito-local-config/*.json
+infra/cognito-local-config/db.json
 
 # Build artifacts
 main
+api
 *.out
 coverage.out
 coverage.html

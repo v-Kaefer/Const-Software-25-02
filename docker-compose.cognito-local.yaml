@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  cognito-local:
+    image: jagregory/cognito-local:latest
+    container_name: cognito-local
+    ports:
+      - "9229:9229"
+    volumes:
+      - ./infra/cognito-local-config:/app/.cognito
+    environment:
+      - COGNITO_LOCAL_DATABASE=/app/.cognito/db.json
+    restart: unless-stopped

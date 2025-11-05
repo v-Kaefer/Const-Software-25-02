@@ -78,19 +78,106 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
 ---
 
 
-## Como testar a infraestrutura localmente (Localstack)
+## Como testar a infraestrutura localmente
 
-1. No terminal, inicialize o localstack
-   ```bash
-   localstack start
-   ```
+### 🔥 Opção 1: cognito-local (RECOMENDADO - 100% Gratuito)
 
-2. Na pasta ``infra-localstack``, execute o deploy com o terraform
+**📋 Pré-requisitos:**
+- Docker e Docker Compose instalados
+- AWS CLI instalado: `pip install awscli` ou `brew install awscli`
 
-   ```bash
-   terraform plan
-   ```
->Aqui, você já deve receber a confirmação visual, das estruturas que serão criadas ou possíveis erros encontrados.
+**Teste completo do Cognito localmente sem custos:**
+
+```bash
+# Passo 1: Iniciar cognito-local
+make cognito-local-start
+
+# Passo 2: Configurar (cria estrutura igual ao Terraform cognito.tf)
+make cognito-local-setup
+
+# Passo 3: Testar
+make cognito-local-test
+
+# Passo 4: Parar quando terminar
+make cognito-local-stop
+```
+
+**O que é criado:**
+- ✅ User Pool com políticas de senha
+- ✅ App Client
+- ✅ 3 Grupos (admin, reviewers, user)
+- ✅ 3 Usuários de exemplo
+- ✅ Arquivo de configuração JSON para integração
+
+---
+
+### Opção 2: LocalStack com tflocal (S3 + DynamoDB + IAM + VPC + Cognito)
+
+**Usando o Makefile com tflocal (recomendado):**
+
+```bash
+# Ver todos os comandos disponíveis
+make help
+
+# Iniciar LocalStack
+make localstack-start
+
+# Aplicar Terraform usando tflocal (detecta automaticamente o LocalStack)
+make tflocal-init
+make tflocal-apply
+
+# Testar a infraestrutura
+make infra-test
+
+# Destruir tudo
+make tflocal-destroy
+make localstack-stop
+```
+
+**Atalho com comando combinado:**
+
+```bash
+# Iniciar tudo de uma vez (LocalStack + tflocal init + tflocal apply)
+make infra-up
+
+# Testar a infraestrutura
+make infra-test
+
+# Destruir tudo (tflocal destroy + para LocalStack)
+make infra-down
+```
+
+**Configuração das credenciais Cognito:**
+
+Para criar usuários no Cognito, configure as credenciais antes de aplicar:
+```bash
+cd infra
+cp credentials.tf.example credentials.tf
+# Edite credentials.tf com seus usuários
+```
+
+>**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro (pago). Para testar Cognito gratuitamente, use **cognito-local** (Opção 1 acima). Se usar LocalStack free, o Cognito não funcionará mas os outros recursos (S3, DynamoDB, IAM, VPC) funcionarão normalmente.
+
+---
+
+### Opção 3: Deploy na AWS (Produção)
+
+**Usando o Makefile:**
+
+```bash
+# Configurar credenciais AWS (criar .aws/credentials no diretório infra/)
+# e configurar usuários Cognito (copiar credentials.tf.example)
+
+# Inicializar e aplicar
+make infra-prod-init
+make infra-prod-plan
+make infra-prod-apply
+
+# Destruir (cuidado!)
+make infra-prod-destroy
+```
+
+>**📖 Documentação completa**: [infra/README.md](./infra/README.md)
 
 ---
 ## Contribuições do GitHub Copilot

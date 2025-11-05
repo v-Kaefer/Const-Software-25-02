@@ -2,6 +2,34 @@
 
 Todas as modificações e entregas de sprints para esse projeto, estão documentadas nesse arquivo.
 
+## Sprint 2 Updates
+
+### Infrastructure Updates (2025-11-05)
+
+#### Atualização da estrutura de infraestrutura
+
+* **Sincronização infra com infra-localstack**:
+  - Adicionado `cognito.tf` ao diretório `infra/` com recursos completos do Cognito
+  - Adicionado `credentials.tf.example` para configuração de usuários Cognito
+  - Mantida configuração de produção em `infra/main.tf` (sem credenciais "test")
+  
+* **Suporte a tflocal (terraform-local)**:
+  - Adicionados comandos `make tflocal-*` para uso com LocalStack
+  - `tflocal` detecta automaticamente endpoints do LocalStack
+  - Não requer configuração manual de endpoints
+  
+* **Comandos Makefile organizados**:
+  - `make tflocal-init/plan/apply/destroy` - Para testes com LocalStack usando tflocal
+  - `make infra-prod-init/plan/apply/destroy` - Para deploy em produção na AWS
+  - `make terraform-init/plan/apply/destroy` - Comandos tradicionais (infra-localstack)
+  
+* **Documentação atualizada**:
+  - Criado `infra/README.md` com guia completo de produção
+  - Atualizado `README.md` principal com três opções de infraestrutura:
+    1. cognito-local (gratuito, para testes)
+    2. LocalStack com tflocal (gratuito, sem Cognito Pro)
+    3. AWS Produção (deploy real)
+  - Atualizado `.gitignore` para incluir `infra/credentials.tf`
 
 # Entregas da Sprint 2 (D.O.D.)
 

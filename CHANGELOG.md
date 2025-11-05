@@ -6,6 +6,15 @@ Todas as modificações e entregas de sprints para esse projeto, estão document
 
 ### Infrastructure Consolidation (2025-11-05)
 
+#### Fix tflocal build - EC2 resources separation (2025-11-05)
+
+* **Separação de recursos EC2**:
+  - Criado `infra/ec2.tf` com recursos específicos de produção (AMI, EC2 instance, key pair)
+  - Recursos EC2 requerem AMIs reais da AWS e não funcionam com LocalStack
+  - Comandos `tflocal-*` agora excluem automaticamente `ec2.tf` durante execução
+  - Arquivo é temporariamente renomeado para `.skip` durante comandos tflocal
+  - Produção continua usando todos os arquivos incluindo `ec2.tf`
+
 #### Consolidação da estrutura de infraestrutura
 
 * **Remoção de infra-localstack**:

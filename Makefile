@@ -143,23 +143,32 @@ cognito-local-clean:
 	@echo "✅ Limpeza concluída!"
 
 # Terraform Local (tflocal) commands for local testing with infra directory
+# EC2 resources are excluded as they require real AWS AMIs
 tflocal-init:
 	@echo "🔧 Inicializando Terraform Local..."
+	@cd infra && mv ec2.tf ec2.tf.skip 2>/dev/null || true
 	@cd infra && tflocal init
+	@cd infra && mv ec2.tf.skip ec2.tf 2>/dev/null || true
 	@echo "✅ Terraform Local inicializado!"
 
 tflocal-plan:
 	@echo "📋 Executando tflocal plan..."
+	@cd infra && mv ec2.tf ec2.tf.skip 2>/dev/null || true
 	@cd infra && tflocal plan
+	@cd infra && mv ec2.tf.skip ec2.tf 2>/dev/null || true
 
 tflocal-apply:
 	@echo "🚀 Aplicando infraestrutura com tflocal..."
+	@cd infra && mv ec2.tf ec2.tf.skip 2>/dev/null || true
 	@cd infra && tflocal apply -auto-approve
+	@cd infra && mv ec2.tf.skip ec2.tf 2>/dev/null || true
 	@echo "✅ Infraestrutura aplicada!"
 
 tflocal-destroy:
 	@echo "💣 Destruindo infraestrutura com tflocal..."
+	@cd infra && mv ec2.tf ec2.tf.skip 2>/dev/null || true
 	@cd infra && tflocal destroy -auto-approve
+	@cd infra && mv ec2.tf.skip ec2.tf 2>/dev/null || true
 	@echo "✅ Infraestrutura destruída!"
 
 # Production Terraform commands for infra directory

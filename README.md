@@ -109,11 +109,9 @@ make cognito-local-stop
 - ✅ 3 Usuários de exemplo
 - ✅ Arquivo de configuração JSON para integração
 
->**📖 Guia completo**: [infra-localstack/COGNITO-LOCAL-SETUP.md](./infra-localstack/COGNITO-LOCAL-SETUP.md)
-
 ---
 
-### Opção 2: LocalStack com tflocal (S3 + DynamoDB + IAM + VPC)
+### Opção 2: LocalStack com tflocal (S3 + DynamoDB + IAM + VPC + Cognito)
 
 **Usando o Makefile com tflocal (recomendado):**
 
@@ -136,46 +134,29 @@ make tflocal-destroy
 make localstack-stop
 ```
 
-**Usando o Makefile tradicional (sem Cognito):**
+**Atalho com comando combinado:**
 
 ```bash
-# Iniciar LocalStack e aplicar Terraform (sem Cognito)
-# Primeiro, desabilite o Cognito:
-cd infra-localstack && mv cognito.tf cognito.tf.disabled && cd ..
+# Iniciar tudo de uma vez (LocalStack + tflocal init + tflocal apply)
 make infra-up
 
 # Testar a infraestrutura
 make infra-test
 
-# Destruir tudo
+# Destruir tudo (tflocal destroy + para LocalStack)
 make infra-down
-
-# Restaurar cognito.tf
-cd infra-localstack && mv cognito.tf.disabled cognito.tf && cd ..
 ```
 
-**Manualmente:**
+**Configuração das credenciais Cognito:**
 
-1. No terminal, inicialize o localstack
-   ```bash
-   localstack start
-   ```
+Para criar usuários no Cognito, configure as credenciais antes de aplicar:
+```bash
+cd infra
+cp credentials.tf.example credentials.tf
+# Edite credentials.tf com seus usuários
+```
 
-2. Na pasta ``infra-localstack``, configure as credenciais:
-   ```bash
-   cd infra-localstack
-   cp credentials.tf.example credentials.tf
-   # Edite credentials.tf com seus usuários (opcional - tem valores padrão)
-   ```
-
-3. Execute o deploy com o terraform:
-   ```bash
-   terraform init
-   terraform plan
-   terraform apply
-   ```
-
->**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro (pago). Para testar Cognito gratuitamente, use **cognito-local** (Opção 1 acima).
+>**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro (pago). Para testar Cognito gratuitamente, use **cognito-local** (Opção 1 acima). Se usar LocalStack free, o Cognito não funcionará mas os outros recursos (S3, DynamoDB, IAM, VPC) funcionarão normalmente.
 
 ---
 

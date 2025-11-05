@@ -4,7 +4,33 @@ Todas as modificações e entregas de sprints para esse projeto, estão document
 
 ## Sprint 2 Updates
 
-### Infrastructure Updates (2025-11-05)
+### Infrastructure Consolidation (2025-11-05)
+
+#### Consolidação da estrutura de infraestrutura
+
+* **Remoção de infra-localstack**:
+  - Removido diretório `infra-localstack` completo
+  - Consolidado todos os testes locais para usar `tflocal` no diretório `infra/`
+  - Scripts cognito-local movidos para `infra/`
+  
+* **Uso unificado do tflocal**:
+  - Comandos `make tflocal-*` agora operam em `infra/` com tflocal
+  - `tflocal` detecta automaticamente endpoints do LocalStack
+  - Não requer configuração manual de endpoints ou arquivos separados
+  - Mesma estrutura para testes locais e produção
+  
+* **Comandos Makefile simplificados**:
+  - `make tflocal-init/plan/apply/destroy` - Para testes locais com LocalStack
+  - `make infra-prod-init/plan/apply/destroy` - Para deploy em produção na AWS
+  - `make infra-up/infra-down` - Atalhos para iniciar/parar tudo
+  - Removidos comandos `terraform-*` obsoletos
+  
+* **Documentação atualizada**:
+  - Atualizado `README.md` principal com fluxo simplificado
+  - Atualizado `infra/README.md` removendo referências a infra-localstack
+  - Atualizado `.gitignore` para refletir nova estrutura
+
+### Previous Infrastructure Updates (2025-11-05)
 
 #### Atualização da estrutura de infraestrutura
 
@@ -21,7 +47,6 @@ Todas as modificações e entregas de sprints para esse projeto, estão document
 * **Comandos Makefile organizados**:
   - `make tflocal-init/plan/apply/destroy` - Para testes com LocalStack usando tflocal
   - `make infra-prod-init/plan/apply/destroy` - Para deploy em produção na AWS
-  - `make terraform-init/plan/apply/destroy` - Comandos tradicionais (infra-localstack)
   
 * **Documentação atualizada**:
   - Criado `infra/README.md` com guia completo de produção

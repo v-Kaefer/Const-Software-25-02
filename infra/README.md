@@ -92,21 +92,32 @@ terraform destroy
 
 ## 🧪 Testes Locais
 
-Para testar a infraestrutura localmente antes de aplicar na AWS, use o diretório `infra-localstack`:
+Para testar a infraestrutura localmente antes de aplicar na AWS, use o LocalStack com tflocal:
 
 ```bash
-# Com LocalStack (tflocal)
+# Iniciar LocalStack
+make localstack-start
+
+# Aplicar infraestrutura localmente com tflocal
 make tflocal-init
-make tflocal-plan
 make tflocal-apply
 
-# Com cognito-local (gratuito)
+# Testar os recursos
+make infra-test
+
+# Destruir quando terminar
+make tflocal-destroy
+make localstack-stop
+```
+
+**Alternativa: cognito-local (para testar Cognito gratuitamente)**
+```bash
 make cognito-local-start
 make cognito-local-setup
 make cognito-local-test
 ```
 
-Ver [../infra-localstack/README.md](../infra-localstack/README.md) para mais detalhes.
+Ver [../README.md](../README.md) para mais detalhes sobre as opções de teste.
 
 ## 📝 Notas
 

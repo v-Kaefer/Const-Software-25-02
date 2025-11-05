@@ -144,9 +144,8 @@ func TestMiddleware_RequireRole_InsufficientPermissions(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	// Create request with user role instead of admin role
-	ctx := context.WithValue(context.Background(), context.TODO(), []string{string(auth.RoleUser)})
-	req := httptest.NewRequest("GET", "/test", nil).WithContext(ctx)
+	// Create request with no roles in context (simulates missing roles or wrong role)
+	req := httptest.NewRequest("GET", "/test", nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)

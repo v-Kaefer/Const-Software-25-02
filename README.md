@@ -113,14 +113,32 @@ make cognito-local-stop
 
 ---
 
-### Opção 2: LocalStack (S3 + DynamoDB - Sem Cognito)
+### Opção 2: LocalStack com tflocal (S3 + DynamoDB + IAM + VPC)
 
-**Usando o Makefile:**
+**Usando o Makefile com tflocal (recomendado):**
 
 ```bash
 # Ver todos os comandos disponíveis
 make help
 
+# Iniciar LocalStack
+make localstack-start
+
+# Aplicar Terraform usando tflocal (detecta automaticamente o LocalStack)
+make tflocal-init
+make tflocal-apply
+
+# Testar a infraestrutura
+make infra-test
+
+# Destruir tudo
+make tflocal-destroy
+make localstack-stop
+```
+
+**Usando o Makefile tradicional (sem Cognito):**
+
+```bash
 # Iniciar LocalStack e aplicar Terraform (sem Cognito)
 # Primeiro, desabilite o Cognito:
 cd infra-localstack && mv cognito.tf cognito.tf.disabled && cd ..
@@ -158,6 +176,27 @@ cd infra-localstack && mv cognito.tf.disabled cognito.tf && cd ..
    ```
 
 >**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro (pago). Para testar Cognito gratuitamente, use **cognito-local** (Opção 1 acima).
+
+---
+
+### Opção 3: Deploy na AWS (Produção)
+
+**Usando o Makefile:**
+
+```bash
+# Configurar credenciais AWS (criar .aws/credentials no diretório infra/)
+# e configurar usuários Cognito (copiar credentials.tf.example)
+
+# Inicializar e aplicar
+make infra-prod-init
+make infra-prod-plan
+make infra-prod-apply
+
+# Destruir (cuidado!)
+make infra-prod-destroy
+```
+
+>**📖 Documentação completa**: [infra/README.md](./infra/README.md)
 
 ---
 ## Contribuições do GitHub Copilot

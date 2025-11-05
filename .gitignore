@@ -3,6 +3,7 @@ infra/.aws/*
 infra/.terraform/*
 infra-localstack/.terraform/*
 .terraform.*
+infra/credentials.tf
 infra-localstack/credentials.tf
 *.tfvars
 !*.tfvars.example

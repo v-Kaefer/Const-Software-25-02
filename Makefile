@@ -1,4 +1,4 @@
-.PHONY: help localstack-start localstack-stop localstack-status localstack-logs terraform-init terraform-plan terraform-apply terraform-destroy localstack-clean infra-up infra-down infra-test cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean
+.PHONY: help localstack-start localstack-stop localstack-status localstack-logs terraform-init terraform-plan terraform-apply terraform-destroy localstack-clean infra-up infra-down infra-test cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy
 
 # Default target
 help:
@@ -25,6 +25,18 @@ help:
 	@echo "  make terraform-plan      - Executa terraform plan"
 	@echo "  make terraform-apply     - Aplica a infraestrutura"
 	@echo "  make terraform-destroy   - Destrói a infraestrutura"
+	@echo ""
+	@echo "Comandos Terraform Local (infra-localstack com tflocal):"
+	@echo "  make tflocal-init        - Inicializa o Terraform Local"
+	@echo "  make tflocal-plan        - Executa tflocal plan"
+	@echo "  make tflocal-apply       - Aplica a infraestrutura com tflocal"
+	@echo "  make tflocal-destroy     - Destrói a infraestrutura com tflocal"
+	@echo ""
+	@echo "Comandos Terraform Produção (infra):"
+	@echo "  make infra-prod-init     - Inicializa o Terraform (produção)"
+	@echo "  make infra-prod-plan     - Executa terraform plan (produção)"
+	@echo "  make infra-prod-apply    - Aplica a infraestrutura (produção)"
+	@echo "  make infra-prod-destroy  - Destrói a infraestrutura (produção)"
 	@echo ""
 	@echo "Comandos combinados:"
 	@echo "  make infra-up           - Inicia LocalStack + Terraform apply"
@@ -155,3 +167,43 @@ cognito-local-clean:
 	@docker-compose -f docker-compose.cognito-local.yaml down -v
 	@rm -rf infra-localstack/cognito-local-config/*.json
 	@echo "✅ Limpeza concluída!"
+
+# Terraform Local (tflocal) commands for infra-localstack
+tflocal-init:
+	@echo "🔧 Inicializando Terraform Local..."
+	@cd infra-localstack && tflocal init
+	@echo "✅ Terraform Local inicializado!"
+
+tflocal-plan:
+	@echo "📋 Executando tflocal plan..."
+	@cd infra-localstack && tflocal plan
+
+tflocal-apply:
+	@echo "🚀 Aplicando infraestrutura com tflocal..."
+	@cd infra-localstack && tflocal apply -auto-approve
+	@echo "✅ Infraestrutura aplicada!"
+
+tflocal-destroy:
+	@echo "💣 Destruindo infraestrutura com tflocal..."
+	@cd infra-localstack && tflocal destroy -auto-approve
+	@echo "✅ Infraestrutura destruída!"
+
+# Production Terraform commands for infra directory
+infra-prod-init:
+	@echo "🔧 Inicializando Terraform (produção)..."
+	@cd infra && terraform init
+	@echo "✅ Terraform inicializado!"
+
+infra-prod-plan:
+	@echo "📋 Executando terraform plan (produção)..."
+	@cd infra && terraform plan
+
+infra-prod-apply:
+	@echo "🚀 Aplicando infraestrutura de produção..."
+	@cd infra && terraform apply -auto-approve
+	@echo "✅ Infraestrutura aplicada!"
+
+infra-prod-destroy:
+	@echo "💣 Destruindo infraestrutura de produção..."
+	@cd infra && terraform destroy -auto-approve
+	@echo "✅ Infraestrutura destruída!"

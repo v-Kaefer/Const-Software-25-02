@@ -6,14 +6,15 @@ Todas as modificações e entregas de sprints para esse projeto, estão document
 
 ### Infrastructure Consolidation (2025-11-05)
 
-#### Fix tflocal build - EC2 resources separation (2025-11-05)
+#### EC2 support in LocalStack free tier (2025-11-05)
 
-* **Separação de recursos EC2**:
-  - Criado `infra/ec2.tf` com recursos específicos de produção (AMI, EC2 instance, key pair)
-  - Recursos EC2 requerem AMIs reais da AWS e não funcionam com LocalStack
-  - Comandos `tflocal-*` agora excluem automaticamente `ec2.tf` durante execução
-  - Arquivo é temporariamente renomeado para `.skip` durante comandos tflocal
-  - Produção continua usando todos os arquivos incluindo `ec2.tf`
+* **Correção: EC2 é suportado no LocalStack free tier**:
+  - Revertida separação de recursos EC2 - não é necessária
+  - EC2 resources movidos de volta para `infra/main.tf`
+  - Removido `infra/ec2.tf` (não é mais necessário)
+  - Removida lógica de exclusão automática de ec2.tf dos comandos tflocal
+  - LocalStack free tier suporta EC2 conforme documentação oficial
+  - tflocal funciona com EC2 usando implementação mock do LocalStack
 
 #### Consolidação da estrutura de infraestrutura
 

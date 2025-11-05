@@ -99,7 +99,7 @@ Para testar a infraestrutura localmente antes de aplicar na AWS, use o LocalStac
 make localstack-start
 
 # Aplicar infraestrutura localmente com tflocal
-# (EC2 resources são automaticamente excluídos para LocalStack)
+# (EC2 é suportado no LocalStack free tier)
 make tflocal-init
 make tflocal-apply
 
@@ -111,7 +111,7 @@ make tflocal-destroy
 make localstack-stop
 ```
 
-**⚠️ Nota sobre EC2**: Os recursos EC2 (definidos em `ec2.tf`) são automaticamente excluídos ao usar `tflocal` porque requerem AMIs reais da AWS. O arquivo é temporariamente renomeado durante os comandos tflocal.
+**💡 Nota sobre EC2**: EC2 é suportado no LocalStack free tier. O tflocal usa a implementação mock do LocalStack para EC2, que aceita qualquer AMI ID.
 
 **Alternativa: cognito-local (para testar Cognito gratuitamente)**
 ```bash

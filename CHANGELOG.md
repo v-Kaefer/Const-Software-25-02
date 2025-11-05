@@ -2,6 +2,90 @@
 
 Todas as modificações e entregas de sprints para esse projeto, estão documentadas nesse arquivo.
 
+## Sprint 2 Updates
+
+### Infrastructure Consolidation (2025-11-05)
+
+#### Integrate cognito-local into tflocal pipeline (2025-11-05)
+
+* **Integração do cognito-local no pipeline tflocal**:
+  - Comandos `tflocal-*` agora excluem automaticamente `cognito.tf`
+  - `infra-up` agora inicia LocalStack + cognito-local automaticamente
+  - `infra-down` para todos os serviços (LocalStack + cognito-local)
+  - cognito-local usado como alternativa gratuita ao Cognito no LocalStack Pro
+  - Arquivo `cognito.tf` temporariamente renomeado para `.skip` durante tflocal
+  - Cognito funciona com cognito-local, outros recursos com LocalStack
+  - Sem falhas de Cognito - pipeline totalmente funcional no free tier
+
+#### Fix AMI lookup for LocalStack (2025-11-05)
+
+* **Solução para AMI lookup no LocalStack**:
+  - Adicionada variável `use_localstack` em `terraform.tf`
+  - AMI lookup condicional: mock AMI para LocalStack, lookup real para produção
+  - Comandos `tflocal-*` automaticamente passam `-var="use_localstack=true"`
+  - Mock AMI `ami-ff0fea8310f3` usado para testes locais
+  - Produção continua fazendo lookup real do Ubuntu AMI
+  - Não requer mudanças manuais no código
+
+#### EC2 support in LocalStack free tier (2025-11-05)
+
+* **Correção: EC2 é suportado no LocalStack free tier**:
+  - Revertida separação de recursos EC2 - não é necessária
+  - EC2 resources movidos de volta para `infra/main.tf`
+  - Removido `infra/ec2.tf` (não é mais necessário)
+  - Removida lógica de exclusão automática de ec2.tf dos comandos tflocal
+  - LocalStack free tier suporta EC2 conforme documentação oficial
+  - tflocal funciona com EC2 usando implementação mock do LocalStack
+
+#### Consolidação da estrutura de infraestrutura
+
+* **Remoção de infra-localstack**:
+  - Removido diretório `infra-localstack` completo
+  - Consolidado todos os testes locais para usar `tflocal` no diretório `infra/`
+  - Scripts cognito-local movidos para `infra/`
+  
+* **Uso unificado do tflocal**:
+  - Comandos `make tflocal-*` agora operam em `infra/` com tflocal
+  - `tflocal` detecta automaticamente endpoints do LocalStack
+  - Não requer configuração manual de endpoints ou arquivos separados
+  - Mesma estrutura para testes locais e produção
+  
+* **Comandos Makefile simplificados**:
+  - `make tflocal-init/plan/apply/destroy` - Para testes locais com LocalStack
+  - `make infra-prod-init/plan/apply/destroy` - Para deploy em produção na AWS
+  - `make infra-up/infra-down` - Atalhos para iniciar/parar tudo
+  - Removidos comandos `terraform-*` obsoletos
+  
+* **Documentação atualizada**:
+  - Atualizado `README.md` principal com fluxo simplificado
+  - Atualizado `infra/README.md` removendo referências a infra-localstack
+  - Atualizado `.gitignore` para refletir nova estrutura
+
+### Previous Infrastructure Updates (2025-11-05)
+
+#### Atualização da estrutura de infraestrutura
+
+* **Sincronização infra com infra-localstack**:
+  - Adicionado `cognito.tf` ao diretório `infra/` com recursos completos do Cognito
+  - Adicionado `credentials.tf.example` para configuração de usuários Cognito
+  - Mantida configuração de produção em `infra/main.tf` (sem credenciais "test")
+  
+* **Suporte a tflocal (terraform-local)**:
+  - Adicionados comandos `make tflocal-*` para uso com LocalStack
+  - `tflocal` detecta automaticamente endpoints do LocalStack
+  - Não requer configuração manual de endpoints
+  
+* **Comandos Makefile organizados**:
+  - `make tflocal-init/plan/apply/destroy` - Para testes com LocalStack usando tflocal
+  - `make infra-prod-init/plan/apply/destroy` - Para deploy em produção na AWS
+  
+* **Documentação atualizada**:
+  - Criado `infra/README.md` com guia completo de produção
+  - Atualizado `README.md` principal com três opções de infraestrutura:
+    1. cognito-local (gratuito, para testes)
+    2. LocalStack com tflocal (gratuito, sem Cognito Pro)
+    3. AWS Produção (deploy real)
+  - Atualizado `.gitignore` para incluir `infra/credentials.tf`
 
 # Entregas da Sprint 2 (D.O.D.)
 

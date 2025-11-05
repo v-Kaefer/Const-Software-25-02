@@ -7,7 +7,7 @@ services:
     ports:
       - "9229:9229"
     volumes:
-      - ./infra-localstack/cognito-local-config:/app/.cognito
+      - ./infra/cognito-local-config:/app/.cognito
     environment:
       - COGNITO_LOCAL_DATABASE=/app/.cognito/db.json
     restart: unless-stopped

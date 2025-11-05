@@ -1,539 +1,197 @@
 openapi: 3.1.0
 info:
-  title: Trabalho 1 - Construção de Software
-  description: API RESTful para gestão de alunos e matrículas
+  title: User Service - Construção de Software
+  description: API RESTful para gestão de usuários
   version: "1.0.0"
+  contact:
+    name: Grupo L
+    url: https://github.com/v-Kaefer/Const-Software-25-02
 
 servers:
-  - url: https://api.trabalho1.com/v1
-    description: Servidor principal
+  - url: http://localhost:8080
+    description: Servidor de desenvolvimento local
+  - url: https://api.trabalho1.com
+    description: Servidor de produção
 
 components:
   securitySchemes:
-    Auth0:
-      type: oauth2
-      flows:
-        authorizationCode:
-          authorizationUrl: https://your-auth0-domain/authorize
-          tokenUrl: https://your-auth0-domain/oauth/token
-          scopes: {}
+    CognitoAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: JWT token obtido do AWS Cognito User Pool
+
   schemas:
-    Aluno:
+    User:
       type: object
       properties:
         id:
           type: integer
-        nome:
+          format: uint
+          description: ID único do usuário (gerado automaticamente)
+          example: 1
+        email:
           type: string
-        genero:
+          format: email
+          maxLength: 255
+          description: Email do usuário (único)
+          example: "usuario@example.com"
+        name:
           type: string
-        nascimento:
+          maxLength: 120
+          description: Nome completo do usuário
+          example: "João Silva"
+        createdAt:
           type: string
-          format: date
-      required: [nome, genero, nascimento]
-    Matricula:
+          format: date-time
+          description: Data e hora de criação do usuário
+          example: "2025-11-05T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Data e hora da última atualização
+          example: "2025-11-05T10:30:00Z"
+      required:
+        - email
+        - name
+
+    UserCreateRequest:
       type: object
       properties:
-        id:
-          type: integer
-        semestre:
+        email:
           type: string
-        curso:
+          format: email
+          maxLength: 255
+          description: Email do usuário (único)
+          example: "usuario@example.com"
+        name:
           type: string
-      required: [semestre, curso]
+          maxLength: 120
+          description: Nome completo do usuário
+          example: "João Silva"
+      required:
+        - email
+        - name
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensagem de erro
+          example: "email required"
 
 security:
-  - Auth0: []
+  - CognitoAuth: []
 
 paths:
-  /alunos:
-    get:
-      summary: Recupera todos os alunos
-      responses:
-        '200':
-          description: Lista de alunos
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Aluno'
+  /users:
     post:
-      summary: Cria um novo aluno
-      security:
-        - Auth0: []
+      summary: Cria um novo usuário
+      description: Registra um novo usuário no sistema
+      operationId: createUser
+      tags:
+        - Users
+      security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Aluno'
-      responses:
-        '201':
-          description: Aluno criado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Aluno'
-
-  /alunos/{id_aluno}:
-    get:
-      summary: Recupera aluno pelo ID
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
+              $ref: '#/components/schemas/UserCreateRequest'
+            examples:
+              example1:
+                summary: Exemplo de criação de usuário
+                value:
+                  email: "ana@example.com"
+                  name: "Ana Silva"
       responses:
         '200':
-          description: Aluno encontrado
+          description: Usuário criado com sucesso
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Aluno'
+                $ref: '#/components/schemas/User'
+              examples:
+                example1:
+                  summary: Usuário criado
+                  value:
+                    id: 1
+                    email: "ana@example.com"
+                    name: "Ana Silva"
+                    createdAt: "2025-11-05T10:30:00Z"
+                    updatedAt: "2025-11-05T10:30:00Z"
+        '400':
+          description: Requisição inválida (corpo malformado ou email duplicado)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidBody:
+                  summary: Corpo inválido
+                  value:
+                    error: "invalid body"
+                duplicateEmail:
+                  summary: Email duplicado
+                  value:
+                    error: "duplicate email"
+
+    get:
+      summary: Busca usuário por email
+      description: Recupera um usuário específico usando o endereço de email como filtro
+      operationId: getUserByEmail
+      tags:
+        - Users
+      security: []
+      parameters:
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+            format: email
+          description: Email do usuário a ser buscado
+          example: "ana@example.com"
+      responses:
+        '200':
+          description: Usuário encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                example1:
+                  summary: Usuário encontrado
+                  value:
+                    id: 1
+                    email: "ana@example.com"
+                    name: "Ana Silva"
+                    createdAt: "2025-11-05T10:30:00Z"
+                    updatedAt: "2025-11-05T10:30:00Z"
+        '400':
+          description: Parâmetro email não fornecido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingEmail:
+                  summary: Email não fornecido
+                  value:
+                    error: "email required"
         '404':
-          description: Aluno não encontrado
-    put:
-      summary: Atualiza aluno por ID
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Aluno'
-      responses:
-        '200':
-          description: Aluno atualizado
-    patch:
-      summary: Atualiza parcialmente aluno por ID
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Aluno'
-      responses:
-        '200':
-          description: Aluno atualizado parcialmente
-    delete:
-      summary: Deleta aluno por ID
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Aluno deletado
-
-  /alunos/{id_aluno}/matriculas:
-    get:
-      summary: Recupera todas as matrículas do aluno
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Lista de matrículas
+          description: Usuário não encontrado
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Matricula'
-    post:
-      summary: Cria nova matrícula para o aluno
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Matricula'
-      responses:
-        '201':
-          description: Matrícula criada
+                $ref: '#/components/schemas/Error'
+              examples:
+                notFound:
+                  summary: Usuário não encontrado
+                  value:
+                    error: "not found"
 
-  /alunos/{id_aluno}/matriculas/{id_matricula}:
-    get:
-      summary: Recupera matrícula específica do aluno
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: id_matricula
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Matrícula encontrada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Matricula'
-    put:
-      summary: Atualiza matrícula por ID
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: id_matricula
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Matricula'
-      responses:
-        '200':
-          description: Matrícula atualizada
-    patch:
-      summary: Atualiza parcialmente matrícula por ID
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: id_matricula
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Matricula'
-      responses:
-        '200':
-          description: Matrícula parcialmente atualizada
-    delete:
-      summary: Remove matrícula do aluno
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            $ref: '#/components/schemas/Error'
-  headers: {}
-  links: {}
-  callbacks: {}
-  examples: {}
-  requestBodies: {}
-  version: "1.0.0"
-
-servers:
-  - url: https://api.trabalho1.com/v1
-    description: Servidor principal
-
-components:
-  securitySchemes:
-    Auth0:
-      type: oauth2
-      flows:
-        authorizationCode:
-          authorizationUrl: https://your-auth0-domain/authorize
-          tokenUrl: https://your-auth0-domain/oauth/token
-          scopes: {}
-  schemas:
-    Aluno:
-      type: object
-      properties:
-        id:
-          type: integer
-        nome:
-          type: string
-        genero:
-          type: string
-        nascimento:
-          type: string
-          format: date
-      required: [nome, genero, nascimento]
-    Matricula:
-      type: object
-      properties:
-        id:
-          type: integer
-        semestre:
-          type: string
-        curso:
-          type: string
-      required: [semestre, curso]
-
-security:
-  - Auth0: []
-
-paths:
-  /alunos:
-    get:
-      summary: Recupera todos os alunos
-      responses:
-        '200':
-          description: Lista de alunos
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Aluno'
-    post:
-      summary: Cria um novo aluno
-      security:
-        - Auth0: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Aluno'
-      responses:
-        '201':
-          description: Aluno criado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Aluno'
-
-  /alunos/{id_aluno}:
-    get:
-      summary: Recupera aluno pelo ID
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Aluno encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Aluno'
-        '404':
-          description: Aluno não encontrado
-    put:
-      summary: Atualiza aluno por ID
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Aluno'
-      responses:
-        '200':
-          description: Aluno atualizado
-    patch:
-      summary: Atualiza parcialmente aluno por ID
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Aluno'
-      responses:
-        '200':
-          description: Aluno atualizado parcialmente
-    delete:
-      summary: Deleta aluno por ID
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Aluno deletado
-
-  /alunos/{id_aluno}/matriculas:
-    get:
-      summary: Recupera todas as matrículas do aluno
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Lista de matrículas
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Matricula'
-    post:
-      summary: Cria nova matrícula para o aluno
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Matricula'
-      responses:
-        '201':
-          description: Matrícula criada
-
-  /alunos/{id_aluno}/matriculas/{id_matricula}:
-    get:
-      summary: Recupera matrícula específica do aluno
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: id_matricula
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Matrícula encontrada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Matricula'
-    put:
-      summary: Atualiza matrícula por ID
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: id_matricula
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Matricula'
-      responses:
-        '200':
-          description: Matrícula atualizada
-    patch:
-      summary: Atualiza parcialmente matrícula por ID
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: id_matricula
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Matricula'
-      responses:
-        '200':
-          description: Matrícula parcialmente atualizada
-    delete:
-      summary: Remove matrícula do aluno
-      security:
-        - Auth0: []
-      parameters:
-        - in: path
-          name: id_aluno
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: id_matricula
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Matrícula removida
+tags:
+  - name: Users
+    description: Operações relacionadas a usuários

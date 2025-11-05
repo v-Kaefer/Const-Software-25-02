@@ -63,6 +63,8 @@ func (s *Service) RegisterWithPassword(ctx context.Context, email, name, passwor
 func (s *Service) Authenticate(ctx context.Context, email, password string) (*User, error) {
 	user, err := s.repo.FindByEmail(ctx, email)
 	if err != nil {
+		// Log error for debugging, but don't expose to client
+		// TODO: Add proper logging here
 		return nil, ErrInvalidCredentials
 	}
 

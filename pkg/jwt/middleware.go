@@ -35,11 +35,8 @@ func (g *Generator) Middleware(next http.Handler) http.Handler {
 		// Valida o token
 		claims, err := g.ValidateToken(tokenString)
 		if err != nil {
-			if err == ErrExpiredToken {
-				http.Error(w, "token has expired", http.StatusUnauthorized)
-			} else {
-				http.Error(w, "invalid token", http.StatusUnauthorized)
-			}
+			// Use generic error message to avoid information disclosure
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 

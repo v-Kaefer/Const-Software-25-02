@@ -151,16 +151,16 @@ tflocal-init:
 
 tflocal-plan:
 	@echo "📋 Executando tflocal plan..."
-	@cd infra && tflocal plan
+	@cd infra && tflocal plan -var="use_localstack=true"
 
 tflocal-apply:
 	@echo "🚀 Aplicando infraestrutura com tflocal..."
-	@cd infra && tflocal apply -auto-approve
+	@cd infra && tflocal apply -auto-approve -var="use_localstack=true"
 	@echo "✅ Infraestrutura aplicada!"
 
 tflocal-destroy:
 	@echo "💣 Destruindo infraestrutura com tflocal..."
-	@cd infra && tflocal destroy -auto-approve
+	@cd infra && tflocal destroy -auto-approve -var="use_localstack=true"
 	@echo "✅ Infraestrutura destruída!"
 
 # Production Terraform commands for infra directory

@@ -8,9 +8,10 @@ resource "aws_key_pair" "this" {
   public_key = file(var.public_key_path)
 }
 
-# For LocalStack testing, use a mock AMI ID
-# For production, lookup the real Ubuntu AMI
+# Lookup real Ubuntu AMI for production deployments
+# This data source is only used when not running with LocalStack
 data "aws_ami" "ubuntu" {
+  count       = var.use_localstack ? 0 : 1
   most_recent = true
 
   filter {
@@ -22,9 +23,9 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "grupo_l_terraform" {
-  # LocalStack accepts any AMI ID format, so we can use the real lookup
-  # tflocal will work with LocalStack's mock EC2 implementation
-  ami           = data.aws_ami.ubuntu.id
+  # Use mock AMI for LocalStack, real AMI lookup for production
+  # LocalStack accepts any AMI ID in the format ami-xxxxxxxx
+  ami           = var.use_localstack ? "ami-ff0fea8310f3" : data.aws_ami.ubuntu[0].id
   instance_type = "t2.micro"
 
   security_groups = ["allow-http"]

@@ -99,7 +99,7 @@ Para testar a infraestrutura localmente antes de aplicar na AWS, use o LocalStac
 make localstack-start
 
 # Aplicar infraestrutura localmente com tflocal
-# (EC2 é suportado no LocalStack free tier)
+# (usa mock AMI automaticamente)
 make tflocal-init
 make tflocal-apply
 
@@ -111,7 +111,11 @@ make tflocal-destroy
 make localstack-stop
 ```
 
-**💡 Nota sobre EC2**: EC2 é suportado no LocalStack free tier. O tflocal usa a implementação mock do LocalStack para EC2, que aceita qualquer AMI ID.
+**💡 Nota sobre EC2 e AMI**: 
+- EC2 é suportado no LocalStack free tier
+- Os comandos `tflocal-*` automaticamente usam um AMI mock (`ami-ff0fea8310f3`) para LocalStack
+- Em produção, o Terraform faz lookup do AMI real do Ubuntu
+- Não é necessário configuração manual - tudo é automático
 
 **Alternativa: cognito-local (para testar Cognito gratuitamente)**
 ```bash

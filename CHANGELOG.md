@@ -6,6 +6,16 @@ Todas as modificações e entregas de sprints para esse projeto, estão document
 
 ### Infrastructure Consolidation (2025-11-05)
 
+#### Fix AMI lookup for LocalStack (2025-11-05)
+
+* **Solução para AMI lookup no LocalStack**:
+  - Adicionada variável `use_localstack` em `terraform.tf`
+  - AMI lookup condicional: mock AMI para LocalStack, lookup real para produção
+  - Comandos `tflocal-*` automaticamente passam `-var="use_localstack=true"`
+  - Mock AMI `ami-ff0fea8310f3` usado para testes locais
+  - Produção continua fazendo lookup real do Ubuntu AMI
+  - Não requer mudanças manuais no código
+
 #### EC2 support in LocalStack free tier (2025-11-05)
 
 * **Correção: EC2 é suportado no LocalStack free tier**:

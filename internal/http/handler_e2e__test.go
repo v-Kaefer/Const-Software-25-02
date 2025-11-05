@@ -28,7 +28,10 @@ func newTestServer(t *testing.T) *httptest.Server {
 
 	repo := user.NewRepo(db)
 	svc := user.NewService(db, repo)
-	router := httpapi.NewRouter(svc) // seu handler implementa http.Handler
+	
+	// Create a mock auth middleware for testing (empty config is fine for tests without actual auth)
+	mockAuthMiddleware := httpapi.NewMockAuthMiddleware()
+	router := httpapi.NewRouter(svc, mockAuthMiddleware) // seu handler implementa http.Handler
 
 	return httptest.NewServer(router)
 }

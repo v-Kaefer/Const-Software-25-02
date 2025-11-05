@@ -6,6 +6,17 @@ Todas as modificações e entregas de sprints para esse projeto, estão document
 
 ### Infrastructure Consolidation (2025-11-05)
 
+#### Integrate cognito-local into tflocal pipeline (2025-11-05)
+
+* **Integração do cognito-local no pipeline tflocal**:
+  - Comandos `tflocal-*` agora excluem automaticamente `cognito.tf`
+  - `infra-up` agora inicia LocalStack + cognito-local automaticamente
+  - `infra-down` para todos os serviços (LocalStack + cognito-local)
+  - cognito-local usado como alternativa gratuita ao Cognito no LocalStack Pro
+  - Arquivo `cognito.tf` temporariamente renomeado para `.skip` durante tflocal
+  - Cognito funciona com cognito-local, outros recursos com LocalStack
+  - Sem falhas de Cognito - pipeline totalmente funcional no free tier
+
 #### Fix AMI lookup for LocalStack (2025-11-05)
 
 * **Solução para AMI lookup no LocalStack**:

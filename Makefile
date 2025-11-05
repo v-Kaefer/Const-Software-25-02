@@ -33,17 +33,20 @@ help:
 	@echo "  make infra-prod-destroy  - Destrói a infraestrutura (produção)"
 	@echo ""
 	@echo "Comandos combinados:"
-	@echo "  make infra-up           - Inicia LocalStack + Terraform apply"
-	@echo "  make infra-down         - Terraform destroy + Para LocalStack"
+	@echo "  make infra-up           - Inicia LocalStack + cognito-local + tflocal"
+	@echo "  make infra-down         - Para tudo (tflocal + cognito-local + LocalStack)"
 	@echo "  make infra-test         - Testa a infraestrutura criada"
 	@echo ""
 	@echo "==================================================================="
-	@echo "IMPORTANTE: Cognito requer LocalStack Pro!"
+	@echo "IMPORTANTE: Cognito - Integrado automaticamente!"
 	@echo "==================================================================="
 	@echo "O LocalStack free tier NÃO suporta Cognito."
 	@echo ""
-	@echo "✅ SOLUÇÃO IMPLEMENTADA: cognito-local"
-	@echo "Para testar Cognito GRATUITAMENTE com cognito-local:"
+	@echo "✅ SOLUÇÃO IMPLEMENTADA: cognito-local integrado no pipeline"
+	@echo "O comando 'make infra-up' já inicia cognito-local automaticamente!"
+	@echo "tflocal exclui recursos Cognito e usa cognito-local no lugar."
+	@echo ""
+	@echo "Para testar Cognito manualmente:"
 	@echo "  1. make cognito-local-start  # Inicia o emulador"
 	@echo "  2. make cognito-local-setup  # Configura igual ao Terraform"
 	@echo "  3. make cognito-local-test   # Testa a configuração"
@@ -82,18 +85,18 @@ localstack-clean:
 	@echo "✅ Limpeza concluída!"
 
 # Combined commands
-infra-up: localstack-start tflocal-init tflocal-apply
+infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup tflocal-apply
 	@echo "✅ Infraestrutura completa iniciada!"
 	@echo ""
 	@echo "📊 Recursos disponíveis:"
 	@echo "  - S3: http://localhost:4566"
 	@echo "  - DynamoDB: http://localhost:4566"
-	@echo "  - Cognito: http://localhost:4566 (requer LocalStack Pro)"
+	@echo "  - Cognito: http://localhost:9229 (cognito-local)"
 	@echo ""
 	@echo "Para testar os recursos:"
 	@echo "  make infra-test"
 
-infra-down: tflocal-destroy localstack-stop
+infra-down: tflocal-destroy cognito-local-stop localstack-stop
 	@echo "✅ Infraestrutura completa parada!"
 
 infra-test:
@@ -144,23 +147,32 @@ cognito-local-clean:
 
 # Terraform Local (tflocal) commands for local testing with infra directory
 # EC2 is supported in LocalStack free tier
+# Cognito resources are excluded as cognito-local is used instead (free alternative)
 tflocal-init:
 	@echo "🔧 Inicializando Terraform Local..."
+	@cd infra && mv cognito.tf cognito.tf.skip 2>/dev/null || true
 	@cd infra && tflocal init
+	@cd infra && mv cognito.tf.skip cognito.tf 2>/dev/null || true
 	@echo "✅ Terraform Local inicializado!"
 
 tflocal-plan:
 	@echo "📋 Executando tflocal plan..."
+	@cd infra && mv cognito.tf cognito.tf.skip 2>/dev/null || true
 	@cd infra && tflocal plan -var="use_localstack=true"
+	@cd infra && mv cognito.tf.skip cognito.tf 2>/dev/null || true
 
 tflocal-apply:
 	@echo "🚀 Aplicando infraestrutura com tflocal..."
+	@cd infra && mv cognito.tf cognito.tf.skip 2>/dev/null || true
 	@cd infra && tflocal apply -auto-approve -var="use_localstack=true"
+	@cd infra && mv cognito.tf.skip cognito.tf 2>/dev/null || true
 	@echo "✅ Infraestrutura aplicada!"
 
 tflocal-destroy:
 	@echo "💣 Destruindo infraestrutura com tflocal..."
+	@cd infra && mv cognito.tf cognito.tf.skip 2>/dev/null || true
 	@cd infra && tflocal destroy -auto-approve -var="use_localstack=true"
+	@cd infra && mv cognito.tf.skip cognito.tf 2>/dev/null || true
 	@echo "✅ Infraestrutura destruída!"
 
 # Production Terraform commands for infra directory

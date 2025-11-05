@@ -16,6 +16,7 @@ infra/cognito-local-config/db.json
 
 # Build artifacts
 main
+api
 *.out
 coverage.out
 coverage.html

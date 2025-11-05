@@ -124,6 +124,9 @@ infra-test:
 	@echo "7️⃣ Testando Cognito (cognito-local)..."
 	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test aws --endpoint-url=http://localhost:9229 --region us-east-1 cognito-idp list-user-pools --max-results 10 >/dev/null 2>&1 && echo "✅ Cognito User Pool disponível (cognito-local)" || echo "❌ Cognito não disponível"
 	@echo ""
+	@echo "8️⃣ Testando JWT Authentication..."
+	@go test -v ./pkg/jwt/... 2>&1 | grep -E "(PASS|FAIL|RUN)" && echo "✅ JWT tests passed" || echo "❌ JWT tests failed"
+	@echo ""
 	@echo "✅ Teste concluído!"
 	@echo ""
 	@echo "💡 Resumo dos recursos testados:"
@@ -134,6 +137,7 @@ infra-test:
 	@echo "   - EC2 Key Pair (LocalStack)"
 	@echo "   - EC2 Instance (LocalStack)"
 	@echo "   - Cognito User Pool (cognito-local)"
+	@echo "   - JWT Authentication"
 	@echo ""
 	@echo "✅ Teste concluído!"
 

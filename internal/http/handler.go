@@ -100,8 +100,8 @@ func (r *Router) handleLogin(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Gera token JWT válido por 24 horas
-	token, err := r.jwtGenerator.GenerateToken(u.ID, u.Email, 24*time.Hour)
+	// Gera token JWT válido por 3 horas
+	token, err := r.jwtGenerator.GenerateToken(u.ID, u.Email, 3*time.Hour)
 	if err != nil {
 		http.Error(w, "failed to generate token", http.StatusInternalServerError)
 		return

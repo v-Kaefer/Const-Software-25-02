@@ -21,8 +21,8 @@ import "time"
 // Criar gerador JWT
 generator := jwt.NewGenerator("sua-chave-secreta")
 
-// Gerar token válido por 24 horas
-token, err := generator.GenerateToken(userID, email, 24*time.Hour)
+// Gerar token válido por 3 horas
+token, err := generator.GenerateToken(userID, email, 3*time.Hour)
 if err != nil {
     // Tratar erro
 }

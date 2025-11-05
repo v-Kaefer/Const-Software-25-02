@@ -359,3 +359,39 @@ resource "aws_cognito_identity_pool_roles_attachment" "main" {
     }
   }
 }
+
+# Outputs for JWT integration
+output "user_pool_id" {
+  description = "Cognito User Pool ID - used for JWT validation"
+  value       = aws_cognito_user_pool.cognito_pool.id
+}
+
+output "user_pool_arn" {
+  description = "Cognito User Pool ARN"
+  value       = aws_cognito_user_pool.cognito_pool.arn
+}
+
+output "user_pool_endpoint" {
+  description = "Cognito User Pool endpoint - used for JWKS URL construction"
+  value       = aws_cognito_user_pool.cognito_pool.endpoint
+}
+
+output "app_client_id" {
+  description = "App Client ID - used as audience (aud) claim in JWT validation"
+  value       = aws_cognito_user_pool_client.client.id
+}
+
+output "jwks_uri" {
+  description = "JWKS URI for JWT signature validation - contains public keys"
+  value       = "https://${aws_cognito_user_pool.cognito_pool.endpoint}/.well-known/jwks.json"
+}
+
+output "identity_pool_id" {
+  description = "Identity Pool ID - used for exchanging JWT tokens for AWS credentials"
+  value       = aws_cognito_identity_pool.main.id
+}
+
+output "jwt_issuer" {
+  description = "JWT issuer (iss claim) - used for JWT validation"
+  value       = "https://${aws_cognito_user_pool.cognito_pool.endpoint}"
+}

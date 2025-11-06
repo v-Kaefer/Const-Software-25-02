@@ -8,9 +8,9 @@ https://github.com/v-Kaefer/Const-Software-25-02
 ![Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/build.yaml/badge.svg)
 ![Docker Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/docker-build.yaml/badge.svg)
 
-# User Service – Go + Gin + PostgreSQL
+# User Service – Go + PostgreSQL
 
-> Serviço base para o domínio **User**, com especificação **OpenAPI**, infraestrutura Docker, migração SQL e CI simples em GitHub Actions.
+> Serviço completo para o domínio **User**, com especificação **OpenAPI**, infraestrutura Docker, migração SQL, autenticação RBAC com AWS Cognito e CI/CD em GitHub Actions.
 
 ## Sumário
 1. [Objetivo](#objetivo)
@@ -24,12 +24,13 @@ https://github.com/v-Kaefer/Const-Software-25-02
 
 
 ## Objetivo
-Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do domínio `User` com **CRUD** completo definido em OpenAPI.
+Serviço REST completo para gerenciamento de usuários com autenticação RBAC, persistência em PostgreSQL, infraestrutura AWS e testes automatizados.
 
 ## Pré-requisitos
 - Docker Desktop/Engine e Docker Compose
 - Go 1.22+ (para desenvolvimento local fora do container)
-- Terraform (apenas para desenvolvimento e deploy de infra)
+- Terraform (para deploy de infraestrutura)
+- AWS CLI (para testes com Cognito)
 
 ## Como rodar com Docker Compose
 1. Crie seu `.env` a partir do exemplo:
@@ -46,22 +47,20 @@ Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do dom�
    ```bash
    docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
    ```
-4. (Opcional nesta sprint) Suba API e Swagger:
+4. Suba API e Swagger:
 
    ```bash
    docker compose up -d api swagger
    # API:    http://localhost:8080
    # Swagger http://localhost:8081
    ```
-5. Acompanhe logs (útil quando a API estiver implementada):
+5. Acompanhe logs:
 
    ```bash
    docker compose logs -f api
    ```
 
 ## Como rodar localmente (sem Docker)
-
-> Útil quando o servidor Gin for implementado.
 
 1. Garanta um PostgreSQL local acessível.
 2. Configure `DATABASE_URL` (ver [Variáveis de ambiente](./CONTRIBUTING.md)).

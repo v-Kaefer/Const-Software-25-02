@@ -134,23 +134,6 @@ func (r *Router) handleCreateUser(w http.ResponseWriter, req *http.Request) {
 	_ = json.NewEncoder(w).Encode(u)
 }
 
-func (r *Router) handleGetUserByEmail(w http.ResponseWriter, req *http.Request) {
-	email := req.URL.Query().Get("email")
-	if email == "" {
-		http.Error(w, "email required", http.StatusBadRequest)
-		return
-	}
-	ctx, cancel := context.WithTimeout(req.Context(), 5*time.Second)
-	defer cancel()
-	u, err := r.userSvc.GetByEmail(ctx, email)
-	if err != nil {
-		http.Error(w, "not found", http.StatusNotFound)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(u)
-}
-
 func (r *Router) handleListUsers(w http.ResponseWriter, req *http.Request) {
 	ctx, cancel := context.WithTimeout(req.Context(), 5*time.Second)
 	defer cancel()
@@ -295,7 +278,11 @@ func (r *Router) handleDeleteUser(w http.ResponseWriter, req *http.Request) {
 	defer cancel()
 
 	if err := r.userSvc.Delete(ctx, uint(id)); err != nil {
-		http.Error(w, "failed to delete user", http.StatusInternalServerError)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "failed to delete user", http.StatusInternalServerError)
+		}
 		return
 	}
 

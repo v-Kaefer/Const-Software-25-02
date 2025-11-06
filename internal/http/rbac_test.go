@@ -304,6 +304,11 @@ func TestRBAC_NotFoundUser(t *testing.T) {
 			body:       `{"name":"Test"}`,
 			wantStatus: http.StatusNotFound,
 		},
+		{
+			name:       "DELETE non-existent user",
+			method:     "DELETE",
+			wantStatus: http.StatusNotFound,
+		},
 	}
 
 	for _, tt := range tests {

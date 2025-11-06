@@ -63,6 +63,11 @@ func (s *Service) Update(ctx context.Context, id uint, email, name string) (*Use
 func (s *Service) Delete(ctx context.Context, id uint) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		r := s.repo.WithTx(tx)
+		// Check if user exists first
+		_, err := r.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
 		return r.Delete(ctx, id)
 	})
 }

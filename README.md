@@ -12,12 +12,27 @@ https://github.com/v-Kaefer/Const-Software-25-02
 
 > Serviço RESTful para gerenciamento de usuários com autenticação AWS Cognito, controle de acesso baseado em funções (RBAC) e infraestrutura como código.
 
-## 🚀 Início Rápido
+## Sumário
+1. [Pré-requisitos](#pré-requisitos)
+2. [Início Rápido](#-início-rápido)
+3. [Comandos Makefile Essenciais](#-comandos-makefile-essenciais)
+4. [Variáveis de Ambiente](#-variáveis-de-ambiente-env)
+5. [Autenticação e Autorização](#-autenticação-e-autorização)
+6. [Documentação Completa](#-documentação-completa)
+7. [Arquitetura](#-arquitetura)
+8. [Testes](#-testes)
+9. [Infraestrutura](#-infraestrutura)
+10. [CI/CD](#-cicd)
+11. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
+12. [Recursos Adicionais](#recursos-adicionais)
 
-### Pré-requisitos
-- Docker e Docker Compose
-- Go 1.22+ (desenvolvimento local)
+## Pré-requisitos
+- Docker Desktop/Engine e Docker Compose
+- Go 1.22+ (para desenvolvimento local fora do container)
+- Terraform (apenas para desenvolvimento e deploy de infra)
 - AWS CLI (para testes com Cognito)
+
+## 🚀 Início Rápido
 
 ### Configuração Inicial
 
@@ -203,8 +218,36 @@ GitHub Actions configurado com:
 - ✅ Docker build
 - ✅ Execução em push/PR
 
-## 🤝 Contribuições
+---
+
+## Contribuições do GitHub Copilot
+
+Este projeto utilizou o GitHub Copilot para auxiliar no diagnóstico e correção de problemas técnicos específicos.
+
+### Correção de Workflows CI/CD
+O Copilot foi utilizado para identificar e corrigir problemas nos workflows de CI/CD:
+- **Correção de Execução de Testes**: Alterou comandos de teste para executar todos os testes (`./...`) ao invés de apenas um pacote
+- **Correção de Sintaxe YAML**: Corrigiu triggers de tags no workflow docker-build
+- **Remoção de Dependências Inválidas**: Removeu dependências de jobs que causavam falhas nos workflows
+
+### Implementação de Autenticação JWT/RBAC
+O Copilot implementou autenticação JWT completa e controle de acesso baseado em funções (RBAC):
+- **Validação JWT com JWKS**: Verificação de claims (iss, aud, exp, nbf) e assinaturas
+- **Rotas CRUD Protegidas**: Endpoints com controle de acesso baseado em funções
+- **Testes Abrangentes**: 76 testes implementados (JWT validation + RBAC)
+- **Documentação Completa**: README, OpenAPI e guias traduzidos para PT-BR
+
+Para informações detalhadas sobre as contribuições do Copilot, consulte [COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md).
+
+---
+
+## Recursos Adicionais
+
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Guias de desenvolvimento, convenções e instruções detalhadas de setup
+- **[CHANGELOG.md](./CHANGELOG.md)**: Revisões de sprints e histórico do projeto
+- **[COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md)**: Rastreamento completo das contribuições do GitHub Copilot
+- **[docs/RBAC_AUTHENTICATION.md](./docs/RBAC_AUTHENTICATION.md)**: Documentação completa de autenticação RBAC com Cognito
+
+---
 
 Desenvolvido por **Grupo L** com assistência do **GitHub Copilot** para implementação de autenticação JWT/RBAC.
-
-Veja [COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md) para detalhes das contribuições do Copilot.

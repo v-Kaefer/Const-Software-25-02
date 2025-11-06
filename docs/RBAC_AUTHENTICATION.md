@@ -1,249 +1,249 @@
-# RBAC Authentication
+# Autenticação RBAC
 
-This document describes the Role-Based Access Control (RBAC) authentication implementation integrated with AWS Cognito.
+Este documento descreve a implementação de autenticação baseada em controle de acesso por funções (RBAC - Role-Based Access Control) integrada com AWS Cognito.
 
-## Overview
+## Visão Geral
 
-The API uses AWS Cognito for authentication and authorization, implementing RBAC through Cognito User Groups. JWT tokens are verified and role-based access control is enforced at the API level.
+A API usa AWS Cognito para autenticação e autorização, implementando RBAC através de Grupos de Usuários do Cognito. Tokens JWT são verificados e o controle de acesso baseado em funções é aplicado no nível da API.
 
-## Architecture
+## Arquitetura
 
-### Components
+### Componentes
 
-1. **AWS Cognito User Pool**: Manages user authentication
-2. **Cognito User Groups**: Define roles (admin-group, reviewers-group, user-group)
-3. **JWT Middleware**: Validates Cognito JWT tokens
-4. **RBAC Middleware**: Enforces role-based access control
+1. **AWS Cognito User Pool**: Gerencia autenticação de usuários
+2. **Cognito User Groups**: Define funções (admin-group, reviewers-group, user-group)
+3. **JWT Middleware**: Valida tokens JWT do Cognito
+4. **RBAC Middleware**: Aplica controle de acesso baseado em funções
 
-### Roles
+### Funções
 
-Three roles are defined in the system:
+Três funções são definidas no sistema:
 
-- `admin-group`: Full access to all resources
-- `reviewers-group`: Read access to resources
-- `user-group`: Limited user-level access
+- `admin-group`: Acesso completo a todos os recursos
+- `reviewers-group`: Acesso de leitura aos recursos
+- `user-group`: Acesso limitado ao nível de usuário
 
-## Configuration
+## Configuração
 
-### Environment Variables
+### Variáveis de Ambiente
 
-Add the following environment variables to your `.env` file:
+Adicione as seguintes variáveis de ambiente ao seu arquivo `.env`:
 
 ```bash
 COGNITO_REGION=us-east-1
-COGNITO_USER_POOL_ID=your-user-pool-id
+COGNITO_USER_POOL_ID=seu-user-pool-id
 ```
 
-### Cognito Setup
+### Configuração do Cognito
 
-The infrastructure is already defined in `infra/cognito.tf`. To deploy:
+A infraestrutura já está definida em `infra/cognito.tf`. Para implantar:
 
 ```bash
-# For local testing with cognito-local
+# Para testes locais com cognito-local
 make cognito-local-start
 make cognito-local-setup
 
-# For production
+# Para produção
 cd infra
 terraform apply
 ```
 
-## Usage
+## Uso
 
-### Protected Endpoints
+### Endpoints Protegidos
 
-Endpoints can be protected by wrapping them with authentication and role middleware:
+Os endpoints podem ser protegidos envolvendo-os com middleware de autenticação e função:
 
 ```go
-// Require authentication only
+// Requer apenas autenticação
 r.mux.Handle("GET /protected", 
     authMiddleware.Authenticate(http.HandlerFunc(handler)))
 
-// Require authentication + specific role
+// Requer autenticação + função específica
 r.mux.Handle("POST /admin-only",
     authMiddleware.Authenticate(
         authMiddleware.RequireRole(auth.RoleAdmin)(http.HandlerFunc(handler))))
 
-// Require authentication + any of multiple roles
+// Requer autenticação + qualquer uma das múltiplas funções
 r.mux.Handle("GET /resource",
     authMiddleware.Authenticate(
         authMiddleware.RequireRole(auth.RoleAdmin, auth.RoleReviewer)(
             http.HandlerFunc(handler))))
 ```
 
-### Making Authenticated Requests
+### Fazendo Requisições Autenticadas
 
-Include a JWT token in the Authorization header:
+Inclua um token JWT no header Authorization:
 
 ```bash
-curl -H "Authorization: Bearer <your-jwt-token>" \
+curl -H "Authorization: Bearer <seu-jwt-token>" \
      http://localhost:8080/users
 ```
 
-### Getting a Token
+### Obtendo um Token
 
-To obtain a JWT token from Cognito:
+Para obter um token JWT do Cognito:
 
 ```bash
-# Using AWS CLI
+# Usando AWS CLI
 aws cognito-idp initiate-auth \
   --auth-flow USER_PASSWORD_AUTH \
-  --client-id <your-client-id> \
-  --auth-parameters USERNAME=user@example.com,PASSWORD=YourPassword123! \
+  --client-id <seu-client-id> \
+  --auth-parameters USERNAME=usuario@example.com,PASSWORD=SuaSenha123! \
   --region us-east-1
 ```
 
-Or for local testing with cognito-local:
+Ou para testes locais com cognito-local:
 
 ```bash
-# See infra/test-cognito-local.sh for example
+# Veja infra/test-cognito-local.sh para exemplo
 make cognito-local-test
 ```
 
-## Implementation Details
+## Detalhes de Implementação
 
-### JWT Token Verification
+### Verificação de Token JWT
 
-The middleware performs the following steps:
+O middleware executa as seguintes etapas:
 
-1. Extract Bearer token from Authorization header
-2. Fetch JWKS (JSON Web Key Set) from Cognito
-3. Verify token signature using RSA public key
-4. Validate token claims (exp, iss, token_use)
-5. Extract user information and groups from claims
+1. Extrai o token Bearer do header Authorization
+2. Busca o JWKS (JSON Web Key Set) do Cognito
+3. Verifica a assinatura do token usando chave pública RSA
+4. Valida os claims do token (exp, iss, token_use)
+5. Extrai informações do usuário e grupos dos claims
 
-### Role Extraction
+### Extração de Funções
 
-Roles are extracted from the `cognito:groups` claim in the JWT token. The token looks like:
+As funções são extraídas do claim `cognito:groups` no token JWT. O token se parece com:
 
 ```json
 {
   "sub": "user-uuid",
-  "cognito:username": "user@example.com",
+  "cognito:username": "usuario@example.com",
   "cognito:groups": ["admin-group"],
-  "email": "user@example.com",
+  "email": "usuario@example.com",
   "token_use": "access",
   ...
 }
 ```
 
-### Context Values
+### Valores de Contexto
 
-After successful authentication, the following values are added to the request context:
+Após autenticação bem-sucedida, os seguintes valores são adicionados ao contexto da requisição:
 
-- **User**: Retrieved via `auth.GetUserFromContext(ctx)`
-- **Roles**: Retrieved via `auth.GetRolesFromContext(ctx)`
+- **User**: Recuperado via `auth.GetUserFromContext(ctx)`
+- **Roles**: Recuperado via `auth.GetRolesFromContext(ctx)`
 
-Example:
+Exemplo:
 
 ```go
 func (r *Router) handleProtected(w http.ResponseWriter, req *http.Request) {
     user, _ := auth.GetUserFromContext(req.Context())
     roles, _ := auth.GetRolesFromContext(req.Context())
     
-    // Use user and roles information
-    fmt.Printf("User: %s, Roles: %v\n", user, roles)
+    // Use informações de usuário e funções
+    fmt.Printf("Usuário: %s, Funções: %v\n", user, roles)
 }
 ```
 
-## Testing
+## Testes
 
-### Unit Tests
+### Testes Unitários
 
-The auth middleware includes comprehensive unit tests:
+O middleware de autenticação inclui testes unitários abrangentes:
 
 ```bash
 go test ./internal/auth/... -v
 ```
 
-### Mock Middleware
+### Middleware Mock
 
-For testing endpoints that require authentication, use the mock middleware:
+Para testar endpoints que requerem autenticação, use o middleware mock:
 
 ```go
 mockAuth := auth.NewMockMiddleware()
 router := http.NewRouter(userSvc, mockAuth)
 ```
 
-The mock middleware:
-- Skips JWT validation
-- Injects test user and admin role into context
-- Allows testing without real Cognito tokens
+O middleware mock:
+- Ignora validação JWT
+- Injeta usuário de teste e função admin no contexto
+- Permite testes sem tokens Cognito reais
 
-### Integration Testing
+### Testes de Integração
 
-For integration tests with real Cognito:
+Para testes de integração com Cognito real:
 
-1. Set up cognito-local or use a test Cognito User Pool
-2. Create test users and obtain real tokens
-3. Test with actual JWT tokens
+1. Configure cognito-local ou use um User Pool de teste do Cognito
+2. Crie usuários de teste e obtenha tokens reais
+3. Teste com tokens JWT reais
 
-## Security Considerations
+## Considerações de Segurança
 
-### Token Validation
+### Validação de Token
 
-- Tokens are validated against Cognito's public keys (JWKS)
-- Signature verification ensures token authenticity
-- Expiration is checked automatically by the JWT library
-- Only tokens with valid `token_use` claim are accepted
+- Tokens são validados contra as chaves públicas do Cognito (JWKS)
+- Verificação de assinatura garante autenticidade do token
+- Expiração é verificada automaticamente pela biblioteca JWT
+- Apenas tokens com claim `token_use` válido são aceitos
 
-### JWKS Caching
+### Cache de JWKS
 
-- Public keys are cached for 24 hours
-- Reduces API calls to Cognito
-- Automatic refresh when cache expires
+- Chaves públicas são armazenadas em cache por 24 horas
+- Reduz chamadas de API para o Cognito
+- Atualização automática quando o cache expira
 
-### Error Handling
+### Tratamento de Erros
 
-- Invalid tokens return 401 Unauthorized
-- Missing required roles return 403 Forbidden
-- Detailed error messages in development, generic in production
+- Tokens inválidos retornam 401 Unauthorized
+- Falta de funções necessárias retorna 403 Forbidden
+- Mensagens de erro detalhadas em desenvolvimento, genéricas em produção
 
-## Troubleshooting
+## Solução de Problemas
 
 ### "missing authorization header"
 
-Ensure you're including the Authorization header:
+Certifique-se de estar incluindo o header Authorization:
 ```bash
 curl -H "Authorization: Bearer TOKEN" ...
 ```
 
 ### "invalid token: ..."
 
-- Check token is not expired
-- Verify COGNITO_USER_POOL_ID matches the token issuer
-- Ensure token is from the correct user pool
+- Verifique se o token não está expirado
+- Verifique se COGNITO_USER_POOL_ID corresponde ao emissor do token
+- Certifique-se de que o token é do user pool correto
 
 ### "insufficient permissions"
 
-User's groups don't include required role. Check:
-- User is in the correct Cognito group
-- Token includes `cognito:groups` claim
-- Role name matches exactly (e.g., "admin-group")
+Os grupos do usuário não incluem a função necessária. Verifique:
+- O usuário está no grupo Cognito correto
+- O token inclui o claim `cognito:groups`
+- O nome da função corresponde exatamente (ex.: "admin-group")
 
-## Migration from Non-Auth
+## Migração de Código Sem Autenticação
 
-If you have existing code without authentication:
+Se você tem código existente sem autenticação:
 
-1. Add `COGNITO_REGION` and `COGNITO_USER_POOL_ID` to environment
-2. Update handler initialization to include auth middleware
-3. Wrap protected routes with authentication
-4. Add role requirements as needed
-5. Update tests to use mock middleware
+1. Adicione `COGNITO_REGION` e `COGNITO_USER_POOL_ID` ao ambiente
+2. Atualize a inicialização do handler para incluir middleware de autenticação
+3. Envolva rotas protegidas com autenticação
+4. Adicione requisitos de função conforme necessário
+5. Atualize testes para usar middleware mock
 
-## Example
+## Exemplo
 
-See `internal/http/handler.go` for a complete example of integrating RBAC:
+Veja `internal/http/handler.go` para um exemplo completo de integração RBAC:
 
 ```go
 func (r *Router) routes() {
-    // Protected - admin only
+    // Protegido - apenas admin
     r.mux.Handle("POST /users", 
         r.authMiddleware.Authenticate(
             r.authMiddleware.RequireRole(auth.RoleAdmin)(
                 http.HandlerFunc(r.handleCreateUser))))
     
-    // Public endpoint
+    // Endpoint público
     r.mux.HandleFunc("GET /users", r.handleGetUserByEmail)
 }
 ```

@@ -53,7 +53,7 @@ O GitHub Copilot foi utilizado para diagnosticar e corrigir problemas nos workfl
 O restante da estrutura do projeto, incluindo toda a arquitetura, código da aplicação, infraestrutura e documentação, foi desenvolvido pela equipe (v-Kaefer e colaboradores):
 
 ### Núcleo da Aplicação
-- Configuração Go + Gin Framework
+- Configuração Go com net/http standard library
 - Implementação completa do domínio User (CRUD)
 - Camadas de handler, service e repository
 - Gerenciamento de configuração

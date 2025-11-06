@@ -18,8 +18,9 @@ https://github.com/v-Kaefer/Const-Software-25-02
 3. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
 4. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
 5. [Como testar a infraestrutura localmente (Localstack)](#como-testar-a-infraestrutura-localmente-localstack)
-6. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
-7. [Recursos Adicionais](#recursos-adicionais)
+6. [Autenticação RBAC](#autenticação-rbac)
+7. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
+8. [Recursos Adicionais](#recursos-adicionais)
 
 
 ## Objetivo
@@ -180,6 +181,43 @@ make infra-prod-destroy
 >**📖 Documentação completa**: [infra/README.md](./infra/README.md)
 
 ---
+
+## Autenticação RBAC
+
+Este projeto implementa autenticação Role-Based Access Control (RBAC) integrada com AWS Cognito.
+
+### Recursos de Autenticação
+
+- **JWT Token Verification**: Validação automática de tokens Cognito
+- **Role-Based Access Control**: Três níveis de acesso (admin, reviewer, user)
+- **Middleware Protection**: Proteção de endpoints com autenticação e autorização
+- **Context Integration**: Informações de usuário e roles disponíveis no contexto da requisição
+
+### Configuração Rápida
+
+1. Configure as variáveis de ambiente:
+   ```bash
+   COGNITO_REGION=us-east-1
+   COGNITO_USER_POOL_ID=your-user-pool-id
+   ```
+
+2. Para testes locais, use cognito-local:
+   ```bash
+   make cognito-local-start
+   make cognito-local-setup
+   ```
+
+3. Faça requisições autenticadas:
+   ```bash
+   curl -H "Authorization: Bearer <jwt-token>" http://localhost:8080/users
+   ```
+
+### Documentação Completa
+
+Para detalhes completos sobre implementação, uso e troubleshooting, consulte:
+**[docs/RBAC_AUTHENTICATION.md](./docs/RBAC_AUTHENTICATION.md)**
+
+---
 ## Contribuições do GitHub Copilot
 
 Este projeto utilizou o GitHub Copilot para auxiliar no diagnóstico e correção de problemas técnicos específicos.
@@ -200,3 +238,4 @@ Para informações detalhadas sobre as contribuições do Copilot, consulte [COP
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Guias de desenvolvimento, convenções e instruções detalhadas de setup
 - **[CHANGELOG.md](./CHANGELOG.md)**: Revisões de sprints e histórico do projeto
 - **[COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md)**: Rastreamento completo das contribuições do GitHub Copilot
+- **[docs/RBAC_AUTHENTICATION.md](./docs/RBAC_AUTHENTICATION.md)**: Documentação completa de autenticação RBAC com Cognito

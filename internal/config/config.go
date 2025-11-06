@@ -22,9 +22,15 @@ func (c DBConfig) DSN() string {
 	)
 }
 
+type CognitoConfig struct {
+	Region     string
+	UserPoolID string
+}
+
 type AppConfig struct {
-	Env string
-	DB  DBConfig
+	Env     string
+	DB      DBConfig
+	Cognito CognitoConfig
 }
 
 func Load() AppConfig {
@@ -37,6 +43,10 @@ func Load() AppConfig {
 			Pass: getenv("DB_PASS", "postgres"),
 			Name: getenv("DB_NAME", "yourapp"),
 			SSL:  getenv("DB_SSLMODE", "disable"),
+		},
+		Cognito: CognitoConfig{
+			Region:     getenv("COGNITO_REGION", "us-east-1"),
+			UserPoolID: getenv("COGNITO_USER_POOL_ID", ""),
 		},
 	}
 }

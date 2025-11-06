@@ -8,338 +8,203 @@ https://github.com/v-Kaefer/Const-Software-25-02
 ![Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/build.yaml/badge.svg)
 ![Docker Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/docker-build.yaml/badge.svg)
 
-# User Service – Go + Gin + PostgreSQL
+# User Service – API REST com Autenticação JWT/RBAC
 
-> Serviço base para o domínio **User**, com especificação **OpenAPI**, infraestrutura Docker, migração SQL e CI simples em GitHub Actions.
+> Serviço RESTful para gerenciamento de usuários com autenticação AWS Cognito, controle de acesso baseado em funções (RBAC) e infraestrutura como código.
 
-## Sumário
-1. [Objetivo](#objetivo)
-2. [Pré-requisitos](#pré-requisitos)
-3. [Como rodar com Docker Compose](#como-rodar-com-docker-compose)
-4. [Como rodar localmente (sem Docker)](#como-rodar-localmente-sem-docker)
-5. [Como testar a infraestrutura localmente (Localstack)](#como-testar-a-infraestrutura-localmente-localstack)
-6. [Autenticação RBAC](#autenticação-rbac)
-7. [Contribuições do GitHub Copilot](#contribuições-do-github-copilot)
-8. [Recursos Adicionais](#recursos-adicionais)
+## 🚀 Início Rápido
 
+### Pré-requisitos
+- Docker e Docker Compose
+- Go 1.22+ (desenvolvimento local)
+- AWS CLI (para testes com Cognito)
 
-## Objetivo
-Preparar o ambiente e a estrutura mínima para iniciar o desenvolvimento do domínio `User` com **CRUD** completo definido em OpenAPI.
+### Configuração Inicial
 
-## Pré-requisitos
-- Docker Desktop/Engine e Docker Compose
-- Go 1.22+ (para desenvolvimento local fora do container)
-- Terraform (apenas para desenvolvimento e deploy de infra)
-
-## Como rodar com Docker Compose
-1. Crie seu `.env` a partir do exemplo:
+1. **Configure as variáveis de ambiente:**
    ```bash
    cp .env.example .env
-    ```
-2. Suba **apenas o banco** inicialmente:
-
-   ```bash
-   docker compose up -d db
+   # Edite .env com suas configurações
    ```
-3. Aplique a migração inicial:
 
+2. **Inicie os serviços:**
+   ```bash
+   # Banco de dados + API
+   docker compose up -d
+   ```
+
+3. **Aplique as migrações:**
    ```bash
    docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
    ```
-4. (Opcional nesta sprint) Suba API e Swagger:
 
-   ```bash
-   docker compose up -d api swagger
-   # API:    http://localhost:8080
-   # Swagger http://localhost:8081
-   ```
-5. Acompanhe logs (útil quando a API estiver implementada):
+4. **Acesse a API:**
+   - API: http://localhost:8080
+   - Swagger: http://localhost:8081
 
-   ```bash
-   docker compose logs -f api
-   ```
+## 📝 Comandos Makefile Essenciais
 
-## Como rodar localmente (sem Docker)
-
-> Útil quando o servidor Gin for implementado.
-
-1. Garanta um PostgreSQL local acessível.
-2. Configure `DATABASE_URL` (ver [Variáveis de ambiente](./CONTRIBUTING.md)).
-3. Aplique a migração:
-
-   ```bash
-   psql "$DATABASE_URL" -f migrations/0001_init.sql
-   ```
-4. Rode a aplicação:
-
-   ```bash
-   go run ./cmd/api
-   ```
-
----
-
-
-## Como testar a infraestrutura localmente
-
-### 🔥 Opção 1: cognito-local (RECOMENDADO - 100% Gratuito)
-
-**📋 Pré-requisitos:**
-- Docker e Docker Compose instalados
-- AWS CLI instalado: `pip install awscli` ou `brew install awscli`
-
-**Teste completo do Cognito localmente sem custos:**
-
+### Desenvolvimento Local
 ```bash
-# Passo 1: Iniciar cognito-local
+make help                    # Ver todos os comandos disponíveis
+
+# Testes com Cognito Local (Recomendado)
+make cognito-local-start     # Inicia cognito-local
+make cognito-local-setup     # Configura usuários e grupos
+make cognito-local-test      # Testa e obtém tokens JWT
+
+# Infraestrutura Local (LocalStack + Cognito)
+make infra-up               # Inicia toda infraestrutura local
+make infra-test             # Testa recursos criados
+make infra-down             # Para tudo e limpa recursos
+
+# Testes e Build
+go test ./...               # Executa todos os testes
+go build ./cmd/api          # Compila a aplicação
+```
+
+### Deploy em Produção
+```bash
+make infra-prod-init        # Inicializa Terraform
+make infra-prod-plan        # Revisa mudanças
+make infra-prod-apply       # Aplica infraestrutura AWS
+```
+
+## 🔧 Variáveis de Ambiente (.env)
+
+Copie `.env.example` para `.env` e configure:
+
+### Aplicação
+- `APP_ENV` - Ambiente (development/production)
+- `APP_PORT` - Porta da API (padrão: 8080)
+
+### Banco de Dados
+- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_NAME`
+- `DB_SSLMODE` - Modo SSL (disable para dev)
+
+### Autenticação JWT/Cognito
+- `COGNITO_REGION` - Região AWS (ex: us-east-1)
+- `COGNITO_USER_POOL_ID` - ID do User Pool (deixe vazio para mock local)
+- `JWT_ISSUER` - URL do emissor JWT (auto-construído se não fornecido)
+- `JWT_AUDIENCE` - Client ID da aplicação (opcional)
+- `JWKS_URI` - URL das chaves públicas (auto-construído se não fornecido)
+
+**Exemplo para produção:**
+```bash
+JWT_ISSUER=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_ABC123
+JWT_AUDIENCE=seu-client-id
+JWKS_URI=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_ABC123/.well-known/jwks.json
+```
+
+## 🔐 Autenticação e Autorização
+
+### Rotas da API
+
+| Método | Rota | Permissão | Descrição |
+|--------|------|-----------|-----------|
+| POST | `/users` | Admin | Criar usuário |
+| GET | `/users` | Admin | Listar todos os usuários |
+| GET | `/users/{id}` | Admin ou Próprio | Obter usuário por ID |
+| PUT | `/users/{id}` | Admin ou Próprio | Atualizar usuário |
+| PATCH | `/users/{id}` | Admin ou Próprio | Atualizar parcialmente |
+| DELETE | `/users/{id}` | Admin | Deletar usuário |
+
+### Como Obter Token JWT
+
+**Opção 1 - Cognito Local (Desenvolvimento):**
+```bash
 make cognito-local-start
-
-# Passo 2: Configurar (cria estrutura igual ao Terraform cognito.tf)
 make cognito-local-setup
-
-# Passo 3: Testar
-make cognito-local-test
-
-# Passo 4: Parar quando terminar
-make cognito-local-stop
+make cognito-local-test  # Exibe tokens gerados
 ```
 
-**O que é criado:**
-- ✅ User Pool com políticas de senha
-- ✅ App Client
-- ✅ 3 Grupos (admin, reviewers, user)
-- ✅ 3 Usuários de exemplo
-- ✅ Arquivo de configuração JSON para integração
-
----
-
-### Opção 2: LocalStack com tflocal (S3 + DynamoDB + IAM + VPC + Cognito)
-
-**Usando o Makefile com tflocal (recomendado):**
-
+**Opção 2 - AWS Cognito (Produção):**
 ```bash
-# Ver todos os comandos disponíveis
-make help
-
-# Iniciar LocalStack
-make localstack-start
-
-# Aplicar Terraform usando tflocal (detecta automaticamente o LocalStack)
-make tflocal-init
-make tflocal-apply
-
-# Testar a infraestrutura
-make infra-test
-
-# Destruir tudo
-make tflocal-destroy
-make localstack-stop
-```
-
-**Atalho com comando combinado:**
-
-```bash
-# Iniciar tudo de uma vez (LocalStack + tflocal init + tflocal apply)
-make infra-up
-
-# Testar a infraestrutura
-make infra-test
-
-# Destruir tudo (tflocal destroy + para LocalStack)
-make infra-down
-```
-
-**Configuração das credenciais Cognito:**
-
-Para criar usuários no Cognito, configure as credenciais antes de aplicar:
-```bash
-cd infra
-cp credentials.tf.example credentials.tf
-# Edite credentials.tf com seus usuários
-```
-
->**⚠️ IMPORTANTE**: Cognito requer LocalStack Pro (pago). Para testar Cognito gratuitamente, use **cognito-local** (Opção 1 acima). Se usar LocalStack free, o Cognito não funcionará mas os outros recursos (S3, DynamoDB, IAM, VPC) funcionarão normalmente.
-
----
-
-### Opção 3: Deploy na AWS (Produção)
-
-**Usando o Makefile:**
-
-```bash
-# Configurar credenciais AWS (criar .aws/credentials no diretório infra/)
-# e configurar usuários Cognito (copiar credentials.tf.example)
-
-# Inicializar e aplicar
-make infra-prod-init
-make infra-prod-plan
-make infra-prod-apply
-
-# Destruir (cuidado!)
-make infra-prod-destroy
-```
-
->**📖 Documentação completa**: [infra/README.md](./infra/README.md)
-
----
-
-## Autenticação RBAC
-
-Este projeto implementa autenticação Role-Based Access Control (RBAC) integrada com AWS Cognito.
-
-### Recursos de Autenticação
-
-- **JWT Token Verification**: Validação automática de tokens Cognito com verificação de claims (iss, aud, exp, nbf)
-- **Role-Based Access Control**: Três níveis de acesso (admin, reviewer, user)
-- **Middleware Protection**: Proteção de endpoints com autenticação e autorização
-- **Context Integration**: Informações de usuário e roles disponíveis no contexto da requisição
-- **JWKS Support**: Busca e cache de chaves públicas do Cognito para validação de assinaturas
-
-### Como Gerar um Token para Testes
-
-#### Opção 1: Testes Locais com cognito-local (Recomendado)
-
-```bash
-# 1. Inicie o cognito-local
-make cognito-local-start
-
-# 2. Configure o ambiente (cria User Pool, grupos e usuários)
-make cognito-local-setup
-
-# 3. Teste e obtenha um token
-make cognito-local-test
-```
-
-O comando `make cognito-local-test` irá:
-- Autenticar usuários de teste (admin, reviewer, user)
-- Exibir os tokens JWT gerados
-- Mostrar exemplos de uso com curl
-
-**Exemplo de uso do token:**
-```bash
-# Obter token (substitua com credenciais do cognito-local-setup)
-TOKEN=$(aws cognito-idp initiate-auth \
-  --auth-flow USER_PASSWORD_AUTH \
-  --client-id <client-id-do-setup> \
-  --auth-parameters USERNAME=admin@example.com,PASSWORD=AdminTemp123! \
-  --endpoint-url http://localhost:9229 \
-  --region us-east-1 \
-  --query 'AuthenticationResult.AccessToken' \
-  --output text)
-
-# Fazer requisição autenticada
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/users
-```
-
-#### Opção 2: AWS Cognito (Produção)
-
-**Client Credentials Flow (para aplicações):**
-```bash
-# Obter token usando AWS CLI
 aws cognito-idp initiate-auth \
   --auth-flow USER_PASSWORD_AUTH \
-  --client-id <your-app-client-id> \
-  --auth-parameters USERNAME=user@example.com,PASSWORD=YourPassword123! \
+  --client-id <seu-client-id> \
+  --auth-parameters USERNAME=admin@example.com,PASSWORD=SuaSenha123! \
   --region us-east-1
 ```
 
-**Authorization Code + PKCE Flow (para aplicações web/mobile):**
-1. Configure o Cognito Hosted UI no console AWS
-2. Acesse a URL do Hosted UI:
-   ```
-   https://<your-domain>.auth.<region>.amazoncognito.com/login?
-   client_id=<your-client-id>&
-   response_type=code&
-   scope=openid+email+profile&
-   redirect_uri=<your-callback-url>
-   ```
-3. Após login, troque o código pelo token usando o endpoint `/oauth2/token`
-
-**Para mais detalhes**, consulte a [documentação completa de autenticação](./docs/RBAC_AUTHENTICATION.md).
-
-#### Opção 3: Mock Token para Testes Unitários
-
-Para testes unitários, o código automaticamente usa um middleware mock quando `COGNITO_USER_POOL_ID` está vazio:
+### Fazendo Requisições
 
 ```bash
-# No .env ou variáveis de ambiente
-COGNITO_USER_POOL_ID=   # deixe vazio para modo mock
-```
-
-### Configuração das Variáveis de Ambiente
-
-Configure no arquivo `.env` (copie de `.env.example`):
-
-```bash
-# Cognito Configuration
-COGNITO_REGION=us-east-1
-COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
-
-# JWT Validation (configuração automática baseada no User Pool)
-JWT_ISSUER=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_XXXXXXXXX
-JWT_AUDIENCE=<your-app-client-id>
-JWKS_URI=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_XXXXXXXXX/.well-known/jwks.json
-```
-
-**Notas:**
-- `JWT_ISSUER`: URL do User Pool (formato: `https://cognito-idp.{region}.amazonaws.com/{user_pool_id}`)
-- `JWT_AUDIENCE`: Client ID da aplicação (opcional, para validação adicional)
-- `JWKS_URI`: Endpoint com chaves públicas para validação de assinatura (opcional, auto-construído se não fornecido)
-
-### Fazendo Requisições Autenticadas
-
-```bash
-# Listar todos os usuários (admin apenas)
-curl -H "Authorization: Bearer <jwt-token>" \
+# Exemplo: Listar usuários (admin apenas)
+curl -H "Authorization: Bearer SEU_TOKEN_JWT" \
      http://localhost:8080/users
 
-# Obter usuário específico (admin ou próprio usuário)
-curl -H "Authorization: Bearer <jwt-token>" \
-     http://localhost:8080/users/1
-
-# Criar usuário (admin apenas)
+# Exemplo: Criar usuário
 curl -X POST \
-     -H "Authorization: Bearer <jwt-token>" \
+     -H "Authorization: Bearer SEU_TOKEN_JWT" \
      -H "Content-Type: application/json" \
      -d '{"email":"novo@example.com","name":"Novo Usuario"}' \
      http://localhost:8080/users
-
-# Atualizar usuário (admin ou próprio usuário)
-curl -X PUT \
-     -H "Authorization: Bearer <jwt-token>" \
-     -H "Content-Type: application/json" \
-     -d '{"email":"atualizado@example.com","name":"Nome Atualizado"}' \
-     http://localhost:8080/users/1
-
-# Deletar usuário (admin apenas)
-curl -X DELETE \
-     -H "Authorization: Bearer <jwt-token>" \
-     http://localhost:8080/users/1
 ```
 
-### Documentação Completa
+## 📚 Documentação Completa
 
-Para detalhes completos sobre implementação, uso e troubleshooting, consulte:
-**[docs/RBAC_AUTHENTICATION.md](./docs/RBAC_AUTHENTICATION.md)**
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Guias de desenvolvimento e convenções
+- **[docs/RBAC_AUTHENTICATION.md](./docs/RBAC_AUTHENTICATION.md)** - Documentação detalhada de autenticação RBAC
+- **[CHANGELOG.md](./CHANGELOG.md)** - Histórico de mudanças e sprints
+- **[COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md)** - Contribuições do GitHub Copilot
+- **[infra/README.md](./infra/README.md)** - Documentação de infraestrutura e Terraform
 
----
-## Contribuições do GitHub Copilot
+## 🏗️ Arquitetura
 
-Este projeto utilizou o GitHub Copilot para auxiliar no diagnóstico e correção de problemas técnicos específicos.
+```
+├── cmd/api/              # Ponto de entrada da aplicação
+├── internal/
+│   ├── auth/            # Middleware JWT/RBAC
+│   ├── config/          # Configurações
+│   ├── db/              # Conexão e migrações
+│   └── http/            # Handlers HTTP
+├── pkg/user/            # Domínio User (service, repo)
+├── infra/               # Infraestrutura como código (Terraform)
+├── docs/                # Documentação adicional
+├── migrations/          # Scripts SQL
+└── openapi/             # Especificação OpenAPI 3.1
+```
 
+## 🧪 Testes
 
-### Correção de Workflows CI/CD
-O Copilot foi utilizado para identificar e corrigir problemas nos workflows de CI/CD:
-- **Correção de Execução de Testes**: Alterou comandos de teste para executar todos os testes (`./...`) ao invés de apenas um pacote
-- **Correção de Sintaxe YAML**: Corrigiu triggers de tags no workflow docker-build
-- **Remoção de Dependências Inválidas**: Removeu dependências de jobs que causavam falhas nos workflows
+```bash
+# Todos os testes
+go test ./...
 
-Para informações detalhadas sobre as contribuições do Copilot, consulte [COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md).
+# Com cobertura
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out
 
----
+# Testes específicos
+go test ./internal/auth/... -v    # Testes de autenticação
+go test ./internal/http/... -v    # Testes de handlers
+```
 
-## Recursos Adicionais
+**Cobertura Atual:** 58.3% (74.6% auth, 67.4% http)
 
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Guias de desenvolvimento, convenções e instruções detalhadas de setup
-- **[CHANGELOG.md](./CHANGELOG.md)**: Revisões de sprints e histórico do projeto
-- **[COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md)**: Rastreamento completo das contribuições do GitHub Copilot
-- **[docs/RBAC_AUTHENTICATION.md](./docs/RBAC_AUTHENTICATION.md)**: Documentação completa de autenticação RBAC com Cognito
+## 🛠️ Infraestrutura
+
+### Recursos AWS (Terraform)
+- Cognito User Pool com grupos (admin, reviewer, user)
+- S3, DynamoDB, VPC, IAM
+- Configurável para LocalStack (desenvolvimento)
+
+### Arquivos de Configuração
+- `infra/credentials.tf.example` - Template para usuários Cognito (copie para `credentials.tf`)
+- `.env.example` - Template de variáveis de ambiente (copie para `.env`)
+
+## 📊 CI/CD
+
+GitHub Actions configurado com:
+- ✅ Build e testes automáticos
+- ✅ Linting (go vet)
+- ✅ Cobertura de código
+- ✅ Docker build
+- ✅ Execução em push/PR
+
+## 🤝 Contribuições
+
+Desenvolvido por **Grupo L** com assistência do **GitHub Copilot** para implementação de autenticação JWT/RBAC.
+
+Veja [COPILOT_INSTRUCTIONS.md](./COPILOT_INSTRUCTIONS.md) para detalhes das contribuições do Copilot.

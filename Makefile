@@ -97,7 +97,7 @@ infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup 
 	@echo "Para testar os recursos:"
 	@echo "  make infra-test"
 
-infra-down: tflocal-destroy cognito-local-stop localstack-stop
+infra-down: tflocal-destroy cognito-local-clean localstack-stop
 	@echo "✅ Infraestrutura completa parada!"
 
 infra-test:

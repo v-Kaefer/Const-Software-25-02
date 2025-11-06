@@ -59,8 +59,8 @@ func TestHTTP_CreateAndGetUser(t *testing.T) {
 		t.Fatalf("expected created user to have ID > 0")
 	}
 
-	// 2) busca por email
-	getResp, err := http.Get(ts.URL + "/users?email=alice@example.com")
+	// 2) lista todos os usuários (GET /users agora retorna array)
+	getResp, err := http.Get(ts.URL + "/users")
 	if err != nil {
 		t.Fatalf("GET /users: %v", err)
 	}
@@ -69,11 +69,23 @@ func TestHTTP_CreateAndGetUser(t *testing.T) {
 		t.Fatalf("GET status = %d, want 200", getResp.StatusCode)
 	}
 
-	var got user.User
-	if err := json.NewDecoder(getResp.Body).Decode(&got); err != nil {
-		t.Fatalf("decode got: %v", err)
+	var users []user.User
+	if err := json.NewDecoder(getResp.Body).Decode(&users); err != nil {
+		t.Fatalf("decode users: %v", err)
 	}
-	if got.Email != "alice@example.com" || got.Name != "Alice" {
-		t.Fatalf("unexpected user: %+v", got)
+	if len(users) == 0 {
+		t.Fatalf("expected at least one user")
+	}
+	
+	// Verifica se o usuário criado está na lista
+	found := false
+	for _, u := range users {
+		if u.Email == "alice@example.com" && u.Name == "Alice" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("created user not found in list")
 	}
 }

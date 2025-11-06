@@ -188,29 +188,133 @@ Este projeto implementa autenticação Role-Based Access Control (RBAC) integrad
 
 ### Recursos de Autenticação
 
-- **JWT Token Verification**: Validação automática de tokens Cognito
+- **JWT Token Verification**: Validação automática de tokens Cognito com verificação de claims (iss, aud, exp, nbf)
 - **Role-Based Access Control**: Três níveis de acesso (admin, reviewer, user)
 - **Middleware Protection**: Proteção de endpoints com autenticação e autorização
 - **Context Integration**: Informações de usuário e roles disponíveis no contexto da requisição
+- **JWKS Support**: Busca e cache de chaves públicas do Cognito para validação de assinaturas
 
-### Configuração Rápida
+### Como Gerar um Token para Testes
 
-1. Configure as variáveis de ambiente:
-   ```bash
-   COGNITO_REGION=us-east-1
-   COGNITO_USER_POOL_ID=your-user-pool-id
+#### Opção 1: Testes Locais com cognito-local (Recomendado)
+
+```bash
+# 1. Inicie o cognito-local
+make cognito-local-start
+
+# 2. Configure o ambiente (cria User Pool, grupos e usuários)
+make cognito-local-setup
+
+# 3. Teste e obtenha um token
+make cognito-local-test
+```
+
+O comando `make cognito-local-test` irá:
+- Autenticar usuários de teste (admin, reviewer, user)
+- Exibir os tokens JWT gerados
+- Mostrar exemplos de uso com curl
+
+**Exemplo de uso do token:**
+```bash
+# Obter token (substitua com credenciais do cognito-local-setup)
+TOKEN=$(aws cognito-idp initiate-auth \
+  --auth-flow USER_PASSWORD_AUTH \
+  --client-id <client-id-do-setup> \
+  --auth-parameters USERNAME=admin@example.com,PASSWORD=AdminTemp123! \
+  --endpoint-url http://localhost:9229 \
+  --region us-east-1 \
+  --query 'AuthenticationResult.AccessToken' \
+  --output text)
+
+# Fazer requisição autenticada
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/users
+```
+
+#### Opção 2: AWS Cognito (Produção)
+
+**Client Credentials Flow (para aplicações):**
+```bash
+# Obter token usando AWS CLI
+aws cognito-idp initiate-auth \
+  --auth-flow USER_PASSWORD_AUTH \
+  --client-id <your-app-client-id> \
+  --auth-parameters USERNAME=user@example.com,PASSWORD=YourPassword123! \
+  --region us-east-1
+```
+
+**Authorization Code + PKCE Flow (para aplicações web/mobile):**
+1. Configure o Cognito Hosted UI no console AWS
+2. Acesse a URL do Hosted UI:
    ```
-
-2. Para testes locais, use cognito-local:
-   ```bash
-   make cognito-local-start
-   make cognito-local-setup
+   https://<your-domain>.auth.<region>.amazoncognito.com/login?
+   client_id=<your-client-id>&
+   response_type=code&
+   scope=openid+email+profile&
+   redirect_uri=<your-callback-url>
    ```
+3. Após login, troque o código pelo token usando o endpoint `/oauth2/token`
 
-3. Faça requisições autenticadas:
-   ```bash
-   curl -H "Authorization: Bearer <jwt-token>" http://localhost:8080/users
-   ```
+**Para mais detalhes**, consulte a [documentação completa de autenticação](./docs/RBAC_AUTHENTICATION.md).
+
+#### Opção 3: Mock Token para Testes Unitários
+
+Para testes unitários, o código automaticamente usa um middleware mock quando `COGNITO_USER_POOL_ID` está vazio:
+
+```bash
+# No .env ou variáveis de ambiente
+COGNITO_USER_POOL_ID=   # deixe vazio para modo mock
+```
+
+### Configuração das Variáveis de Ambiente
+
+Configure no arquivo `.env` (copie de `.env.example`):
+
+```bash
+# Cognito Configuration
+COGNITO_REGION=us-east-1
+COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
+
+# JWT Validation (configuração automática baseada no User Pool)
+JWT_ISSUER=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_XXXXXXXXX
+JWT_AUDIENCE=<your-app-client-id>
+JWKS_URI=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_XXXXXXXXX/.well-known/jwks.json
+```
+
+**Notas:**
+- `JWT_ISSUER`: URL do User Pool (formato: `https://cognito-idp.{region}.amazonaws.com/{user_pool_id}`)
+- `JWT_AUDIENCE`: Client ID da aplicação (opcional, para validação adicional)
+- `JWKS_URI`: Endpoint com chaves públicas para validação de assinatura (opcional, auto-construído se não fornecido)
+
+### Fazendo Requisições Autenticadas
+
+```bash
+# Listar todos os usuários (admin apenas)
+curl -H "Authorization: Bearer <jwt-token>" \
+     http://localhost:8080/users
+
+# Obter usuário específico (admin ou próprio usuário)
+curl -H "Authorization: Bearer <jwt-token>" \
+     http://localhost:8080/users/1
+
+# Criar usuário (admin apenas)
+curl -X POST \
+     -H "Authorization: Bearer <jwt-token>" \
+     -H "Content-Type: application/json" \
+     -d '{"email":"novo@example.com","name":"Novo Usuario"}' \
+     http://localhost:8080/users
+
+# Atualizar usuário (admin ou próprio usuário)
+curl -X PUT \
+     -H "Authorization: Bearer <jwt-token>" \
+     -H "Content-Type: application/json" \
+     -d '{"email":"atualizado@example.com","name":"Nome Atualizado"}' \
+     http://localhost:8080/users/1
+
+# Deletar usuário (admin apenas)
+curl -X DELETE \
+     -H "Authorization: Bearer <jwt-token>" \
+     http://localhost:8080/users/1
+```
 
 ### Documentação Completa
 

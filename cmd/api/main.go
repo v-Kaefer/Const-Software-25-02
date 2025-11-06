@@ -39,10 +39,13 @@ func main() {
 	userRepo := user.NewRepo(gormDB)
 	userSvc := user.NewService(gormDB, userRepo)
 
-	// 5) HTTP router (camada de entrega, não conhece GORM)
-	router := httpapi.NewRouter(userSvc)
+	// 5) Auth middleware (configuração do Cognito)
+	authMiddleware := httpapi.NewAuthMiddleware(cfg.Cognito)
 
-	// 6) Servidor + graceful shutdown
+	// 6) HTTP router (camada de entrega, não conhece GORM)
+	router := httpapi.NewRouter(userSvc, authMiddleware)
+
+	// 7) Servidor + graceful shutdown
 	srv := &http.Server{Addr: ":8080", Handler: router}
 
 	go func() {

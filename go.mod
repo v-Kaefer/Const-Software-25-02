@@ -3,6 +3,7 @@ module github.com/v-Kaefer/Const-Software-25-02
 go 1.22
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	gorm.io/driver/postgres v1.5.9
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.10

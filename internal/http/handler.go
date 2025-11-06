@@ -3,12 +3,14 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
 	"github.com/v-Kaefer/Const-Software-25-02/internal/auth"
 	"github.com/v-Kaefer/Const-Software-25-02/internal/config"
 	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
+	"gorm.io/gorm"
 )
 
 // Router simples usando net/http para não adicionar dependências.
@@ -216,7 +218,11 @@ func (r *Router) handleUpdateUser(w http.ResponseWriter, req *http.Request) {
 
 	u, err := r.userSvc.Update(ctx, uint(id), body.Email, body.Name)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -266,7 +272,11 @@ func (r *Router) handlePatchUser(w http.ResponseWriter, req *http.Request) {
 
 	u, err = r.userSvc.Update(ctx, uint(id), email, name)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

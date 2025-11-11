@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -49,10 +50,12 @@ func main() {
 	handler := corsMiddleware(router)
 
 	// 8) Servidor + graceful shutdown
-	srv := &http.Server{Addr: ":8080", Handler: handler}
+	port := getenv("APP_PORT", "8080")
+	addr := ":" + port
+	srv := &http.Server{Addr: addr, Handler: handler}
 
 	go func() {
-		log.Println("listening on :8080")
+		log.Printf("listening on %s\n", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
 		}
@@ -87,4 +90,12 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// getenv returns the value of an environment variable or a default value
+func getenv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

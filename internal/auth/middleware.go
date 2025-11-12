@@ -35,8 +35,11 @@ const (
 
 // CognitoConfig holds Cognito configuration
 type CognitoConfig struct {
-	Region     string
-	UserPoolID string
+	Region      string
+	UserPoolID  string
+	JWTIssuer   string
+	JWTAudience string
+	JWKSURI     string
 }
 
 // JWK represents a JSON Web Key
@@ -215,6 +218,27 @@ func (m *Middleware) verifyToken(tokenString string) (*CognitoClaims, error) {
 		return nil, errors.New("invalid token_use claim")
 	}
 
+	// Verify issuer (iss) if configured
+	if m.config.JWTIssuer != "" && claims.Issuer != m.config.JWTIssuer {
+		return nil, fmt.Errorf("invalid issuer: expected %s, got %s", m.config.JWTIssuer, claims.Issuer)
+	}
+
+	// Verify audience (aud) if configured
+	if m.config.JWTAudience != "" {
+		validAudience := false
+		for _, aud := range claims.Audience {
+			if aud == m.config.JWTAudience {
+				validAudience = true
+				break
+			}
+		}
+		if !validAudience {
+			return nil, fmt.Errorf("invalid audience: expected %s", m.config.JWTAudience)
+		}
+	}
+
+	// exp and nbf are automatically validated by jwt library through RegisteredClaims
+
 	return claims, nil
 }
 
@@ -253,9 +277,14 @@ func (m *Middleware) fetchJWKS() error {
 		return nil
 	}
 
-	// Build JWKS URL
-	jwksURL := fmt.Sprintf("https://cognito-idp.%s.amazonaws.com/%s/.well-known/jwks.json",
-		m.config.Region, m.config.UserPoolID)
+	// Build JWKS URL - use JWKS_URI if configured, otherwise construct from Region and UserPoolID
+	var jwksURL string
+	if m.config.JWKSURI != "" {
+		jwksURL = m.config.JWKSURI
+	} else {
+		jwksURL = fmt.Sprintf("https://cognito-idp.%s.amazonaws.com/%s/.well-known/jwks.json",
+			m.config.Region, m.config.UserPoolID)
+	}
 
 	// Fetch JWKS
 	resp, err := http.Get(jwksURL)

@@ -25,6 +25,9 @@ func (c DBConfig) DSN() string {
 type CognitoConfig struct {
 	Region     string
 	UserPoolID string
+	JWTIssuer  string
+	JWTAudience string
+	JWKSURI    string
 }
 
 type AppConfig struct {
@@ -45,8 +48,11 @@ func Load() AppConfig {
 			SSL:  getenv("DB_SSLMODE", "disable"),
 		},
 		Cognito: CognitoConfig{
-			Region:     getenv("COGNITO_REGION", "us-east-1"),
-			UserPoolID: getenv("COGNITO_USER_POOL_ID", ""),
+			Region:      getenv("COGNITO_REGION", "us-east-1"),
+			UserPoolID:  getenv("COGNITO_USER_POOL_ID", ""),
+			JWTIssuer:   getenv("JWT_ISSUER", ""),
+			JWTAudience: getenv("JWT_AUDIENCE", ""),
+			JWKSURI:     getenv("JWKS_URI", ""),
 		},
 	}
 }

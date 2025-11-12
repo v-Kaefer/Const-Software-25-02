@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -45,11 +46,16 @@ func main() {
 	// 6) HTTP router (camada de entrega, não conhece GORM)
 	router := httpapi.NewRouter(userSvc, authMiddleware)
 
-	// 7) Servidor + graceful shutdown
-	srv := &http.Server{Addr: ":8080", Handler: router}
+	// 7) CORS middleware
+	handler := corsMiddleware(router)
+
+	// 8) Servidor + graceful shutdown
+	port := getenv("APP_PORT", "8080")
+	addr := ":" + port
+	srv := &http.Server{Addr: addr, Handler: handler}
 
 	go func() {
-		log.Println("listening on :8080")
+		log.Printf("listening on %s\n", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
 		}
@@ -65,4 +71,31 @@ func main() {
 
 	sqlDB, _ := gormDB.DB()
 	_ = sqlDB.Close()
+}
+
+// corsMiddleware adds CORS headers to all responses
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Allow all origins in development, restrict in production
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Max-Age", "3600")
+
+		// Handle preflight requests
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// getenv returns the value of an environment variable or a default value
+func getenv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

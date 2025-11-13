@@ -1,4 +1,4 @@
-.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down
+.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only
 
 # Default target
 help:
@@ -21,7 +21,8 @@ help:
 	@echo "  make cognito-local-clean - Remove cognito-local e dados"
 	@echo ""
 	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
-	@echo "  make docker-compose-up   - Inicia serviços (db, api, swagger)"
+	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (mais rápido)"
+	@echo "  make docker-compose-up   - Inicia todos os serviços (db, api, swagger)"
 	@echo "  make docker-compose-down - Para serviços do Docker Compose"
 	@echo ""
 	@echo "Comandos Terraform Local (infra com tflocal para testes):"
@@ -205,6 +206,7 @@ cognito-local-clean:
 # Docker Compose commands for API, Database and Swagger UI
 docker-compose-up:
 	@echo "🚀 Iniciando serviços com Docker Compose..."
+	@docker compose down 2>/dev/null || true
 	@docker compose up -d
 	@echo "⏳ Aguardando serviços ficarem prontos..."
 	@sleep 5
@@ -217,6 +219,18 @@ docker-compose-down:
 	@echo "🛑 Parando serviços do Docker Compose..."
 	@docker compose down
 	@echo "✅ Serviços parados!"
+
+# Comando simplificado para apenas visualizar o Swagger (sem API)
+swagger-only:
+	@echo "🚀 Iniciando apenas o Swagger UI..."
+	@docker compose down 2>/dev/null || true
+	@docker compose up -d swagger
+	@echo "⏳ Aguardando Swagger ficar pronto..."
+	@sleep 3
+	@echo "✅ Swagger UI iniciado!"
+	@echo "  - Swagger UI: http://localhost:8081"
+	@echo ""
+	@echo "💡 Para visualizar a página do Swagger, acesse: http://localhost:8081"
 
 # Terraform Local (tflocal) commands for local testing with infra directory
 # EC2 is supported in LocalStack free tier

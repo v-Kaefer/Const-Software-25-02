@@ -1,19 +1,16 @@
 # ===== Build stage =====
-FROM golang:1.22-alpine AS builder
+FROM golang:1.22 AS builder
 WORKDIR /src
 
-# (Opcional) instalar build tools adicionais
-RUN apk add --no-cache git
-
-# Copie os arquivos de módulo primeiro (para cache mais eficiente)
+# Copie os arquivos de módulo e vendor directory
 COPY go.mod go.sum ./
-RUN go mod download
+COPY vendor ./vendor
 
 # Copie o restante do código (quando existir)
 COPY . .
 
-# Compile o binário
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/usersvc ./cmd/api
+# Compile o binário usando vendor mode
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -o /out/usersvc ./cmd/api
 
 # ===== Runtime stage =====
 FROM gcr.io/distroless/base-debian12

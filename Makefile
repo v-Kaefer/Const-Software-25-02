@@ -1,4 +1,4 @@
-.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy
+.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down
 
 # Default target
 help:
@@ -20,6 +20,10 @@ help:
 	@echo "  make cognito-local-stop  - Para cognito-local"
 	@echo "  make cognito-local-clean - Remove cognito-local e dados"
 	@echo ""
+	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
+	@echo "  make docker-compose-up   - Inicia serviços (db, api, swagger)"
+	@echo "  make docker-compose-down - Para serviços do Docker Compose"
+	@echo ""
 	@echo "Comandos Terraform Local (infra com tflocal para testes):"
 	@echo "  make tflocal-init        - Inicializa o Terraform Local"
 	@echo "  make tflocal-plan        - Executa tflocal plan"
@@ -33,8 +37,8 @@ help:
 	@echo "  make infra-prod-destroy  - Destrói a infraestrutura (produção)"
 	@echo ""
 	@echo "Comandos combinados:"
-	@echo "  make infra-up           - Inicia LocalStack + cognito-local + tflocal"
-	@echo "  make infra-down         - Para tudo (tflocal + cognito-local + LocalStack)"
+	@echo "  make infra-up           - Inicia LocalStack + cognito-local + tflocal + docker-compose"
+	@echo "  make infra-down         - Para tudo (docker-compose + tflocal + cognito-local + LocalStack)"
 	@echo "  make infra-test         - Testa a infraestrutura criada"
 	@echo "  make infra-debug        - Debug da infraestrutura (lista todos os recursos)"
 	@echo ""
@@ -86,18 +90,20 @@ localstack-clean:
 	@echo "✅ Limpeza concluída!"
 
 # Combined commands
-infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup tflocal-apply
+infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup tflocal-apply docker-compose-up
 	@echo "✅ Infraestrutura completa iniciada!"
 	@echo ""
 	@echo "📊 Recursos disponíveis:"
 	@echo "  - S3: http://localhost:4566"
 	@echo "  - DynamoDB: http://localhost:4566"
 	@echo "  - Cognito: http://localhost:9229 (cognito-local)"
+	@echo "  - API: http://localhost:8080"
+	@echo "  - Swagger UI: http://localhost:8081"
 	@echo ""
 	@echo "Para testar os recursos:"
 	@echo "  make infra-test"
 
-infra-down: tflocal-destroy cognito-local-clean localstack-stop
+infra-down: tflocal-destroy cognito-local-clean localstack-stop docker-compose-down
 	@echo "✅ Infraestrutura completa parada!"
 
 infra-test:
@@ -195,6 +201,22 @@ cognito-local-clean:
 	@docker-compose -f docker-compose.cognito-local.yaml down -v
 	@rm -rf infra/cognito-local-config/*.json
 	@echo "✅ Limpeza concluída!"
+
+# Docker Compose commands for API, Database and Swagger UI
+docker-compose-up:
+	@echo "🚀 Iniciando serviços com Docker Compose..."
+	@docker compose up -d
+	@echo "⏳ Aguardando serviços ficarem prontos..."
+	@sleep 5
+	@echo "✅ Serviços iniciados!"
+	@echo "  - Database: http://localhost:5432"
+	@echo "  - API: http://localhost:8080"
+	@echo "  - Swagger UI: http://localhost:8081"
+
+docker-compose-down:
+	@echo "🛑 Parando serviços do Docker Compose..."
+	@docker compose down
+	@echo "✅ Serviços parados!"
 
 # Terraform Local (tflocal) commands for local testing with infra directory
 # EC2 is supported in LocalStack free tier

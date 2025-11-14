@@ -206,8 +206,11 @@ cognito-local-clean:
 # Docker Compose commands for API, Database and Swagger UI
 docker-compose-up:
 	@echo "🚀 Iniciando serviços com Docker Compose..."
-	@docker compose down 2>/dev/null || true
-	@docker compose up -d
+	@echo "🧹 Limpando containers existentes..."
+	@docker compose down --remove-orphans 2>/dev/null || true
+	@docker rm -f swagger userdb usersvc 2>/dev/null || true
+	@sleep 1
+	@docker compose up -d --remove-orphans
 	@echo "⏳ Aguardando serviços ficarem prontos..."
 	@sleep 5
 	@echo "✅ Serviços iniciados!"
@@ -217,14 +220,18 @@ docker-compose-up:
 
 docker-compose-down:
 	@echo "🛑 Parando serviços do Docker Compose..."
-	@docker compose down
+	@docker compose down --remove-orphans
+	@docker rm -f swagger userdb usersvc 2>/dev/null || true
 	@echo "✅ Serviços parados!"
 
 # Comando simplificado para apenas visualizar o Swagger (sem API)
 swagger-only:
 	@echo "🚀 Iniciando apenas o Swagger UI..."
-	@docker compose down 2>/dev/null || true
-	@docker compose up -d swagger
+	@echo "🧹 Limpando containers existentes..."
+	@docker compose down --remove-orphans 2>/dev/null || true
+	@docker rm -f swagger userdb usersvc 2>/dev/null || true
+	@sleep 1
+	@docker compose up -d --remove-orphans swagger
 	@echo "⏳ Aguardando Swagger ficar pronto..."
 	@sleep 3
 	@echo "✅ Swagger UI iniciado!"

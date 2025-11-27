@@ -13,6 +13,7 @@ terraform.tfstate.backup
 # cognito-local
 infra/cognito-local-config/*.json
 infra/cognito-local-config/db.json
+infra/cognito-local-config/db/
 
 # Build artifacts
 main
@@ -23,3 +24,6 @@ coverage.html
 
 # EXTRAS
 .env
+.cache/
+.gomodcache/
+.tmp/

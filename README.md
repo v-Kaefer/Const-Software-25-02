@@ -8,9 +8,9 @@ https://github.com/v-Kaefer/Const-Software-25-02
 ![Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/build.yaml/badge.svg)
 ![Docker Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/docker-build.yaml/badge.svg)
 
-# User Service – API REST com Autenticação JWT/RBAC
+# Project Delivery API – API REST com Autenticação JWT/RBAC
 
-> Serviço RESTful para gerenciamento de usuários com autenticação AWS Cognito, controle de acesso baseado em funções (RBAC) e infraestrutura como código.
+> Serviço RESTful para gestão de projetos, tarefas e lançamentos de horas com autenticação AWS Cognito, RBAC e contratos versionados em `/api/v1`.
 
 ## Sumário
 1. [Pré-requisitos](#pré-requisitos)
@@ -57,6 +57,21 @@ https://github.com/v-Kaefer/Const-Software-25-02
    - API: http://localhost:8080
    - Swagger: http://localhost:8081
 
+## 🧩 Domínio e fluxos implementados
+
+- **Entidades centrais**
+  - `Project`: iniciativa com status (`planning`, `active`, `completed`, `canceled`) e owner (admin/operator).
+  - `Task`: atividades vinculadas ao projeto e atribuídas a usuários específicos.
+  - `TimeEntry`: lançamentos de horas realizados pelos donos da tarefa e aprovados por administradores.
+- **Papéis**
+  - `admin-group`: acesso completo; aprova lançamentos.
+  - `reviewers-group` (operacional): cria projetos/tarefas, gerencia apenas o que é owner.
+  - `user-group`: colaborador que só enxerga/edita o que é seu (ownership em tarefas e lançamentos).
+- **Fluxos de negócio**
+  1. **Planejamento** – admin/operator cria projeto (`POST /api/v1/projects`), adiciona tarefas (`POST /api/v1/projects/{id}/tasks`) e atribui responsáveis.
+  2. **Execução** – responsável consulta tarefas paginadas/filtradas (`GET /api/v1/tasks?page=1&status=todo`) e lança horas (`POST /api/v1/tasks/{id}/time-entries`).
+  3. **Aprovação** – admin revisa horas pendentes (`GET /api/v1/time-entries?approved=false`) e aprova (`PATCH /api/v1/time-entries/{id}/approve`), travando novas edições.
+
 ## 📝 Comandos Makefile Essenciais
 
 ### Desenvolvimento Local
@@ -74,8 +89,12 @@ make infra-test             # Testa recursos criados
 make infra-down             # Para tudo e limpa recursos
 
 # Testes e Build
-go test ./...               # Executa todos os testes
-go build ./cmd/api          # Compila a aplicação
+make test                   # Sobe Postgres (se necessário) e executa go test ./...
+GO_TEST_FLAGS='-coverprofile=coverage.out' make test   # Adiciona flags extras
+GO_TEST_TARGETS=./pkg/workspace make test              # Testa apenas um pacote
+make test-workspace         # Atalho para pkg/workspace
+make test-http              # Atalho para handlers HTTP/endpoints
+make build                  # Compila a aplicação
 ```
 
 ### Deploy em Produção
@@ -117,12 +136,17 @@ JWKS_URI=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_ABC123/.well-know
 
 | Método | Rota | Permissão | Descrição |
 |--------|------|-----------|-----------|
-| POST | `/users` | Admin | Criar usuário |
-| GET | `/users` | Admin | Listar todos os usuários |
-| GET | `/users/{id}` | Admin ou Próprio | Obter usuário por ID |
-| PUT | `/users/{id}` | Admin ou Próprio | Atualizar usuário |
-| PATCH | `/users/{id}` | Admin ou Próprio | Atualizar parcialmente |
-| DELETE | `/users/{id}` | Admin | Deletar usuário |
+| POST | `/api/v1/users` | Admin | Criar usuário de acesso |
+| GET | `/api/v1/users` | Admin | Listar usuários |
+| GET/PUT/PATCH | `/api/v1/users/{id}` | Admin ou dono | CRUD usuário |
+| POST | `/api/v1/projects` | Admin / Operator | Criar projeto; owner = usuário autenticado |
+| GET | `/api/v1/projects` | Admin / Operator | Lista paginada + filtros (`status`, `client`) respeitando ownership |
+| GET/PUT/DELETE | `/api/v1/projects/{id}` | Admin ou owner | Consultar/atualizar/remover projeto |
+| POST | `/api/v1/projects/{projectId}/tasks` | Admin ou owner | Cadastrar tarefa e atribuir responsável |
+| GET | `/api/v1/tasks` | Auth | Lista paginada; admin pode filtrar por assignee/project, demais só veem o que lhes pertence |
+| POST | `/api/v1/tasks/{id}/time-entries` | Admin, owner da tarefa ou assignee | Lançar horas com validações de data/status |
+| GET | `/api/v1/time-entries` | Admin (todos) / Operator & User (somente próprios) | Paginação + filtros (`approved`, `taskId`) |
+| PATCH | `/api/v1/time-entries/{id}/approve` | Admin | Aprovar lançamentos (bloqueia edições) |
 
 ### Como Obter Token JWT
 
@@ -145,16 +169,25 @@ aws cognito-idp initiate-auth \
 ### Fazendo Requisições
 
 ```bash
-# Exemplo: Listar usuários (admin apenas)
-curl -H "Authorization: Bearer SEU_TOKEN_JWT" \
-     http://localhost:8080/users
+# Criar projeto (admin/operator)
+curl -X POST http://localhost:8080/api/v1/projects \
+  -H \"Authorization: Bearer $TOKEN\" \
+  -H \"Content-Type: application/json\" \
+  -d '{\"name\":\"Portal Varejo\",\"clientName\":\"ACME\",\"startDate\":\"2024-08-01T12:00:00Z\"}'
 
-# Exemplo: Criar usuário
-curl -X POST \
-     -H "Authorization: Bearer SEU_TOKEN_JWT" \
-     -H "Content-Type: application/json" \
-     -d '{"email":"novo@example.com","name":"Novo Usuario"}' \
-     http://localhost:8080/users
+# Listar tarefas atribuídas ao usuário autenticado (paginado + filtro de status)
+curl \"http://localhost:8080/api/v1/tasks?page=1&pageSize=5&status=todo\" \
+  -H \"Authorization: Bearer $TOKEN\"
+
+# Lançar horas na tarefa
+curl -X POST http://localhost:8080/api/v1/tasks/10/time-entries \
+  -H \"Authorization: Bearer $TOKEN\" \
+  -H \"Content-Type: application/json\" \
+  -d '{\"entryDate\":\"2024-08-20T09:00:00Z\",\"hours\":3.5,\"notes\":\"Configuração inicial\"}'
+
+# Aprovar lançamento (admin)
+curl -X PATCH http://localhost:8080/api/v1/time-entries/5/approve \
+  -H \"Authorization: Bearer $TOKEN\"
 ```
 
 ## 📚 Documentação Completa
@@ -173,8 +206,9 @@ curl -X POST \
 │   ├── auth/            # Middleware JWT/RBAC
 │   ├── config/          # Configurações
 │   ├── db/              # Conexão e migrações
-│   └── http/            # Handlers HTTP
-├── pkg/user/            # Domínio User (service, repo)
+│   └── http/            # Handlers HTTP versionados
+├── pkg/user/            # Usuários/RBAC
+├── pkg/workspace/       # Projetos, tarefas e time entries
 ├── infra/               # Infraestrutura como código (Terraform)
 ├── docs/                # Documentação adicional
 ├── migrations/          # Scripts SQL
@@ -184,21 +218,28 @@ curl -X POST \
 ## 🧪 Testes
 
 ```bash
-# Todos os testes
-go test ./...
+# Todos os testes (+ dependências locais)
+make test
+
+# Atalhos por camada
+make test-workspace
+make test-http
 
 # Com cobertura
-go test ./... -coverprofile=coverage.out
+GO_TEST_FLAGS='-coverprofile=coverage.out' make test
 go tool cover -html=coverage.out
 
-# Testes específicos
-go test ./internal/auth/... -v    # Testes de autenticação
-go test ./internal/http/... -v    # Testes de handlers
+# Testes específicos (defina o alvo desejado)
+GO_TEST_TARGETS=./internal/auth/... make test
+GO_TEST_TARGETS=./internal/http/... GO_TEST_FLAGS='-run TestRBAC' make test
 ```
 
 **Cobertura Atual:** 58.3% (74.6% auth, 67.4% http)
+- Casos de uso críticos (`pkg/workspace`) possuem testes de validação (status, due dates, approval lock) executáveis com `GO_TEST_TARGETS=./pkg/workspace make test`.
 
 ## 🛠️ Infraestrutura
+
+> 💡 `make infra-test` agora garante que o `cognito-local` esteja rodando e configurado (executa `infra/test-cognito-local.sh`) antes de validar os recursos listados.
 
 ### Recursos AWS (Terraform)
 - Cognito User Pool com grupos (admin, reviewer, user)

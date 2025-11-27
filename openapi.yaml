@@ -1,17 +1,13 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
-  title: User Service - Construção de Software
-  description: API RESTful para gestão de usuários
+  title: Project Delivery API
+  description: |
+    API REST para gerenciamento de projetos, tarefas e lancamentos de horas com RBAC e ownership.
   version: "1.0.0"
-  contact:
-    name: Grupo L
-    url: https://github.com/v-Kaefer/Const-Software-25-02
 
 servers:
   - url: http://localhost:8080
-    description: Servidor de desenvolvimento local
-  - url: https://api.trabalho1.com
-    description: Servidor de produção
+    description: Ambiente local
 
 components:
   securitySchemes:
@@ -19,79 +15,263 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT token obtido do AWS Cognito User Pool. Inclua o token no header Authorization como "Bearer {token}".
-
+      description: Token JWT obtido no IdP (Cognito). Utilize Authorization: Bearer <token>.
   schemas:
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 25
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: recurso não encontrado
     User:
       type: object
       properties:
         id:
           type: integer
-          format: uint
-          description: ID único do usuário (gerado automaticamente)
-          example: 1
         email:
           type: string
           format: email
-          maxLength: 255
-          description: Email do usuário (único)
-          example: "usuario@example.com"
         name:
           type: string
-          maxLength: 120
-          description: Nome completo do usuário
-          example: "João Silva"
+        role:
+          type: string
         createdAt:
           type: string
           format: date-time
-          description: Data e hora de criação do usuário
-          example: "2025-11-05T10:30:00Z"
         updatedAt:
           type: string
           format: date-time
-          description: Data e hora da última atualização
-          example: "2025-11-05T10:30:00Z"
+    UserCreateRequest:
+      type: object
       required:
         - email
         - name
-
-    UserCreateRequest:
-      type: object
       properties:
         email:
           type: string
           format: email
-          maxLength: 255
-          description: Email do usuário (único)
-          example: "usuario@example.com"
         name:
           type: string
-          maxLength: 120
-          description: Nome completo do usuário
-          example: "João Silva"
-      required:
-        - email
-        - name
-
-    Error:
+    Project:
       type: object
       properties:
-        error:
+        id:
+          type: integer
+        name:
           type: string
-          description: Mensagem de erro
-          example: "email required"
+        clientName:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - planning
+            - active
+            - completed
+            - canceled
+        ownerId:
+          type: integer
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ProjectCreateRequest:
+      type: object
+      required:
+        - name
+        - clientName
+        - startDate
+      properties:
+        name:
+          type: string
+        clientName:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          nullable: true
+          format: date-time
+    ProjectUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/ProjectCreateRequest'
+        - type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              enum:
+                - planning
+                - active
+                - completed
+                - canceled
+    PaginatedProjects:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - todo
+            - in_progress
+            - blocked
+            - done
+        assigneeId:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TaskCreateRequest:
+      type: object
+      required:
+        - title
+        - assigneeId
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        assigneeId:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+    TaskUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/TaskCreateRequest'
+        - type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              enum:
+                - todo
+                - in_progress
+                - blocked
+                - done
+    PaginatedTasks:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    TimeEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        taskId:
+          type: integer
+        userId:
+          type: integer
+        entryDate:
+          type: string
+          format: date-time
+        hours:
+          type: number
+          format: float
+        notes:
+          type: string
+        approvedAt:
+          type: string
+          format: date-time
+          nullable: true
+        approvedBy:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    TimeEntryCreateRequest:
+      type: object
+      required:
+        - entryDate
+        - hours
+      properties:
+        entryDate:
+          type: string
+          format: date-time
+        hours:
+          type: number
+          format: float
+          example: 2.5
+        notes:
+          type: string
+    TimeEntryUpdateRequest:
+      $ref: '#/components/schemas/TimeEntryCreateRequest'
+    PaginatedTimeEntries:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeEntry'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
 
 security:
   - bearerAuth: []
 
 paths:
-  /users:
+  /api/v1/users:
     post:
-      summary: Cria um novo usuário
-      description: Registra um novo usuário no sistema (Apenas admin)
-      operationId: createUser
-      tags:
-        - Users
+      summary: Cria usuário
       security:
         - bearerAuth: []
       requestBody:
@@ -100,62 +280,21 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UserCreateRequest'
-            examples:
-              example1:
-                summary: Exemplo de criação de usuário
-                value:
-                  email: "ana@example.com"
-                  name: "Ana Silva"
       responses:
-        '200':
-          description: Usuário criado com sucesso
+        '201':
+          description: Usuário criado
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-              examples:
-                example1:
-                  summary: Usuário criado
-                  value:
-                    id: 1
-                    email: "ana@example.com"
-                    name: "Ana Silva"
-                    createdAt: "2025-11-05T10:30:00Z"
-                    updatedAt: "2025-11-05T10:30:00Z"
         '400':
-          description: Requisição inválida (corpo malformado ou email duplicado)
+          description: Requisição inválida
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-              examples:
-                invalidBody:
-                  summary: Corpo inválido
-                  value:
-                    error: "invalid body"
-                duplicateEmail:
-                  summary: Email duplicado
-                  value:
-                    error: "duplicate email"
-        '401':
-          description: Token JWT ausente ou inválido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Permissões insuficientes (requer role admin)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
     get:
-      summary: Lista todos os usuários
-      description: Recupera uma lista de todos os usuários do sistema (Apenas admin)
-      operationId: listUsers
-      tags:
-        - Users
+      summary: Lista usuários (admin)
       security:
         - bearerAuth: []
       responses:
@@ -167,84 +306,40 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-        '401':
-          description: Token JWT ausente ou inválido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Permissões insuficientes (requer role admin)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /users/{id}:
+  /api/v1/users/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
     get:
-      summary: Busca usuário por ID
-      description: Recupera um usuário específico (Admin ou próprio usuário)
-      operationId: getUser
-      tags:
-        - Users
+      summary: Consulta usuário
       security:
         - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID do usuário
-          example: 1
       responses:
         '200':
-          description: Usuário encontrado
+          description: Usuário
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        '400':
-          description: ID inválido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Token JWT ausente ou inválido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '403':
-          description: Permissões insuficientes (deve ser admin ou próprio usuário)
+          description: Proibido
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Usuário não encontrado
+          description: Não encontrado
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
     put:
-      summary: Atualiza usuário completamente
-      description: Atualiza todas as informações de um usuário (Admin ou próprio usuário)
-      operationId: updateUser
-      tags:
-        - Users
+      summary: Atualiza usuário totalmente
       security:
         - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID do usuário
-          example: 1
       requestBody:
         required: true
         content:
@@ -253,140 +348,367 @@ paths:
               $ref: '#/components/schemas/UserCreateRequest'
       responses:
         '200':
-          description: Usuário atualizado com sucesso
+          description: Atualizado
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        '400':
-          description: Requisição inválida
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Token JWT ausente ou inválido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Permissões insuficientes (deve ser admin ou próprio usuário)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Usuário não encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
     patch:
-      summary: Atualiza usuário parcialmente
-      description: Atualiza campos específicos de um usuário (Admin ou próprio usuário)
-      operationId: patchUser
-      tags:
-        - Users
+      summary: Atualiza parcialmente
       security:
         - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID do usuário
-          example: 1
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                name:
-                  type: string
       responses:
         '200':
-          description: Usuário atualizado com sucesso
+          description: Atualizado
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        '400':
-          description: Requisição inválida
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Token JWT ausente ou inválido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Permissões insuficientes (deve ser admin ou próprio usuário)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Usuário não encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
     delete:
-      summary: Remove um usuário
-      description: Remove um usuário do sistema (Apenas admin)
-      operationId: deleteUser
-      tags:
-        - Users
+      summary: Remove usuário
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Removido
+  /api/v1/projects:
+    post:
+      summary: Cria projeto (admin/operator)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateRequest'
+      responses:
+        '201':
+          description: Projeto criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    get:
+      summary: Lista projetos com paginação
       security:
         - bearerAuth: []
       parameters:
-        - in: path
-          name: id
-          required: true
+        - in: query
+          name: page
           schema:
             type: integer
-          description: ID do usuário
-          example: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            description: Pode ser informado múltiplas vezes
+        - in: query
+          name: client
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProjects'
+  /api/v1/projects/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Consulta projeto
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Projeto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    put:
+      summary: Atualiza projeto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateRequest'
+      responses:
+        '200':
+          description: Atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    delete:
+      summary: Remove projeto
+      security:
+        - bearerAuth: []
       responses:
         '204':
-          description: Usuário removido com sucesso
-        '400':
-          description: ID inválido
+          description: Removido
+  /api/v1/projects/{projectId}/tasks:
+    parameters:
+      - in: path
+        name: projectId
+        required: true
+        schema:
+          type: integer
+    post:
+      summary: Cria tarefa no projeto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreateRequest'
+      responses:
+        '201':
+          description: Tarefa criada
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Token JWT ausente ou inválido
+                $ref: '#/components/schemas/Task'
+    get:
+      summary: Lista tarefas do projeto
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista paginada
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Permissões insuficientes (requer role admin)
+                $ref: '#/components/schemas/PaginatedTasks'
+  /api/v1/tasks:
+    get:
+      summary: Lista tarefas com filtros
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: assigneeId
+          schema:
+            type: integer
+        - in: query
+          name: projectId
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de tarefas
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Usuário não encontrado
+                $ref: '#/components/schemas/PaginatedTasks'
+  /api/v1/tasks/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Consulta tarefa
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tarefa
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-
-tags:
-  - name: Users
-    description: Operações relacionadas a usuários
+                $ref: '#/components/schemas/Task'
+    put:
+      summary: Atualiza tarefa
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdateRequest'
+      responses:
+        '200':
+          description: Atualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /api/v1/tasks/{taskId}/time-entries:
+    parameters:
+      - in: path
+        name: taskId
+        required: true
+        schema:
+          type: integer
+    post:
+      summary: Lança horas em uma tarefa
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeEntryCreateRequest'
+      responses:
+        '201':
+          description: Lançamento criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntry'
+    get:
+      summary: Lista horas da tarefa
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTimeEntries'
+  /api/v1/time-entries:
+    get:
+      summary: Lista lançamentos com filtros
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+        - in: query
+          name: approved
+          schema:
+            type: boolean
+        - in: query
+          name: taskId
+          schema:
+            type: integer
+        - in: query
+          name: userId
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTimeEntries'
+  /api/v1/time-entries/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Consulta lançamento de horas
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lançamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntry'
+    put:
+      summary: Edita lançamento (antes de aprovado)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeEntryUpdateRequest'
+      responses:
+        '200':
+          description: Atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntry'
+  /api/v1/time-entries/{id}/approve:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    patch:
+      summary: Aprova lançamento (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lançamento aprovado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntry'

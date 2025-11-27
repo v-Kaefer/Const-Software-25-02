@@ -125,7 +125,7 @@ echo ""
 echo -e "${YELLOW}🧪 Teste 5: Testando autenticação...${NC}"
 echo -e "${YELLOW}   Tentando autenticar com user@example.com...${NC}"
 
-# Note: This might fail if the password needs to be changed on first login
+# Note: cognito-local não implementa todos os fluxos do Cognito real
 AUTH_RESULT=$(aws cognito-idp admin-initiate-auth \
     --user-pool-id "$USER_POOL_ID" \
     --client-id "$CLIENT_ID" \
@@ -135,7 +135,10 @@ AUTH_RESULT=$(aws cognito-idp admin-initiate-auth \
     --region "$REGION" \
     --output json 2>&1 || true)
 
-if echo "$AUTH_RESULT" | grep -q "ChallengeName"; then
+if echo "$AUTH_RESULT" | grep -qi "unsupported"; then
+    echo -e "${YELLOW}⚠️  cognito-local não suporta o fluxo ADMIN_NO_SRP_AUTH. Pulando este teste (limitação conhecida).${NC}"
+    echo -e "${YELLOW}   Mensagem original: ${AUTH_RESULT%%$'\\n'*}${NC}"
+elif echo "$AUTH_RESULT" | grep -q "ChallengeName"; then
     CHALLENGE=$(echo "$AUTH_RESULT" | grep -o '"ChallengeName": "[^"]*"' | cut -d'"' -f4)
     echo -e "${YELLOW}⚠️  Autenticação requer desafio: ${CHALLENGE}${NC}"
     echo -e "${YELLOW}   (Isso é esperado para senhas temporárias)${NC}"

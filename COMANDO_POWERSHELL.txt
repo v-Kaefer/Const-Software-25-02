@@ -1,0 +1,55 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                   COMANDO PARA POWERSHELL                                 ║
+║              Release 4.0 – Implementação de Sistema Real                  ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+⚠️  POWERSHELL NÃO ACEITA &&
+
+Use ; (ponto e vírgula) ou execute em linhas separadas.
+
+═══════════════════════════════════════════════════════════════════════════
+
+🎯 COMANDO PARA POWERSHELL (OPÇÃO 1 - COM ;):
+
+git checkout develop; git pull origin develop; git checkout -b feat/release-4-0-api-rest
+
+═══════════════════════════════════════════════════════════════════════════
+
+📋 OU EM 3 LINHAS SEPARADAS (OPÇÃO 2 - RECOMENDADO):
+
+git checkout develop
+
+git pull origin develop
+
+git checkout -b feat/release-4-0-api-rest
+
+═══════════════════════════════════════════════════════════════════════════
+
+✅ VERIFICAR QUE ESTÁ TUDO CERTO:
+
+git branch
+
+Você deve ver:
+    * feat/release-4-0-api-rest
+      develop
+      main
+
+═══════════════════════════════════════════════════════════════════════════
+
+💡 DIFERENÇAS ENTRE SHELLS:
+
+PowerShell:    Use ; ou execute em linhas separadas
+Bash/Git Bash: Use && para encadear comandos
+CMD:           Use & para encadear comandos
+
+═══════════════════════════════════════════════════════════════════════════
+
+🚀 RECOMENDAÇÃO:
+
+Como você está em PowerShell, execute em 3 linhas separadas:
+
+1. git checkout develop
+2. git pull origin develop
+3. git checkout -b feat/release-4-0-api-rest
+
+═══════════════════════════════════════════════════════════════════════════

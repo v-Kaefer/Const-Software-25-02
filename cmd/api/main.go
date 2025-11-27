@@ -13,6 +13,8 @@ import (
 	"github.com/v-Kaefer/Const-Software-25-02/internal/config"
 	appdb "github.com/v-Kaefer/Const-Software-25-02/internal/db"
 	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/http"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/agendamento"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/servico"
 	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
 )
 
@@ -40,11 +42,18 @@ func main() {
 	userRepo := user.NewRepo(gormDB)
 	userSvc := user.NewService(gormDB, userRepo)
 
+	// 4b) Serviços de negócio (Release 4.0)
+	servicoRepo := servico.NewRepo(gormDB)
+	servicoSvc := servico.NewService(servicoRepo)
+
+	agendamentoRepo := agendamento.NewRepo(gormDB)
+	agendamentoSvc := agendamento.NewService(agendamentoRepo)
+
 	// 5) Auth middleware (configuração do Cognito)
 	authMiddleware := httpapi.NewAuthMiddleware(cfg.Cognito)
 
 	// 6) HTTP router (camada de entrega, não conhece GORM)
-	router := httpapi.NewRouter(userSvc, authMiddleware)
+	router := httpapi.NewRouter(userSvc, servicoSvc, agendamentoSvc, authMiddleware)
 
 	// 7) CORS middleware
 	handler := corsMiddleware(router)

@@ -9,6 +9,8 @@ import (
 
 	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/http"
 	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/servico"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/agendamento"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -22,16 +24,25 @@ func newTestServer(t *testing.T) *httptest.Server {
 	if err != nil {
 		t.Fatalf("gorm open: %v", err)
 	}
-	if err := db.AutoMigrate(&user.User{}); err != nil {
+	if err := db.AutoMigrate(&user.User{}, &servico.Servico{}, &agendamento.Agendamento{}); err != nil {
 		t.Fatalf("automigrate: %v", err)
 	}
 
-	repo := user.NewRepo(db)
-	svc := user.NewService(db, repo)
+	// User repository and service
+	userRepo := user.NewRepo(db)
+	userSvc := user.NewService(db, userRepo)
+	
+	// Servico repository and service
+	servicoRepo := servico.NewRepo(db)
+	servicoSvc := servico.NewService(servicoRepo)
+	
+	// Agendamento repository and service
+	agendamentoRepo := agendamento.NewRepo(db)
+	agendamentoSvc := agendamento.NewService(agendamentoRepo)
 	
 	// Create a mock auth middleware for testing (empty config is fine for tests without actual auth)
 	mockAuthMiddleware := httpapi.NewMockAuthMiddleware()
-	router := httpapi.NewRouter(svc, mockAuthMiddleware) // seu handler implementa http.Handler
+	router := httpapi.NewRouter(userSvc, servicoSvc, agendamentoSvc, mockAuthMiddleware) // seu handler implementa http.Handler
 
 	return httptest.NewServer(router)
 }

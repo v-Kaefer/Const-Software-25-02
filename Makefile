@@ -262,7 +262,7 @@ swagger-only:
 
 build:
 	@echo "🔨 Compilando aplicação Go..."
-	@go build ./cmd/api
+	@go build -o cmd/api/usersvc ./cmd/api
 
 # Go test workflow
 GO_TEST_CACHE ?= $(CURDIR)/.cache

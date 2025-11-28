@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +14,7 @@ import (
 	appdb "github.com/v-Kaefer/Const-Software-25-02/internal/db"
 	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/http"
 	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/workspace"
 )
 
 func main() {
@@ -39,12 +40,15 @@ func main() {
 	// 4) Repositórios e serviços (injeção de dependências)
 	userRepo := user.NewRepo(gormDB)
 	userSvc := user.NewService(gormDB, userRepo)
+	projectSvc := workspace.NewProjectService(gormDB)
+	taskSvc := workspace.NewTaskService(gormDB)
+	timeSvc := workspace.NewTimeEntryService(gormDB)
 
 	// 5) Auth middleware (configuração do Cognito)
 	authMiddleware := httpapi.NewAuthMiddleware(cfg.Cognito)
 
 	// 6) HTTP router (camada de entrega, não conhece GORM)
-	router := httpapi.NewRouter(userSvc, authMiddleware)
+	router := httpapi.NewRouter(userSvc, projectSvc, taskSvc, timeSvc, authMiddleware)
 
 	// 7) CORS middleware
 	handler := corsMiddleware(router)

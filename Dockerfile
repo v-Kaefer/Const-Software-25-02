@@ -1,5 +1,6 @@
 # ===== Build stage =====
 FROM golang:1.22-alpine AS builder
+ARG USE_PREBUILT=0
 WORKDIR /src
 
 # (Opcional) instalar build tools adicionais
@@ -9,11 +10,20 @@ RUN apk add --no-cache git
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copie o restante do código (quando existir)
+# Copie o restante do código
 COPY . .
 
-# Compile o binário
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/usersvc ./cmd/api
+RUN mkdir -p /out
+
+# Se houver um binário pré-compilado (cmd/api/usersvc) e USE_PREBUILT=1, reutiliza.
+# Caso contrário, compila a partir do código fonte.
+RUN if [ "$USE_PREBUILT" = "1" ] && [ -f "/src/cmd/api/usersvc" ]; then \
+      echo "Using prebuilt binary"; \
+      cp /src/cmd/api/usersvc /out/usersvc; \
+    else \
+      echo "Building binary"; \
+      CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/usersvc ./cmd/api; \
+    fi
 
 # ===== Runtime stage =====
 FROM gcr.io/distroless/base-debian12
@@ -22,5 +32,3 @@ COPY --from=builder /out/usersvc /app/usersvc
 EXPOSE 8080
 USER nonroot:nonroot
 ENTRYPOINT ["/app/usersvc"]
-
-#> **Nota:** O `go.mod`/`go.sum` e o código em `cmd/api` serão adicionados quando você iniciar a implementação do servidor Gin (Sprint 1). O Compose e o Swagger já funcionam agora para documentação.

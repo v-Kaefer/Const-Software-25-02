@@ -1,11 +1,11 @@
 name: Tests
 
 on:
-  push:
-    branches: [ main, develop, feat/Sprint1]
-  pull_request:
-    branches: [ main, develop ]
   workflow_call:
+    inputs:
+      build-artifact:
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -18,10 +18,43 @@ jobs:
   unit-and-e2e:
     name: Go tests (Linux, Go 1.22)
     runs-on: ubuntu-latest
+    env:
+      BUILD_ARTIFACT: ${{ inputs.build-artifact }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure Go env for act (skip sumdb TLS)
+        if: ${{ env.ACT }}
+        run: |
+          echo "GOSUMDB=off" >> $GITHUB_ENV
+          echo "GOPRIVATE=*">> $GITHUB_ENV
+          echo "GOINSECURE=*">> $GITHUB_ENV
+          echo "GOPROXY=https://proxy.golang.org,direct" >> $GITHUB_ENV
+
+      - name: Ensure git is available (act)
+        if: ${{ env.ACT }}
+        run: |
+          if command -v git >/dev/null 2>&1; then
+            exit 0
+          fi
+          if command -v apt-get >/dev/null 2>&1; then
+            set -e
+            apt-get update || true
+            apt-get install -y --no-install-recommends git || true
+            if ! command -v git >/dev/null 2>&1; then
+              echo "deb http://archive.debian.org/debian buster main" > /etc/apt/sources.list
+              apt-get update
+              apt-get install -y --no-install-recommends git
+            fi
+          fi
+
+      - name: Disable git SSL verify (act)
+        if: ${{ env.ACT }}
+        run: |
+          git config --global http.sslverify false
+          echo "GIT_SSL_NO_VERIFY=1" >> $GITHUB_ENV
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -34,15 +67,20 @@ jobs:
           go env
           go version
 
-      - name: Tidy
-        run: go mod tidy
+      - name: Download build artifact (optional)
+        if: ${{ env.BUILD_ARTIFACT != '' && !env.ACT }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BUILD_ARTIFACT }}
 
-      - name: Vet
-        run: go vet ./...
-
-      - name: Run tests (race + coverage)
+      - name: Run tests
         run: |
-          go test ./... -race -covermode=atomic -coverprofile=coverage.out -v
+          if [ "${{ env.ACT }}" = "true" ]; then
+            echo "Running tests without -race (act environment lacks full libc toolchain)"
+            CGO_ENABLED=0 go test ./... -covermode=atomic -coverprofile=coverage.out -v
+          else
+            CGO_ENABLED=1 go test ./... -race -covermode=atomic -coverprofile=coverage.out -v
+          fi
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4

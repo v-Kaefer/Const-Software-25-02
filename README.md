@@ -123,6 +123,8 @@ Copie `.env.example` para `.env` e configure:
 - `JWT_AUDIENCE` - Client ID da aplicação (opcional)
 - `JWKS_URI` - URL das chaves públicas (auto-construído se não fornecido)
 
+> Em produção (`APP_ENV=production`), `JWT_ISSUER` e `JWT_AUDIENCE` são obrigatórios; a aplicação não inicia sem eles.
+
 **Exemplo para produção:**
 ```bash
 JWT_ISSUER=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_ABC123
@@ -254,9 +256,12 @@ GO_TEST_TARGETS=./internal/http/... GO_TEST_FLAGS='-run TestRBAC' make test
 
 GitHub Actions configurado com:
 - ✅ Build e testes automáticos
-- ✅ Linting (go vet)
+- ✅ Linting (`go vet ./...`)
+- ✅ Validação do contrato OpenAPI
 - ✅ Cobertura de código
 - ✅ Docker build
+
+> Em execuções locais com `act`, etapas que dependem de rede (ex.: validação OpenAPI via `swagger-cli`) são ignoradas; use `make test` localmente para validar a aplicação.
 - ✅ Execução em push/PR
 
 ---

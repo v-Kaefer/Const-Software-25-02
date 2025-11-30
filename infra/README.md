@@ -80,6 +80,7 @@ terraform destroy
 - **Identity Pool**: `MyIdentityPool`
 - **User Groups**: admin-group, reviewers-group, user-group
 - **IAM Roles**: Para cada grupo de usuários
+- **Senhas temporárias**: geradas automaticamente (veja `terraform output admin_temp_password`, `reviewer_temp_password`, `user_temp_password` após o apply)
 
 ## 🔧 Comandos Make Disponíveis
 

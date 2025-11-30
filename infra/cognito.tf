@@ -1,9 +1,6 @@
 # IMPORTANT NOTES / NOTAS IMPORTANTES:
 # 1. This file was copied from infra-localstack and may need adjustments for production
-# 2. Known issues to fix before production deployment:
-#    - custom:role attribute is used but not properly defined in schema (lines 54-64)
-#    - Hard-coded bucket name 'meu-bucket' should be updated to match s3.tf
-#    - Consider using random password generation instead of hard-coded passwords
+# 2. Random passwords are generated for seeded users; check outputs after apply.
 # 3. Remember to create credentials.tf from credentials.tf.example before applying
 #
 # User user pool -> Pense nele como seu banco de dados de autenticação
@@ -58,19 +55,6 @@ resource "aws_cognito_user_pool" "cognito_pool" {
     }
   }
 
-  schema {
-    name                     = "role"
-    attribute_data_type      = "String"
-    mutable                  = true
-    required                 = false
-    developer_only_attribute = false
-
-    string_attribute_constraints {
-      min_length = 1
-      max_length = 20
-    }
-  }
-
   account_recovery_setting {
     recovery_mechanism {
       name     = "verified_email"
@@ -90,6 +74,48 @@ resource "aws_cognito_user_pool" "cognito_pool" {
   }
 }
 
+output "admin_temp_password" {
+  value       = random_password.admin_temp.result
+  sensitive   = true
+  description = "Senha temporária gerada para usuários admin (use para primeiro login)."
+}
+
+output "reviewer_temp_password" {
+  value       = random_password.reviewer_temp.result
+  sensitive   = true
+  description = "Senha temporária gerada para usuários reviewer."
+}
+
+output "user_temp_password" {
+  value       = random_password.user_temp.result
+  sensitive   = true
+  description = "Senha temporária gerada para usuário padrão."
+}
+
+resource "random_password" "admin_temp" {
+  length      = 16
+  special     = false
+  min_upper   = 1
+  min_lower   = 1
+  min_numeric = 1
+}
+
+resource "random_password" "reviewer_temp" {
+  length      = 16
+  special     = false
+  min_upper   = 1
+  min_lower   = 1
+  min_numeric = 1
+}
+
+resource "random_password" "user_temp" {
+  length      = 16
+  special     = false
+  min_upper   = 1
+  min_lower   = 1
+  min_numeric = 1
+}
+
 # Usuário Admin
 resource "aws_cognito_user" "admin" {
   for_each = { for user in var.admin_users : user.email => user }
@@ -100,10 +126,9 @@ resource "aws_cognito_user" "admin" {
   attributes = {
     email         = each.value.email
     name          = each.value.name
-    "custom:role" = "admin" # APENAS INFORMATIVO
   }
 
-  temporary_password = "AdminTemp123!"
+  temporary_password = random_password.admin_temp.result
   message_action     = "SUPPRESS" # Não envia email
   enabled            = true
 }
@@ -118,10 +143,9 @@ resource "aws_cognito_user" "reviewers" {
   attributes = {
     email         = each.value.email
     name          = each.value.name
-    "custom:role" = "reviewer" # APENAS INFORMATIVO
   }
 
-  temporary_password = "PassTemp123!"
+  temporary_password = random_password.reviewer_temp.result
   message_action     = "SUPPRESS" # Não envia email
   enabled            = true
 }
@@ -135,7 +159,7 @@ resource "aws_cognito_user" "main" {
 
   attributes = var.user_cognito
 
-  temporary_password = "PassTemp123!"
+  temporary_password = random_password.user_temp.result
   message_action     = "SUPPRESS" # Não envia email
   enabled            = true
 }
@@ -235,7 +259,7 @@ resource "aws_iam_role_policy" "reviewer_role_policy" {
       {
         Effect   = "Allow"
         Action   = ["s3:GetObject"]
-        Resource = "arn:aws:s3:::meu-bucket/*"
+        Resource = "${aws_s3_bucket.grupo_l_bucket.arn}/*"
       }
     ]
   })
@@ -251,7 +275,7 @@ resource "aws_iam_role_policy" "main_role_policy" {
       {
         Effect   = "Allow"
         Action   = ["s3:GetObject"]
-        Resource = "arn:aws:s3:::meu-bucket/*"
+        Resource = "${aws_s3_bucket.grupo_l_bucket.arn}/*"
       }
     ]
   })

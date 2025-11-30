@@ -51,6 +51,9 @@ jobs:
       - name: Go env
         run: go env
 
+      - name: Go vet
+        run: go vet ./...
+
       - name: Build
         run: go build -o cmd/api/usersvc ./cmd/api
 

@@ -24,6 +24,12 @@ func main() {
 	// 1) Config (env, DSN, env=development|production)
 	cfg := config.Load()
 
+	if cfg.Env == "production" {
+		if cfg.Cognito.JWTIssuer == "" || cfg.Cognito.JWTAudience == "" {
+			log.Fatal("JWT_ISSUER and JWT_AUDIENCE must be set in production")
+		}
+	}
+
 	// 2) DB (GORM + pool + logger)
 	gormDB, err := appdb.Open(cfg)
 	if err != nil {

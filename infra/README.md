@@ -80,7 +80,22 @@ terraform destroy
 - **Identity Pool**: `MyIdentityPool`
 - **User Groups**: admin-group, reviewers-group, user-group
 - **IAM Roles**: Para cada grupo de usuários
-- **Senhas temporárias**: geradas automaticamente (veja `terraform output admin_temp_password`, `reviewer_temp_password`, `user_temp_password` após o apply)
+- **Senhas temporárias**: geradas automaticamente
+
+### 🔑 Obter Senhas Geradas
+
+**Produção (após `make infra-prod-apply`):**
+```bash
+make infra-prod-passwords
+```
+
+**Desenvolvimento (cognito-local):**
+```bash
+make cognito-local-passwords
+```
+
+> 💡 Para senhas customizadas no desenvolvimento:
+> `ADMIN_PASSWORD=MinhaS3nha! REVIEWER_PASSWORD=OutraSenha! USER_PASSWORD=Senha123! make cognito-local-setup`
 
 ## 🔧 Comandos Make Disponíveis
 
@@ -89,6 +104,7 @@ terraform destroy
 | `make infra-prod-init` | Inicializa o Terraform |
 | `make infra-prod-plan` | Executa terraform plan |
 | `make infra-prod-apply` | Aplica a infraestrutura |
+| `make infra-prod-passwords` | Exibe senhas geradas pelo Terraform |
 | `make infra-prod-destroy` | Destrói a infraestrutura |
 
 ## 🧪 Testes Locais

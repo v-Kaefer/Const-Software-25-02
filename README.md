@@ -34,28 +34,50 @@ https://github.com/v-Kaefer/Const-Software-25-02
 
 ## 🚀 Início Rápido
 
-### Configuração Inicial
+### Opção 1: Apenas API e Swagger (Mais Rápido)
 
-1. **Configure as variáveis de ambiente:**
-   ```bash
-   cp .env.example .env
-   # Edite .env com suas configurações
-   ```
+```bash
+# Configure variáveis de ambiente
+cp .env.example .env
 
-2. **Inicie os serviços:**
-   ```bash
-   # Banco de dados + API
-   docker compose up -d
-   ```
+# Inicie os serviços
+docker compose up -d
 
-3. **Aplique as migrações:**
-   ```bash
-   docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
-   ```
+# Aplique as migrações
+docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
+```
 
-4. **Acesse a API:**
-   - API: http://localhost:8080
-   - Swagger: http://localhost:8081
+**Acesse:**
+- API: http://localhost:8080
+- Swagger: http://localhost:8081
+
+### Opção 2: Infraestrutura Completa (Recomendado para Desenvolvimento)
+
+```bash
+# Configure variáveis de ambiente
+cp .env.example .env
+
+# Inicia tudo: LocalStack + Cognito + API + Swagger
+make infra-up
+
+# Veja as senhas dos usuários
+make cognito-local-passwords
+
+# Teste os recursos criados
+make infra-test
+
+# Para encerrar tudo
+make infra-down
+```
+
+**Usuários pré-configurados:**
+| Usuário | Senha | Grupo |
+|---------|-------|-------|
+| admin@example.com | AdminTemp123! | admin-group |
+| reviewer@example.com | PassTemp123! | reviewers-group |
+| user@example.com | PassTemp123! | user-group |
+
+> 💡 Para senhas customizadas: `ADMIN_PASSWORD=MinhaS3nha! make cognito-local-setup`
 
 ## 🧩 Domínio e fluxos implementados
 
@@ -78,30 +100,25 @@ https://github.com/v-Kaefer/Const-Software-25-02
 ```bash
 make help                    # Ver todos os comandos disponíveis
 
-# Testes com Cognito Local (Recomendado)
-make cognito-local-start     # Inicia cognito-local
-make cognito-local-setup     # Configura usuários e grupos
-make cognito-local-test      # Testa e obtém tokens JWT
-
-# Infraestrutura Local (LocalStack + Cognito)
-make infra-up               # Inicia toda infraestrutura local
-make infra-test             # Testa recursos criados
-make infra-down             # Para tudo e limpa recursos
+# Infraestrutura Completa (Recomendado)
+make infra-up                # Inicia LocalStack + Cognito + API + Swagger
+make infra-test              # Testa recursos criados
+make cognito-local-passwords # Exibe senhas dos usuários
+make infra-down              # Para tudo e limpa recursos
 
 # Testes e Build
-make test                   # Sobe Postgres (se necessário) e executa go test ./...
-GO_TEST_FLAGS='-coverprofile=coverage.out' make test   # Adiciona flags extras
-GO_TEST_TARGETS=./pkg/workspace make test              # Testa apenas um pacote
-make test-workspace         # Atalho para pkg/workspace
-make test-http              # Atalho para handlers HTTP/endpoints
-make build                  # Compila a aplicação
+make test                    # Sobe Postgres (se necessário) e executa go test ./...
+make test-workspace          # Atalho para pkg/workspace
+make test-http               # Atalho para handlers HTTP/endpoints
+make build                   # Compila a aplicação
 ```
 
 ### Deploy em Produção
 ```bash
-make infra-prod-init        # Inicializa Terraform
-make infra-prod-plan        # Revisa mudanças
-make infra-prod-apply       # Aplica infraestrutura AWS
+make infra-prod-init         # Inicializa Terraform
+make infra-prod-plan         # Revisa mudanças
+make infra-prod-apply        # Aplica infraestrutura AWS
+make infra-prod-passwords    # Exibe senhas geradas pelo Terraform
 ```
 
 ## 🔧 Variáveis de Ambiente (.env)
@@ -152,19 +169,24 @@ JWKS_URI=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_ABC123/.well-know
 
 ### Como Obter Token JWT
 
-**Opção 1 - Cognito Local (Desenvolvimento):**
+**Desenvolvimento (cognito-local):**
 ```bash
-make cognito-local-start
-make cognito-local-setup
-make cognito-local-test  # Exibe tokens gerados
+# Se ainda não executou infra-up
+make infra-up
+make cognito-local-passwords  # Exibe senhas dos usuários
+make cognito-local-test       # Testa autenticação
 ```
 
-**Opção 2 - AWS Cognito (Produção):**
+**Produção (AWS Cognito):**
 ```bash
+# Após make infra-prod-apply
+make infra-prod-passwords     # Exibe senhas geradas
+
+# Obter token
 aws cognito-idp initiate-auth \
   --auth-flow USER_PASSWORD_AUTH \
   --client-id <seu-client-id> \
-  --auth-parameters USERNAME=admin@example.com,PASSWORD=SuaSenha123! \
+  --auth-parameters USERNAME=admin@example.com,PASSWORD=<senha-gerada> \
   --region us-east-1
 ```
 

@@ -1,4 +1,4 @@
-.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http
+.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready cognito-local-passwords infra-prod-passwords tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http
 
 # Default target
 help:
@@ -14,11 +14,12 @@ help:
 	@echo "  make localstack-clean    - Remove containers e volumes do LocalStack"
 	@echo ""
 	@echo "Comandos cognito-local (Alternativa Free ao Cognito):"
-	@echo "  make cognito-local-start - Inicia cognito-local"
-	@echo "  make cognito-local-setup - Configura cognito-local com Terraform"
-	@echo "  make cognito-local-test  - Testa configuração do cognito-local"
-	@echo "  make cognito-local-stop  - Para cognito-local"
-	@echo "  make cognito-local-clean - Remove cognito-local e dados"
+	@echo "  make cognito-local-start     - Inicia cognito-local"
+	@echo "  make cognito-local-setup     - Configura cognito-local com Terraform"
+	@echo "  make cognito-local-test      - Testa configuração do cognito-local"
+	@echo "  make cognito-local-passwords - Exibe senhas dos usuários (cognito-local)"
+	@echo "  make cognito-local-stop      - Para cognito-local"
+	@echo "  make cognito-local-clean     - Remove cognito-local e dados"
 	@echo ""
 	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
 	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (mais rápido)"
@@ -32,10 +33,11 @@ help:
 	@echo "  make tflocal-destroy     - Destrói a infraestrutura com tflocal"
 	@echo ""
 	@echo "Comandos Terraform Produção (infra):"
-	@echo "  make infra-prod-init     - Inicializa o Terraform (produção)"
-	@echo "  make infra-prod-plan     - Executa terraform plan (produção)"
-	@echo "  make infra-prod-apply    - Aplica a infraestrutura (produção)"
-	@echo "  make infra-prod-destroy  - Destrói a infraestrutura (produção)"
+	@echo "  make infra-prod-init      - Inicializa o Terraform (produção)"
+	@echo "  make infra-prod-plan      - Executa terraform plan (produção)"
+	@echo "  make infra-prod-apply     - Aplica a infraestrutura (produção)"
+	@echo "  make infra-prod-passwords - Exibe senhas geradas pelo Terraform (produção)"
+	@echo "  make infra-prod-destroy   - Destrói a infraestrutura (produção)"
 	@echo ""
 	@echo "Comandos combinados:"
 	@echo "  make infra-up           - Inicia LocalStack + cognito-local + tflocal + docker-compose"
@@ -218,6 +220,18 @@ cognito-local-test:
 	@echo "🧪 Testando configuração do cognito-local..."
 	@cd infra && ./test-cognito-local.sh
 
+cognito-local-passwords:
+	@echo "🔑 Senhas dos usuários (cognito-local - ambiente de desenvolvimento):"
+	@echo ""
+	@echo "👤 Usuários e senhas temporárias:"
+	@echo "   admin@example.com    -> AdminTemp123!"
+	@echo "   reviewer@example.com -> PassTemp123!"
+	@echo "   user@example.com     -> PassTemp123!"
+	@echo ""
+	@echo "💡 Para personalizar senhas, defina variáveis de ambiente antes de cognito-local-setup:"
+	@echo "   ADMIN_PASSWORD=SuaSenha123! REVIEWER_PASSWORD=OutraSenha123! USER_PASSWORD=Senha123! make cognito-local-setup"
+	@echo ""
+
 cognito-local-clean:
 	@echo "🧹 Limpando cognito-local..."
 	@docker-compose -f docker-compose.cognito-local.yaml down -v
@@ -350,6 +364,17 @@ infra-prod-apply:
 	@echo "🚀 Aplicando infraestrutura de produção..."
 	@cd infra && terraform apply -auto-approve
 	@echo "✅ Infraestrutura aplicada!"
+	@echo ""
+	@echo "💡 Para ver as senhas geradas, execute: make infra-prod-passwords"
+
+infra-prod-passwords:
+	@echo "🔑 Senhas geradas pelo Terraform (produção):"
+	@echo ""
+	@cd infra && terraform output -raw admin_temp_password 2>/dev/null && echo " -> Senha Admin" || echo "❌ Execute 'make infra-prod-apply' primeiro"
+	@cd infra && terraform output -raw reviewer_temp_password 2>/dev/null && echo " -> Senha Reviewer" || true
+	@cd infra && terraform output -raw user_temp_password 2>/dev/null && echo " -> Senha User" || true
+	@echo ""
+	@echo "⚠️  Estas são senhas temporárias. Os usuários devem alterá-las no primeiro login."
 
 infra-prod-destroy:
 	@echo "💣 Destruindo infraestrutura de produção..."

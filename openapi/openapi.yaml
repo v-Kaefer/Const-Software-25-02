@@ -3,6 +3,21 @@ info:
   title: Project Delivery API
   description: |
     API REST para gerenciamento de projetos, tarefas e lancamentos de horas com RBAC e ownership.
+    
+    ## Autenticação
+    
+    Todas as rotas requerem autenticação via JWT. Para usar a API:
+    
+    1. Inicie a infraestrutura: `make infra-up`
+    2. Obtenha as credenciais: `make cognito-local-passwords`
+    3. Use o botão "Authorize" acima para inserir o token JWT
+    
+    **Usuários disponíveis (desenvolvimento):**
+    - admin@example.com (AdminTemp123!) - Acesso completo
+    - reviewer@example.com (PassTemp123!) - Acesso de leitura
+    - user@example.com (PassTemp123!) - Acesso limitado
+    
+    **Nota:** Em ambiente de desenvolvimento (`APP_ENV=development`), a autenticação pode ser configurada para modo mock.
   version: "1.0.0"
 
 servers:
@@ -271,7 +286,8 @@ security:
 paths:
   /api/v1/users:
     post:
-      summary: Cria usuário
+      summary: Cria usuário (requer admin)
+      description: Cria um novo usuário no sistema. Requer autenticação com role admin-group.
       security:
         - bearerAuth: []
       requestBody:
@@ -293,8 +309,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          description: Token JWT ausente ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permissão insuficiente (requer admin-group)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     get:
-      summary: Lista usuários (admin)
+      summary: Lista usuários (requer admin)
+      description: Lista todos os usuários do sistema. Requer autenticação com role admin-group.
       security:
         - bearerAuth: []
       responses:
@@ -306,6 +335,18 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
+        '401':
+          description: Token JWT ausente ou inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permissão insuficiente (requer admin-group)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/users/{id}:
     parameters:
       - in: path

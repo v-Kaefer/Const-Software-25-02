@@ -223,10 +223,12 @@ cognito-local-test:
 cognito-local-passwords:
 	@echo "🔑 Senhas dos usuários (cognito-local - ambiente de desenvolvimento):"
 	@echo ""
-	@echo "👤 Usuários e senhas temporárias:"
+	@echo "👤 Usuários e senhas padrão:"
 	@echo "   admin@example.com    -> AdminTemp123!"
 	@echo "   reviewer@example.com -> PassTemp123!"
 	@echo "   user@example.com     -> PassTemp123!"
+	@echo ""
+	@echo "⚠️  Se você usou senhas customizadas no cognito-local-setup, consulte o valor definido."
 	@echo ""
 	@echo "💡 Para personalizar senhas, defina variáveis de ambiente antes de cognito-local-setup:"
 	@echo "   ADMIN_PASSWORD=SuaSenha123! REVIEWER_PASSWORD=OutraSenha123! USER_PASSWORD=Senha123! make cognito-local-setup"

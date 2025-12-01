@@ -70,9 +70,9 @@ make infra-test
 make infra-down
 ```
 
-**Usuários pré-configurados:**
-| Usuário | Senha | Grupo |
-|---------|-------|-------|
+**Usuários pré-configurados (senhas padrão):**
+| Usuário | Senha Padrão | Grupo |
+|---------|--------------|-------|
 | admin@example.com | AdminTemp123! | admin-group |
 | reviewer@example.com | PassTemp123! | reviewers-group |
 | user@example.com | PassTemp123! | user-group |

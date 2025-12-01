@@ -129,6 +129,12 @@ func (r *Router) routes() {
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	// Remove trailing slash to ensure routes match correctly
+	// Go 1.22+ ServeMux doesn't automatically match paths with trailing slashes
+	path := req.URL.Path
+	if len(path) > 1 && path[len(path)-1] == '/' {
+		req.URL.Path = path[:len(path)-1]
+	}
 	r.mux.ServeHTTP(w, req)
 }
 

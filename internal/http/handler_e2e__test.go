@@ -188,3 +188,29 @@ func TestHTTP_ProjectTaskTimeEntryFlow(t *testing.T) {
 		t.Fatal("expected approvedAt timestamp")
 	}
 }
+
+func TestHTTP_TrailingSlash(t *testing.T) {
+ts := newTestServer(t)
+defer ts.Close()
+
+// Teste POST com barra final
+body := []byte(`{"email":"trailing@example.com","name":"Trailing"}`)
+resp, err := http.Post(ts.URL+"/api/v1/users/", "application/json", bytes.NewReader(body))
+if err != nil {
+t.Fatalf("POST /users/: %v", err)
+}
+defer resp.Body.Close()
+if resp.StatusCode != http.StatusCreated {
+t.Fatalf("POST /users/ status = %d, want 201", resp.StatusCode)
+}
+
+// Teste GET com barra final
+getResp, err := http.Get(ts.URL + "/api/v1/users/")
+if err != nil {
+t.Fatalf("GET /users/: %v", err)
+}
+defer getResp.Body.Close()
+if getResp.StatusCode != http.StatusOK {
+t.Fatalf("GET /users/ status = %d, want 200", getResp.StatusCode)
+}
+}

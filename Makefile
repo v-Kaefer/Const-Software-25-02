@@ -349,7 +349,7 @@ test-api:
 	@POST_RESPONSE=$$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/v1/users \
 		-H "Content-Type: application/json" \
 		-H "Origin: http://localhost:8081" \
-		-d '{"email":"test-'$$RANDOM'@example.com","name":"Test User"}'); \
+		-d '{"email":"test-'$$(date +%s)'@example.com","name":"Test User"}'); \
 	HTTP_CODE=$$(echo "$$POST_RESPONSE" | tail -1); \
 	BODY=$$(echo "$$POST_RESPONSE" | head -n -1); \
 	echo "   HTTP Status: $$HTTP_CODE"; \

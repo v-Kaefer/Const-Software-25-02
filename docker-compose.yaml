@@ -18,6 +18,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    networks:
+      - app-network
 
   api:
     build:
@@ -38,6 +40,8 @@ services:
     ports:
       - "8080:8080"
     restart: unless-stopped
+    networks:
+      - app-network
 
   swagger:
     image: swaggerapi/swagger-ui:latest
@@ -51,6 +55,13 @@ services:
     ports:
       - "8081:8080"
     restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+    name: app-network
 
 volumes:
   pgdata: {}

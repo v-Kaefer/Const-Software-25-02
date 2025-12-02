@@ -196,7 +196,9 @@ cognito-local-ready:
 
 cognito-local-start:
 	@echo "🚀 Iniciando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml up -d
+	@echo "🔗 Garantindo que a rede app-network existe..."
+	@docker network create app-network 2>/dev/null || true
+	@docker-compose -f docker-compose.cognito-local.yaml up -d --remove-orphans
 	@echo "⏳ Aguardando cognito-local ficar pronto..."
 	@sleep 10
 	@echo "🔍 Verificando status do container..."
@@ -207,7 +209,7 @@ cognito-local-start:
 
 cognito-local-stop:
 	@echo "🛑 Parando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml down
+	@docker-compose -f docker-compose.cognito-local.yaml down --remove-orphans
 	@echo "✅ cognito-local parado!"
 
 cognito-local-setup:
@@ -221,7 +223,7 @@ cognito-local-test:
 
 cognito-local-clean:
 	@echo "🧹 Limpando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml down -v
+	@docker-compose -f docker-compose.cognito-local.yaml down -v --remove-orphans
 	@rm -rf infra/cognito-local-config/*.json
 	@echo "✅ Limpeza concluída!"
 

@@ -9,3 +9,10 @@ services:
     environment:
       - COGNITO_LOCAL_DATABASE=/app/.cognito/db.json
     restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
+    name: app-network

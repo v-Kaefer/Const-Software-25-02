@@ -53,6 +53,10 @@ func NewRouter(
 }
 
 func (r *Router) routes() {
+	// Health check endpoint (no auth required)
+	r.mux.HandleFunc("GET /health", r.handleHealth)
+	r.mux.HandleFunc("GET /api/v1/health", r.handleHealth)
+
 	// Usuários
 	r.mux.Handle("POST "+apiPrefix+"/users", r.authMiddleware.Authenticate(
 		r.authMiddleware.RequireRole(auth.RoleAdmin)(http.HandlerFunc(r.handleCreateUser)),
@@ -154,6 +158,20 @@ func NewAuthMiddleware(cfg config.CognitoConfig) *auth.Middleware {
 // that bypasses authentication
 func NewMockAuthMiddleware() *auth.Middleware {
 	return auth.NewMockMiddleware()
+}
+
+// === Handlers: Health ===
+
+func (r *Router) handleHealth(w http.ResponseWriter, req *http.Request) {
+	authMode := "production"
+	if r.authMiddleware.IsSkipAuth() {
+		authMode = "development (mock auth - no JWT required)"
+	}
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"status":   "ok",
+		"authMode": authMode,
+		"message":  "API is running",
+	})
 }
 
 // === Handlers: Usuários ===

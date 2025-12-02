@@ -40,8 +40,8 @@ https://github.com/v-Kaefer/Const-Software-25-02
 # Configure variáveis de ambiente
 cp .env.example .env
 
-# Inicie os serviços
-docker compose up -d
+# Inicie os serviços (com rebuild para pegar últimas alterações)
+docker compose up -d --build
 
 # Aplique as migrações
 docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
@@ -50,6 +50,11 @@ docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
 **Acesse:**
 - API: http://localhost:8080
 - Swagger: http://localhost:8081
+- Health check: http://localhost:8080/api/v1/health
+
+> ⚠️ **Importante**: Em modo desenvolvimento (`APP_ENV=development`), a autenticação é desabilitada automaticamente. Você pode testar a API no Swagger UI sem precisar de tokens JWT.
+
+> 🔄 **Problemas?** Execute `docker compose down && docker compose up -d --build` para reconstruir os containers com o código mais recente.
 
 ### Opção 2: Infraestrutura Completa (Recomendado para Desenvolvimento)
 

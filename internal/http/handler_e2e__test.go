@@ -214,3 +214,30 @@ func TestHTTP_TrailingSlash(t *testing.T) {
 		t.Fatalf("TrailingSlash: GET /users/ status = %d, want 200", getResp.StatusCode)
 	}
 }
+
+func TestHTTP_HealthEndpoint(t *testing.T) {
+ts := newTestServer(t)
+defer ts.Close()
+
+// Test GET /api/v1/health
+resp, err := http.Get(ts.URL + "/api/v1/health")
+if err != nil {
+t.Fatalf("HealthEndpoint: GET /api/v1/health: %v", err)
+}
+defer resp.Body.Close()
+if resp.StatusCode != http.StatusOK {
+t.Fatalf("HealthEndpoint: GET /api/v1/health status = %d, want 200", resp.StatusCode)
+}
+
+var result map[string]interface{}
+if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+t.Fatalf("HealthEndpoint: decode response: %v", err)
+}
+
+if result["status"] != "ok" {
+t.Fatalf("HealthEndpoint: expected status=ok, got %v", result["status"])
+}
+if result["authMode"] == nil {
+t.Fatalf("HealthEndpoint: expected authMode field")
+}
+}

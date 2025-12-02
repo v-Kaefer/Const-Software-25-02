@@ -285,6 +285,31 @@ security:
   - bearerAuth: []
 
 paths:
+  /api/v1/health:
+    get:
+      summary: Health check
+      description: |
+        Verifica se a API está rodando e mostra o modo de autenticação.
+        Este endpoint não requer autenticação.
+      security: []
+      responses:
+        '200':
+          description: API está funcionando
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  authMode:
+                    type: string
+                    example: "development (mock auth - no JWT required)"
+                  message:
+                    type: string
+                    example: "API is running"
+
   /api/v1/users:
     post:
       summary: Cria usuário (requer admin)

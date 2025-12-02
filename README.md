@@ -40,8 +40,8 @@ https://github.com/v-Kaefer/Const-Software-25-02
 # Configure variáveis de ambiente
 cp .env.example .env
 
-# Inicie os serviços (com rebuild para pegar últimas alterações)
-docker compose up -d --build
+# Inicie os serviços (reset forçado + rebuild automático)
+make docker-compose-up
 
 # Aplique as migrações
 docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
@@ -54,7 +54,7 @@ docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
 
 > ⚠️ **Importante**: Em modo desenvolvimento (`APP_ENV=development`), a autenticação é desabilitada automaticamente. Você pode testar a API no Swagger UI sem precisar de tokens JWT.
 
-> 🔄 **Problemas?** Execute `docker compose down && docker compose up -d --build` para reconstruir os containers com o código mais recente.
+> ✅ Os comandos `make docker-compose-up` e `make infra-up` já fazem reset forçado automaticamente (limpa volumes, remove imagens antigas e reconstrói tudo).
 
 ### Opção 2: Infraestrutura Completa (Recomendado para Desenvolvimento)
 
@@ -62,7 +62,7 @@ docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
 # Configure variáveis de ambiente
 cp .env.example .env
 
-# Inicia tudo: LocalStack + Cognito + API + Swagger
+# Inicia tudo: LocalStack + Cognito + API + Swagger (reset forçado automático)
 make infra-up
 
 # Veja as senhas dos usuários
@@ -71,7 +71,7 @@ make cognito-local-passwords
 # Teste os recursos criados
 make infra-test
 
-# Para encerrar tudo
+# Para encerrar tudo (reset forçado - limpa volumes e imagens)
 make infra-down
 ```
 

@@ -23,8 +23,8 @@ help:
 	@echo ""
 	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
 	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (mais rápido)"
-	@echo "  make docker-compose-up   - Inicia todos os serviços (db, api, swagger)"
-	@echo "  make docker-compose-down - Para serviços do Docker Compose"
+	@echo "  make docker-compose-up   - RESET FORÇADO + inicia serviços (db, api, swagger)"
+	@echo "  make docker-compose-down - RESET FORÇADO + para serviços e limpa volumes/imagens"
 	@echo ""
 	@echo "Comandos Terraform Local (infra com tflocal para testes):"
 	@echo "  make tflocal-init        - Inicializa o Terraform Local"
@@ -40,8 +40,8 @@ help:
 	@echo "  make infra-prod-destroy   - Destrói a infraestrutura (produção)"
 	@echo ""
 	@echo "Comandos combinados:"
-	@echo "  make infra-up           - Inicia LocalStack + cognito-local + tflocal + docker-compose"
-	@echo "  make infra-down         - Para tudo (docker-compose + tflocal + cognito-local + LocalStack)"
+	@echo "  make infra-up           - RESET FORÇADO + LocalStack + cognito-local + API + Swagger"
+	@echo "  make infra-down         - RESET FORÇADO + para tudo e limpa volumes/imagens"
 	@echo "  make infra-test         - Testa a infraestrutura criada"
 	@echo "  make infra-debug        - Debug da infraestrutura (lista todos os recursos)"
 	@echo ""
@@ -98,7 +98,7 @@ localstack-clean:
 
 # Combined commands
 infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup tflocal-apply docker-compose-up
-	@echo "✅ Infraestrutura completa iniciada!"
+	@echo "✅ Infraestrutura completa iniciada (com reset forçado)!"
 	@echo ""
 	@echo "📊 Recursos disponíveis:"
 	@echo "  - S3: http://localhost:4566"
@@ -106,12 +106,13 @@ infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup 
 	@echo "  - Cognito: http://localhost:9229 (cognito-local)"
 	@echo "  - API: http://localhost:8080"
 	@echo "  - Swagger UI: http://localhost:8081"
+	@echo "  - Health check: http://localhost:8080/api/v1/health"
 	@echo ""
 	@echo "Para testar os recursos:"
 	@echo "  make infra-test"
 
 infra-down: tflocal-destroy cognito-local-clean localstack-stop docker-compose-down
-	@echo "✅ Infraestrutura completa parada!"
+	@echo "✅ Infraestrutura completa parada (volumes e imagens limpos)!"
 
 infra-test: cognito-local-ready
 	@echo "🧪 Testando infraestrutura LocalStack + cognito-local..."
@@ -243,23 +244,31 @@ cognito-local-clean:
 # Docker Compose commands for API, Database and Swagger UI
 docker-compose-up:
 	@echo "🚀 Iniciando serviços com Docker Compose..."
-	@echo "🧹 Limpando containers existentes..."
-	@docker compose down --remove-orphans 2>/dev/null || true
+	@echo "🧹 Limpando containers e volumes existentes..."
+	@docker compose down --remove-orphans --volumes 2>/dev/null || true
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
+	@echo "🗑️ Removendo imagens antigas da API para forçar rebuild..."
+	@docker rmi -f $$(docker images -q 'const-software*' 2>/dev/null) 2>/dev/null || true
+	@docker rmi -f $$(docker images -q '*usersvc*' 2>/dev/null) 2>/dev/null || true
 	@sleep 1
-	@docker compose up -d --remove-orphans
+	@echo "🔨 Reconstruindo imagens com código mais recente..."
+	@docker compose up -d --build --remove-orphans --force-recreate
 	@echo "⏳ Aguardando serviços ficarem prontos..."
 	@sleep 5
-	@echo "✅ Serviços iniciados!"
+	@echo "✅ Serviços iniciados com código atualizado!"
 	@echo "  - Database: http://localhost:5432"
 	@echo "  - API: http://localhost:8080"
 	@echo "  - Swagger UI: http://localhost:8081"
+	@echo "  - Health check: http://localhost:8080/api/v1/health"
 
 docker-compose-down:
 	@echo "🛑 Parando serviços do Docker Compose..."
-	@docker compose down --remove-orphans
+	@docker compose down --remove-orphans --volumes
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
-	@echo "✅ Serviços parados!"
+	@echo "🧹 Removendo imagens antigas da API..."
+	@docker rmi -f $$(docker images -q 'const-software*' 2>/dev/null) 2>/dev/null || true
+	@docker rmi -f $$(docker images -q '*usersvc*' 2>/dev/null) 2>/dev/null || true
+	@echo "✅ Serviços parados e volumes/imagens limpos!"
 
 # Comando simplificado para apenas visualizar o Swagger (sem API)
 swagger-only:

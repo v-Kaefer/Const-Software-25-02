@@ -42,13 +42,15 @@ A infraestrutura já está definida em `infra/cognito.tf`. Para implantar:
 
 ```bash
 # Desenvolvimento (cognito-local) - Recomendado
-make infra-up                # Inicia tudo automaticamente
+make infra-up                # Reset forçado + inicia tudo automaticamente
 make cognito-local-passwords # Exibe senhas dos usuários
 
 # Produção (AWS)
 make infra-prod-apply
 make infra-prod-passwords    # Exibe senhas geradas pelo Terraform
 ```
+
+> ✅ **Reset Forçado Automático**: O comando `make infra-up` faz reset forçado automaticamente (limpa volumes, remove imagens antigas e reconstrói tudo).
 
 ### Usuários Pré-configurados
 

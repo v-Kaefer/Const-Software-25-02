@@ -23,7 +23,11 @@ info:
 
 servers:
   - url: http://localhost:8080
-    description: Ambiente local
+    description: Ambiente local (via navegador)
+  - url: http://host.docker.internal:8080
+    description: Ambiente Docker (use se localhost não funcionar)
+  - url: http://api:8080
+    description: Ambiente Docker interno (via docker network)
 
 components:
   securitySchemes:

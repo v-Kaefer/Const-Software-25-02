@@ -126,6 +126,13 @@ func (r *Router) routes() {
 	r.mux.Handle("PATCH "+apiPrefix+"/time-entries/{id}/approve", r.authMiddleware.Authenticate(
 		r.authMiddleware.RequireRole(auth.RoleAdmin)(http.HandlerFunc(r.handleApproveTimeEntry)),
 	))
+
+	// Documentação - Swagger UI e OpenAPI Spec (não requer autenticação)
+	r.mux.HandleFunc("GET /docs", SwaggerHandler("/openapi.yaml"))
+	r.mux.HandleFunc("GET /docs/", SwaggerHandler("/openapi.yaml"))
+	r.mux.HandleFunc("GET /swagger", SwaggerHandler("/openapi.yaml"))
+	r.mux.HandleFunc("GET /swagger/", SwaggerHandler("/openapi.yaml"))
+	r.mux.HandleFunc("GET /openapi.yaml", OpenAPIHandler("openapi.yaml"))
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {

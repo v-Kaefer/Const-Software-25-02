@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/v-Kaefer/Const-Software-25-02/internal/auth"
 	"github.com/v-Kaefer/Const-Software-25-02/internal/config"
 	appdb "github.com/v-Kaefer/Const-Software-25-02/internal/db"
 	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/http"
@@ -51,7 +52,14 @@ func main() {
 	timeSvc := workspace.NewTimeEntryService(gormDB)
 
 	// 5) Auth middleware (configuração do Cognito)
-	authMiddleware := httpapi.NewAuthMiddleware(cfg.Cognito)
+	// In development mode, use mock auth that skips JWT validation
+	var authMiddleware *auth.Middleware
+	if cfg.Env == "development" {
+		log.Println("Running in development mode - using mock authentication")
+		authMiddleware = httpapi.NewMockAuthMiddleware()
+	} else {
+		authMiddleware = httpapi.NewAuthMiddleware(cfg.Cognito)
+	}
 
 	// 6) HTTP router (camada de entrega, não conhece GORM)
 	router := httpapi.NewRouter(userSvc, projectSvc, taskSvc, timeSvc, authMiddleware)

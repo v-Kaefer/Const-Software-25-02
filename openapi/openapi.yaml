@@ -6,18 +6,19 @@ info:
     
     ## Autenticação
     
-    Todas as rotas requerem autenticação via JWT. Para usar a API:
+    **Modo Desenvolvimento (APP_ENV=development):**
+    - A autenticação é automaticamente desabilitada
+    - Todas as requisições são tratadas como um usuário admin
+    - Não é necessário token JWT
     
-    1. Inicie a infraestrutura: `make infra-up`
-    2. Obtenha as credenciais: `make cognito-local-passwords`
-    3. Use o botão "Authorize" acima para inserir o token JWT
+    **Modo Produção (APP_ENV=production):**
+    - Requer token JWT válido do Cognito
+    - Use o botão "Authorize" acima para inserir o token
     
-    **Usuários disponíveis (desenvolvimento):**
-    - admin@example.com (AdminTemp123!) - Acesso completo
-    - reviewer@example.com (PassTemp123!) - Acesso de leitura
-    - user@example.com (PassTemp123!) - Acesso limitado
-    
-    **Nota:** Em ambiente de desenvolvimento (`APP_ENV=development`), a autenticação pode ser configurada para modo mock.
+    **Usuários disponíveis (cognito-local):**
+    - admin@example.com (AdminTemp123!) - admin-group
+    - reviewer@example.com (PassTemp123!) - reviewers-group
+    - user@example.com (PassTemp123!) - user-group
   version: "1.0.0"
 
 servers:
@@ -30,7 +31,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: "Token JWT obtido no IdP (Cognito). Utilize Authorization: Bearer <token>."
+      description: "Token JWT obtido no IdP (Cognito). Em desenvolvimento, a autenticação é desabilitada automaticamente."
   schemas:
     Pagination:
       type: object

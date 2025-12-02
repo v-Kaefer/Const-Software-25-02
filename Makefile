@@ -1,4 +1,4 @@
-.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http
+.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-tokens cognito-local-clean cognito-local-ready tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http
 
 # Default target
 help:
@@ -14,11 +14,12 @@ help:
 	@echo "  make localstack-clean    - Remove containers e volumes do LocalStack"
 	@echo ""
 	@echo "Comandos cognito-local (Alternativa Free ao Cognito):"
-	@echo "  make cognito-local-start - Inicia cognito-local"
-	@echo "  make cognito-local-setup - Configura cognito-local com Terraform"
-	@echo "  make cognito-local-test  - Testa configuração do cognito-local"
-	@echo "  make cognito-local-stop  - Para cognito-local"
-	@echo "  make cognito-local-clean - Remove cognito-local e dados"
+	@echo "  make cognito-local-start  - Inicia cognito-local"
+	@echo "  make cognito-local-setup  - Configura cognito-local com Terraform"
+	@echo "  make cognito-local-test   - Testa configuração do cognito-local"
+	@echo "  make cognito-local-tokens - Gera JWT tokens para usar no Swagger"
+	@echo "  make cognito-local-stop   - Para cognito-local"
+	@echo "  make cognito-local-clean  - Remove cognito-local e dados"
 	@echo ""
 	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
 	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (mais rápido)"
@@ -217,6 +218,10 @@ cognito-local-setup:
 cognito-local-test:
 	@echo "🧪 Testando configuração do cognito-local..."
 	@cd infra && ./test-cognito-local.sh
+
+cognito-local-tokens:
+	@echo "🔑 Gerando JWT tokens do cognito-local..."
+	@cd infra && ./get-jwt-tokens.sh
 
 cognito-local-clean:
 	@echo "🧹 Limpando cognito-local..."

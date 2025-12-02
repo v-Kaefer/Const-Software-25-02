@@ -36,12 +36,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// 3) Migração automática só em dev (para prototipagem)
-	if cfg.Env != "production" {
-		if err := appdb.AutoMigrate(gormDB); err != nil {
-			log.Fatal(err)
-		}
-	}
+	// 3) Migrações são executadas via arquivos SQL em ./migrations/
+	// O Docker monta esses arquivos em /docker-entrypoint-initdb.d/
+	// que são executados automaticamente na primeira inicialização do PostgreSQL.
+	// Não usamos GORM AutoMigrate para evitar conflitos com as migrações SQL.
 
 	// 4) Repositórios e serviços (injeção de dependências)
 	userRepo := user.NewRepo(gormDB)

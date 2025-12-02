@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/v-Kaefer/Const-Software-25-02/internal/auth"
 	"github.com/v-Kaefer/Const-Software-25-02/internal/config"
 	appdb "github.com/v-Kaefer/Const-Software-25-02/internal/db"
 	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/http"
@@ -52,14 +51,7 @@ func main() {
 	timeSvc := workspace.NewTimeEntryService(gormDB)
 
 	// 5) Auth middleware (configuração do Cognito)
-	// In development mode, use mock auth that skips JWT validation
-	var authMiddleware *auth.Middleware
-	if cfg.Env == "development" {
-		log.Println("Running in development mode - using mock authentication")
-		authMiddleware = httpapi.NewMockAuthMiddleware()
-	} else {
-		authMiddleware = httpapi.NewAuthMiddleware(cfg.Cognito)
-	}
+	authMiddleware := httpapi.NewAuthMiddleware(cfg.Cognito)
 
 	// 6) HTTP router (camada de entrega, não conhece GORM)
 	router := httpapi.NewRouter(userSvc, projectSvc, taskSvc, timeSvc, authMiddleware)
@@ -94,16 +86,15 @@ func main() {
 // corsMiddleware adds CORS headers to all responses
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Allow all origins in development (credentials not needed for Swagger UI)
+		// Allow all origins in development, restrict in production
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, X-Requested-With")
-		w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Max-Age", "3600")
 
 		// Handle preflight requests
 		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 

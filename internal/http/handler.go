@@ -53,10 +53,6 @@ func NewRouter(
 }
 
 func (r *Router) routes() {
-	// Health check endpoint (no auth required)
-	r.mux.HandleFunc("GET /health", r.handleHealth)
-	r.mux.HandleFunc("GET /api/v1/health", r.handleHealth)
-
 	// Usuários
 	r.mux.Handle("POST "+apiPrefix+"/users", r.authMiddleware.Authenticate(
 		r.authMiddleware.RequireRole(auth.RoleAdmin)(http.HandlerFunc(r.handleCreateUser)),
@@ -133,12 +129,6 @@ func (r *Router) routes() {
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// Remove trailing slash to ensure routes match correctly
-	// Go 1.22+ ServeMux doesn't automatically match paths with trailing slashes
-	path := req.URL.Path
-	if len(path) > 1 && path[len(path)-1] == '/' {
-		req.URL.Path = path[:len(path)-1]
-	}
 	r.mux.ServeHTTP(w, req)
 }
 
@@ -158,20 +148,6 @@ func NewAuthMiddleware(cfg config.CognitoConfig) *auth.Middleware {
 // that bypasses authentication
 func NewMockAuthMiddleware() *auth.Middleware {
 	return auth.NewMockMiddleware()
-}
-
-// === Handlers: Health ===
-
-func (r *Router) handleHealth(w http.ResponseWriter, req *http.Request) {
-	authMode := "production"
-	if r.authMiddleware.IsSkipAuth() {
-		authMode = "development (mock auth - no JWT required)"
-	}
-	respondJSON(w, http.StatusOK, map[string]interface{}{
-		"status":   "ok",
-		"authMode": authMode,
-		"message":  "API is running",
-	})
 }
 
 // === Handlers: Usuários ===

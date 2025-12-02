@@ -3,31 +3,11 @@ info:
   title: Project Delivery API
   description: |
     API REST para gerenciamento de projetos, tarefas e lancamentos de horas com RBAC e ownership.
-    
-    ## Autenticação
-    
-    **Modo Desenvolvimento (APP_ENV=development):**
-    - A autenticação é automaticamente desabilitada
-    - Todas as requisições são tratadas como um usuário admin
-    - Não é necessário token JWT
-    
-    **Modo Produção (APP_ENV=production):**
-    - Requer token JWT válido do Cognito
-    - Use o botão "Authorize" acima para inserir o token
-    
-    **Usuários disponíveis (cognito-local):**
-    - admin@example.com (AdminTemp123!) - admin-group
-    - reviewer@example.com (PassTemp123!) - reviewers-group
-    - user@example.com (PassTemp123!) - user-group
   version: "1.0.0"
 
 servers:
   - url: http://localhost:8080
-    description: Ambiente local (via navegador)
-  - url: http://host.docker.internal:8080
-    description: Ambiente Docker (use se localhost não funcionar)
-  - url: http://api:8080
-    description: Ambiente Docker interno (via docker network)
+    description: Ambiente local
 
 components:
   securitySchemes:
@@ -35,7 +15,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: "Token JWT obtido no IdP (Cognito). Em desenvolvimento, a autenticação é desabilitada automaticamente."
+      description: "Token JWT obtido no IdP (Cognito). Utilize Authorization: Bearer <token>."
   schemas:
     Pagination:
       type: object
@@ -289,35 +269,9 @@ security:
   - bearerAuth: []
 
 paths:
-  /api/v1/health:
-    get:
-      summary: Health check
-      description: |
-        Verifica se a API está rodando e mostra o modo de autenticação.
-        Este endpoint não requer autenticação.
-      security: []
-      responses:
-        '200':
-          description: API está funcionando
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: "ok"
-                  authMode:
-                    type: string
-                    example: "development (mock auth - no JWT required)"
-                  message:
-                    type: string
-                    example: "API is running"
-
   /api/v1/users:
     post:
-      summary: Cria usuário (requer admin)
-      description: Cria um novo usuário no sistema. Requer autenticação com role admin-group.
+      summary: Cria usuário
       security:
         - bearerAuth: []
       requestBody:
@@ -339,21 +293,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '401':
-          description: Token JWT ausente ou inválido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Permissão insuficiente (requer admin-group)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
     get:
-      summary: Lista usuários (requer admin)
-      description: Lista todos os usuários do sistema. Requer autenticação com role admin-group.
+      summary: Lista usuários (admin)
       security:
         - bearerAuth: []
       responses:
@@ -365,18 +306,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-        '401':
-          description: Token JWT ausente ou inválido
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Permissão insuficiente (requer admin-group)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
   /api/v1/users/{id}:
     parameters:
       - in: path

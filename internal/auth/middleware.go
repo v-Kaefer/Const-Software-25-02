@@ -95,11 +95,6 @@ func NewMockMiddleware() *Middleware {
 	}
 }
 
-// IsSkipAuth returns true if authentication is being skipped (mock mode)
-func (m *Middleware) IsSkipAuth() bool {
-	return m.skipAuth
-}
-
 // Authenticate is a middleware that validates JWT tokens
 func (m *Middleware) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

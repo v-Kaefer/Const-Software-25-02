@@ -1,4 +1,4 @@
-.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready cognito-local-passwords infra-prod-passwords tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http test-api
+.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http
 
 # Default target
 help:
@@ -14,17 +14,16 @@ help:
 	@echo "  make localstack-clean    - Remove containers e volumes do LocalStack"
 	@echo ""
 	@echo "Comandos cognito-local (Alternativa Free ao Cognito):"
-	@echo "  make cognito-local-start     - Inicia cognito-local"
-	@echo "  make cognito-local-setup     - Configura cognito-local com Terraform"
-	@echo "  make cognito-local-test      - Testa configuração do cognito-local"
-	@echo "  make cognito-local-passwords - Exibe senhas dos usuários (cognito-local)"
-	@echo "  make cognito-local-stop      - Para cognito-local"
-	@echo "  make cognito-local-clean     - Remove cognito-local e dados"
+	@echo "  make cognito-local-start - Inicia cognito-local"
+	@echo "  make cognito-local-setup - Configura cognito-local com Terraform"
+	@echo "  make cognito-local-test  - Testa configuração do cognito-local"
+	@echo "  make cognito-local-stop  - Para cognito-local"
+	@echo "  make cognito-local-clean - Remove cognito-local e dados"
 	@echo ""
 	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
 	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (mais rápido)"
-	@echo "  make docker-compose-up   - RESET FORÇADO + inicia serviços (db, api, swagger)"
-	@echo "  make docker-compose-down - RESET FORÇADO + para serviços e limpa volumes/imagens"
+	@echo "  make docker-compose-up   - Inicia todos os serviços (db, api, swagger)"
+	@echo "  make docker-compose-down - Para serviços do Docker Compose"
 	@echo ""
 	@echo "Comandos Terraform Local (infra com tflocal para testes):"
 	@echo "  make tflocal-init        - Inicializa o Terraform Local"
@@ -33,22 +32,20 @@ help:
 	@echo "  make tflocal-destroy     - Destrói a infraestrutura com tflocal"
 	@echo ""
 	@echo "Comandos Terraform Produção (infra):"
-	@echo "  make infra-prod-init      - Inicializa o Terraform (produção)"
-	@echo "  make infra-prod-plan      - Executa terraform plan (produção)"
-	@echo "  make infra-prod-apply     - Aplica a infraestrutura (produção)"
-	@echo "  make infra-prod-passwords - Exibe senhas geradas pelo Terraform (produção)"
-	@echo "  make infra-prod-destroy   - Destrói a infraestrutura (produção)"
+	@echo "  make infra-prod-init     - Inicializa o Terraform (produção)"
+	@echo "  make infra-prod-plan     - Executa terraform plan (produção)"
+	@echo "  make infra-prod-apply    - Aplica a infraestrutura (produção)"
+	@echo "  make infra-prod-destroy  - Destrói a infraestrutura (produção)"
 	@echo ""
 	@echo "Comandos combinados:"
-	@echo "  make infra-up           - RESET FORÇADO + LocalStack + cognito-local + API + Swagger"
-	@echo "  make infra-down         - RESET FORÇADO + para tudo e limpa volumes/imagens"
+	@echo "  make infra-up           - Inicia LocalStack + cognito-local + tflocal + docker-compose"
+	@echo "  make infra-down         - Para tudo (docker-compose + tflocal + cognito-local + LocalStack)"
 	@echo "  make infra-test         - Testa a infraestrutura criada"
 	@echo "  make infra-debug        - Debug da infraestrutura (lista todos os recursos)"
 	@echo ""
 	@echo "Comandos de build/teste da API:"
 	@echo "  make build              - Compila ./cmd/api dentro do container local"
 	@echo "  make test               - Sobe dependências necessárias e executa go test ./..."
-	@echo "  make test-api           - Testa a API com requisições HTTP (simula Swagger UI)"
 	@echo ""
 	@echo "==================================================================="
 	@echo "IMPORTANTE: Cognito - Integrado automaticamente!"
@@ -99,7 +96,7 @@ localstack-clean:
 
 # Combined commands
 infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup tflocal-apply docker-compose-up
-	@echo "✅ Infraestrutura completa iniciada (com reset forçado)!"
+	@echo "✅ Infraestrutura completa iniciada!"
 	@echo ""
 	@echo "📊 Recursos disponíveis:"
 	@echo "  - S3: http://localhost:4566"
@@ -107,13 +104,12 @@ infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup 
 	@echo "  - Cognito: http://localhost:9229 (cognito-local)"
 	@echo "  - API: http://localhost:8080"
 	@echo "  - Swagger UI: http://localhost:8081"
-	@echo "  - Health check: http://localhost:8080/api/v1/health"
 	@echo ""
 	@echo "Para testar os recursos:"
 	@echo "  make infra-test"
 
 infra-down: tflocal-destroy cognito-local-clean localstack-stop docker-compose-down
-	@echo "✅ Infraestrutura completa parada (volumes e imagens limpos)!"
+	@echo "✅ Infraestrutura completa parada!"
 
 infra-test: cognito-local-ready
 	@echo "🧪 Testando infraestrutura LocalStack + cognito-local..."
@@ -222,20 +218,6 @@ cognito-local-test:
 	@echo "🧪 Testando configuração do cognito-local..."
 	@cd infra && ./test-cognito-local.sh
 
-cognito-local-passwords:
-	@echo "🔑 Senhas dos usuários (cognito-local - ambiente de desenvolvimento):"
-	@echo ""
-	@echo "👤 Usuários e senhas padrão:"
-	@echo "   admin@example.com    -> AdminTemp123!"
-	@echo "   reviewer@example.com -> PassTemp123!"
-	@echo "   user@example.com     -> PassTemp123!"
-	@echo ""
-	@echo "⚠️  Se você usou senhas customizadas no cognito-local-setup, consulte o valor definido."
-	@echo ""
-	@echo "💡 Para personalizar senhas, defina variáveis de ambiente antes de cognito-local-setup:"
-	@echo "   ADMIN_PASSWORD=SuaSenha123! REVIEWER_PASSWORD=OutraSenha123! USER_PASSWORD=Senha123! make cognito-local-setup"
-	@echo ""
-
 cognito-local-clean:
 	@echo "🧹 Limpando cognito-local..."
 	@docker-compose -f docker-compose.cognito-local.yaml down -v
@@ -245,31 +227,23 @@ cognito-local-clean:
 # Docker Compose commands for API, Database and Swagger UI
 docker-compose-up:
 	@echo "🚀 Iniciando serviços com Docker Compose..."
-	@echo "🧹 Limpando containers e volumes existentes..."
-	@docker compose down --remove-orphans --volumes 2>/dev/null || true
+	@echo "🧹 Limpando containers existentes..."
+	@docker compose down --remove-orphans 2>/dev/null || true
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
-	@echo "🗑️ Removendo imagens antigas da API para forçar rebuild..."
-	@docker rmi -f $$(docker images -q 'const-software*' 2>/dev/null) 2>/dev/null || true
-	@docker rmi -f $$(docker images -q '*usersvc*' 2>/dev/null) 2>/dev/null || true
 	@sleep 1
-	@echo "🔨 Reconstruindo imagens com código mais recente..."
-	@docker compose up -d --build --remove-orphans --force-recreate
+	@docker compose up -d --remove-orphans
 	@echo "⏳ Aguardando serviços ficarem prontos..."
 	@sleep 5
-	@echo "✅ Serviços iniciados com código atualizado!"
+	@echo "✅ Serviços iniciados!"
 	@echo "  - Database: http://localhost:5432"
 	@echo "  - API: http://localhost:8080"
 	@echo "  - Swagger UI: http://localhost:8081"
-	@echo "  - Health check: http://localhost:8080/api/v1/health"
 
 docker-compose-down:
 	@echo "🛑 Parando serviços do Docker Compose..."
-	@docker compose down --remove-orphans --volumes
+	@docker compose down --remove-orphans
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
-	@echo "🧹 Removendo imagens antigas da API..."
-	@docker rmi -f $$(docker images -q 'const-software*' 2>/dev/null) 2>/dev/null || true
-	@docker rmi -f $$(docker images -q '*usersvc*' 2>/dev/null) 2>/dev/null || true
-	@echo "✅ Serviços parados e volumes/imagens limpos!"
+	@echo "✅ Serviços parados!"
 
 # Comando simplificado para apenas visualizar o Swagger (sem API)
 swagger-only:
@@ -310,72 +284,6 @@ test-workspace:
 
 test-http:
 	@$(MAKE) --no-print-directory GO_TEST_TARGETS=./internal/http test
-
-# Teste de API simulando requisições do Swagger UI (inclui CORS preflight)
-test-api:
-	@echo "🧪 Testando API com requisições HTTP (simula Swagger UI)..."
-	@echo ""
-	@echo "1️⃣ Verificando se a API está rodando..."
-	@if ! curl -s http://localhost:8080/api/v1/health > /dev/null 2>&1; then \
-		echo "❌ API não está rodando. Execute 'make docker-compose-up' primeiro."; \
-		exit 1; \
-	fi
-	@echo "✅ API está rodando!"
-	@echo ""
-	@echo "2️⃣ Testando endpoint /api/v1/health..."
-	@HEALTH_RESPONSE=$$(curl -s http://localhost:8080/api/v1/health); \
-	echo "   Resposta: $$HEALTH_RESPONSE"; \
-	if echo "$$HEALTH_RESPONSE" | grep -q '"status":"ok"'; then \
-		echo "   ✅ Health check OK"; \
-	else \
-		echo "   ❌ Health check falhou"; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "3️⃣ Testando CORS preflight (OPTIONS) para /api/v1/users..."
-	@OPTIONS_RESPONSE=$$(curl -s -I -X OPTIONS http://localhost:8080/api/v1/users \
-		-H "Origin: http://localhost:8081" \
-		-H "Access-Control-Request-Method: POST" \
-		-H "Access-Control-Request-Headers: Content-Type,Authorization"); \
-	echo "   $$OPTIONS_RESPONSE" | head -5; \
-	if echo "$$OPTIONS_RESPONSE" | grep -qi "Access-Control-Allow-Origin"; then \
-		echo "   ✅ CORS headers presentes"; \
-	else \
-		echo "   ❌ CORS headers ausentes"; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "4️⃣ Testando POST /api/v1/users (criar usuário)..."
-	@POST_RESPONSE=$$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/v1/users \
-		-H "Content-Type: application/json" \
-		-H "Origin: http://localhost:8081" \
-		-d '{"email":"test-'$$(date +%s)'@example.com","name":"Test User"}'); \
-	HTTP_CODE=$$(echo "$$POST_RESPONSE" | tail -1); \
-	BODY=$$(echo "$$POST_RESPONSE" | head -n -1); \
-	echo "   HTTP Status: $$HTTP_CODE"; \
-	echo "   Body: $$BODY"; \
-	if [ "$$HTTP_CODE" = "201" ]; then \
-		echo "   ✅ Usuário criado com sucesso"; \
-	else \
-		echo "   ❌ Falha ao criar usuário (esperado 201, recebido $$HTTP_CODE)"; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "5️⃣ Testando GET /api/v1/users (listar usuários)..."
-	@GET_RESPONSE=$$(curl -s -w "\n%{http_code}" -X GET http://localhost:8080/api/v1/users \
-		-H "Origin: http://localhost:8081"); \
-	HTTP_CODE=$$(echo "$$GET_RESPONSE" | tail -1); \
-	BODY=$$(echo "$$GET_RESPONSE" | head -n -1); \
-	echo "   HTTP Status: $$HTTP_CODE"; \
-	echo "   Body: $$BODY" | head -c 200; echo "..."; \
-	if [ "$$HTTP_CODE" = "200" ]; then \
-		echo "   ✅ Lista de usuários OK"; \
-	else \
-		echo "   ❌ Falha ao listar usuários (esperado 200, recebido $$HTTP_CODE)"; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "✅ Todos os testes de API passaram!"
 
 test-db-up:
 	@mkdir -p $(dir $(TEST_DB_SENTINEL))
@@ -442,17 +350,6 @@ infra-prod-apply:
 	@echo "🚀 Aplicando infraestrutura de produção..."
 	@cd infra && terraform apply -auto-approve
 	@echo "✅ Infraestrutura aplicada!"
-	@echo ""
-	@echo "💡 Para ver as senhas geradas, execute: make infra-prod-passwords"
-
-infra-prod-passwords:
-	@echo "🔑 Senhas geradas pelo Terraform (produção):"
-	@echo ""
-	@cd infra && terraform output -raw admin_temp_password 2>/dev/null && echo " -> Senha Admin" || echo "❌ Execute 'make infra-prod-apply' primeiro"
-	@cd infra && terraform output -raw reviewer_temp_password 2>/dev/null && echo " -> Senha Reviewer" || true
-	@cd infra && terraform output -raw user_temp_password 2>/dev/null && echo " -> Senha User" || true
-	@echo ""
-	@echo "⚠️  Estas são senhas temporárias. Os usuários devem alterá-las no primeiro login."
 
 infra-prod-destroy:
 	@echo "💣 Destruindo infraestrutura de produção..."

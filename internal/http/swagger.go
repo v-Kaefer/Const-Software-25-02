@@ -69,8 +69,8 @@ func SwaggerHandler(specURL string) http.HandlerFunc {
 // OpenAPIHandler serves the OpenAPI specification file
 func OpenAPIHandler(specPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Read the file from the embedded filesystem or from disk
-		content, err := fs.ReadFile(swaggerFS, filepath.Join("swagger", "openapi.yaml"))
+		// Read the file from the embedded filesystem
+		content, err := fs.ReadFile(swaggerFS, filepath.Join("swagger", specPath))
 		if err != nil {
 			http.Error(w, "OpenAPI spec not found", http.StatusNotFound)
 			return

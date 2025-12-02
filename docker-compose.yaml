@@ -19,6 +19,24 @@ services:
       timeout: 3s
       retries: 10
 
+  cognito-local:
+    image: jagregory/cognito-local:latest
+    container_name: cognito-local
+    ports:
+      - "9229:9229"
+    volumes:
+      - ./infra/cognito-local-config:/app/.cognito
+    environment:
+      - COGNITO_LOCAL_DATABASE=/app/.cognito/db.json
+    restart: unless-stopped
+    # Note: cognito-local doesn't have a health endpoint, so we just check if port 9229 is listening
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9229/ || exit 0"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
+
   api:
     build:
       context: .
@@ -27,6 +45,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      cognito-local:
+        condition: service_started
     environment:
       APP_ENV: ${APP_ENV:-development}
       DB_HOST: db
@@ -35,18 +55,21 @@ services:
       DB_PASS: ${DB_PASS:-app}
       DB_NAME: ${DB_NAME:-app}
       DB_SSLMODE: "disable"
+      # Cognito Local configuration - User Pool ID will be set after setup
+      COGNITO_REGION: "us-east-1"
+      # JWKS URI pointing to cognito-local container
+      # Note: User Pool ID is dynamically created by cognito-local-setup
+      # The middleware will use this URI to fetch JWKS
+      JWKS_URI: "http://cognito-local:9229/${COGNITO_USER_POOL_ID:-local_userPoolId}/.well-known/jwks.json"
     ports:
       - "8080:8080"
     restart: unless-stopped
-    # Se quiser bind-mount do código em dev, descomente:
-    # volumes:
-    #   - ./:/app
-    # Se você precisa de um comando específico, descomente/ajuste:
-    # command: ["/app/usersvc"]
 
   swagger:
     image: swaggerapi/swagger-ui:latest
     container_name: swagger
+    depends_on:
+      - api
     environment:
       SWAGGER_JSON: /openapi/openapi.yaml
     volumes:

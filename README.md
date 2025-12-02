@@ -8,9 +8,9 @@ https://github.com/v-Kaefer/Const-Software-25-02
 ![Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/build.yaml/badge.svg)
 ![Docker Build](https://github.com/v-Kaefer/Const-Software-25-02/actions/workflows/docker-build.yaml/badge.svg)
 
-# User Service – API REST com Autenticação JWT/RBAC
+# Project Delivery API – API REST com Autenticação JWT/RBAC
 
-> Serviço RESTful para gerenciamento de usuários com autenticação AWS Cognito, controle de acesso baseado em funções (RBAC) e infraestrutura como código.
+> Serviço RESTful para gestão de projetos, tarefas e lançamentos de horas com autenticação AWS Cognito, RBAC e contratos versionados em `/api/v1`.
 
 ## Sumário
 1. [Pré-requisitos](#pré-requisitos)
@@ -34,28 +34,72 @@ https://github.com/v-Kaefer/Const-Software-25-02
 
 ## 🚀 Início Rápido
 
-### Configuração Inicial
+### Quick Start (Copiar e Colar)
 
-1. **Configure as variáveis de ambiente:**
-   ```bash
-   cp .env.example .env
-   # Edite .env com suas configurações
-   ```
+```bash
+# 1. Clone e entre no diretório
+git clone https://github.com/v-Kaefer/Const-Software-25-02.git
+cd Const-Software-25-02
 
-2. **Inicie os serviços:**
-   ```bash
-   # Banco de dados + API
-   docker compose up -d
-   ```
+# 2. Inicie toda a infraestrutura (DB, API, Cognito Local, Swagger, LocalStack)
+make infra-up
 
-3. **Aplique as migrações:**
-   ```bash
-   docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
-   ```
+# 3. Obtenha os tokens JWT para usar no Swagger
+make cognito-local-tokens
 
-4. **Acesse a API:**
-   - API: http://localhost:8080
-   - Swagger: http://localhost:8081
+# 4. Acesse o Swagger UI e use o token para autenticar
+# - Swagger UI: http://localhost:8081
+# - Clique em "Authorize" (🔒)
+# - Cole o token (incluindo "Bearer ")
+# - Clique "Authorize" e "Close"
+
+# 5. Para parar tudo
+make infra-down
+```
+
+### URLs dos Serviços
+
+| Serviço | URL | Descrição |
+|---------|-----|-----------|
+| API | http://localhost:8080 | API REST principal |
+| Swagger UI | http://localhost:8081 | Documentação interativa |
+| Cognito Local | http://localhost:9229 | Emulador de autenticação |
+| PostgreSQL | localhost:5432 | Banco de dados |
+| LocalStack (S3/DynamoDB) | http://localhost:4566 | Emulador AWS |
+
+### Usuários Pré-configurados (Cognito Local)
+
+| Usuário | Senha | Grupo | Permissões |
+|---------|-------|-------|------------|
+| `admin@example.com` | `AdminTemp123!` | admin-group | Acesso total, aprova lançamentos |
+| `reviewer@example.com` | `PassTemp123!` | reviewers-group | Cria projetos/tarefas |
+| `user@example.com` | `PassTemp123!` | user-group | Apenas recursos próprios |
+
+### Comandos Principais
+
+```bash
+make infra-up              # Inicia toda a infraestrutura
+make infra-down            # Para toda a infraestrutura
+make cognito-local-tokens  # Gera tokens JWT para usar no Swagger
+make infra-test            # Testa se todos os recursos estão funcionando
+```
+
+> **Nota:** As migrações SQL são executadas automaticamente pelo PostgreSQL na primeira inicialização.
+
+## 🧩 Domínio e fluxos implementados
+
+- **Entidades centrais**
+  - `Project`: iniciativa com status (`planning`, `active`, `completed`, `canceled`) e owner (admin/operator).
+  - `Task`: atividades vinculadas ao projeto e atribuídas a usuários específicos.
+  - `TimeEntry`: lançamentos de horas realizados pelos donos da tarefa e aprovados por administradores.
+- **Papéis**
+  - `admin-group`: acesso completo; aprova lançamentos.
+  - `reviewers-group` (operacional): cria projetos/tarefas, gerencia apenas o que é owner.
+  - `user-group`: colaborador que só enxerga/edita o que é seu (ownership em tarefas e lançamentos).
+- **Fluxos de negócio**
+  1. **Planejamento** – admin/operator cria projeto (`POST /api/v1/projects`), adiciona tarefas (`POST /api/v1/projects/{id}/tasks`) e atribui responsáveis.
+  2. **Execução** – responsável consulta tarefas paginadas/filtradas (`GET /api/v1/tasks?page=1&status=todo`) e lança horas (`POST /api/v1/tasks/{id}/time-entries`).
+  3. **Aprovação** – admin revisa horas pendentes (`GET /api/v1/time-entries?approved=false`) e aprova (`PATCH /api/v1/time-entries/{id}/approve`), travando novas edições.
 
 ## 📝 Comandos Makefile Essenciais
 
@@ -63,19 +107,31 @@ https://github.com/v-Kaefer/Const-Software-25-02
 ```bash
 make help                    # Ver todos os comandos disponíveis
 
-# Testes com Cognito Local (Recomendado)
-make cognito-local-start     # Inicia cognito-local
-make cognito-local-setup     # Configura usuários e grupos
-make cognito-local-test      # Testa e obtém tokens JWT
+# Docker Compose (API, Database, Cognito Local e Swagger UI)
+docker compose up -d --build # Inicia todos os serviços
+docker compose down          # Para todos os serviços
+docker compose down -v       # Para e remove volumes (reset completo)
 
-# Infraestrutura Local (LocalStack + Cognito)
-make infra-up               # Inicia toda infraestrutura local
+# Cognito Local (Autenticação)
+make cognito-local-tokens    # Gera JWT tokens para usar no Swagger
+make cognito-local-test      # Testa configuração do cognito-local
+
+# Infraestrutura Completa
+make infra-up               # Inicia toda infraestrutura (DB, API, Cognito, Swagger, LocalStack)
 make infra-test             # Testa recursos criados
 make infra-down             # Para tudo e limpa recursos
 
+# Docker Compose (apenas containers principais)
+make docker-compose-up      # Inicia DB, API, Cognito Local e Swagger
+make docker-compose-down    # Para containers
+
 # Testes e Build
-go test ./...               # Executa todos os testes
-go build ./cmd/api          # Compila a aplicação
+make test                   # Sobe Postgres (se necessário) e executa go test ./...
+GO_TEST_FLAGS='-coverprofile=coverage.out' make test   # Adiciona flags extras
+GO_TEST_TARGETS=./pkg/workspace make test              # Testa apenas um pacote
+make test-workspace         # Atalho para pkg/workspace
+make test-http              # Atalho para handlers HTTP/endpoints
+make build                  # Compila a aplicação
 ```
 
 ### Deploy em Produção
@@ -104,6 +160,8 @@ Copie `.env.example` para `.env` e configure:
 - `JWT_AUDIENCE` - Client ID da aplicação (opcional)
 - `JWKS_URI` - URL das chaves públicas (auto-construído se não fornecido)
 
+> Em produção (`APP_ENV=production`), `JWT_ISSUER` e `JWT_AUDIENCE` são obrigatórios; a aplicação não inicia sem eles.
+
 **Exemplo para produção:**
 ```bash
 JWT_ISSUER=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_ABC123
@@ -117,12 +175,17 @@ JWKS_URI=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_ABC123/.well-know
 
 | Método | Rota | Permissão | Descrição |
 |--------|------|-----------|-----------|
-| POST | `/users` | Admin | Criar usuário |
-| GET | `/users` | Admin | Listar todos os usuários |
-| GET | `/users/{id}` | Admin ou Próprio | Obter usuário por ID |
-| PUT | `/users/{id}` | Admin ou Próprio | Atualizar usuário |
-| PATCH | `/users/{id}` | Admin ou Próprio | Atualizar parcialmente |
-| DELETE | `/users/{id}` | Admin | Deletar usuário |
+| POST | `/api/v1/users` | Admin | Criar usuário de acesso |
+| GET | `/api/v1/users` | Admin | Listar usuários |
+| GET/PUT/PATCH | `/api/v1/users/{id}` | Admin ou dono | CRUD usuário |
+| POST | `/api/v1/projects` | Admin / Operator | Criar projeto; owner = usuário autenticado |
+| GET | `/api/v1/projects` | Admin / Operator | Lista paginada + filtros (`status`, `client`) respeitando ownership |
+| GET/PUT/DELETE | `/api/v1/projects/{id}` | Admin ou owner | Consultar/atualizar/remover projeto |
+| POST | `/api/v1/projects/{projectId}/tasks` | Admin ou owner | Cadastrar tarefa e atribuir responsável |
+| GET | `/api/v1/tasks` | Auth | Lista paginada; admin pode filtrar por assignee/project, demais só veem o que lhes pertence |
+| POST | `/api/v1/tasks/{id}/time-entries` | Admin, owner da tarefa ou assignee | Lançar horas com validações de data/status |
+| GET | `/api/v1/time-entries` | Admin (todos) / Operator & User (somente próprios) | Paginação + filtros (`approved`, `taskId`) |
+| PATCH | `/api/v1/time-entries/{id}/approve` | Admin | Aprovar lançamentos (bloqueia edições) |
 
 ### Como Obter Token JWT
 
@@ -145,16 +208,25 @@ aws cognito-idp initiate-auth \
 ### Fazendo Requisições
 
 ```bash
-# Exemplo: Listar usuários (admin apenas)
-curl -H "Authorization: Bearer SEU_TOKEN_JWT" \
-     http://localhost:8080/users
+# Criar projeto (admin/operator)
+curl -X POST http://localhost:8080/api/v1/projects \
+  -H \"Authorization: Bearer $TOKEN\" \
+  -H \"Content-Type: application/json\" \
+  -d '{\"name\":\"Portal Varejo\",\"clientName\":\"ACME\",\"startDate\":\"2024-08-01T12:00:00Z\"}'
 
-# Exemplo: Criar usuário
-curl -X POST \
-     -H "Authorization: Bearer SEU_TOKEN_JWT" \
-     -H "Content-Type: application/json" \
-     -d '{"email":"novo@example.com","name":"Novo Usuario"}' \
-     http://localhost:8080/users
+# Listar tarefas atribuídas ao usuário autenticado (paginado + filtro de status)
+curl \"http://localhost:8080/api/v1/tasks?page=1&pageSize=5&status=todo\" \
+  -H \"Authorization: Bearer $TOKEN\"
+
+# Lançar horas na tarefa
+curl -X POST http://localhost:8080/api/v1/tasks/10/time-entries \
+  -H \"Authorization: Bearer $TOKEN\" \
+  -H \"Content-Type: application/json\" \
+  -d '{\"entryDate\":\"2024-08-20T09:00:00Z\",\"hours\":3.5,\"notes\":\"Configuração inicial\"}'
+
+# Aprovar lançamento (admin)
+curl -X PATCH http://localhost:8080/api/v1/time-entries/5/approve \
+  -H \"Authorization: Bearer $TOKEN\"
 ```
 
 ## 📚 Documentação Completa
@@ -173,8 +245,9 @@ curl -X POST \
 │   ├── auth/            # Middleware JWT/RBAC
 │   ├── config/          # Configurações
 │   ├── db/              # Conexão e migrações
-│   └── http/            # Handlers HTTP
-├── pkg/user/            # Domínio User (service, repo)
+│   └── http/            # Handlers HTTP versionados
+├── pkg/user/            # Usuários/RBAC
+├── pkg/workspace/       # Projetos, tarefas e time entries
 ├── infra/               # Infraestrutura como código (Terraform)
 ├── docs/                # Documentação adicional
 ├── migrations/          # Scripts SQL
@@ -184,21 +257,28 @@ curl -X POST \
 ## 🧪 Testes
 
 ```bash
-# Todos os testes
-go test ./...
+# Todos os testes (+ dependências locais)
+make test
+
+# Atalhos por camada
+make test-workspace
+make test-http
 
 # Com cobertura
-go test ./... -coverprofile=coverage.out
+GO_TEST_FLAGS='-coverprofile=coverage.out' make test
 go tool cover -html=coverage.out
 
-# Testes específicos
-go test ./internal/auth/... -v    # Testes de autenticação
-go test ./internal/http/... -v    # Testes de handlers
+# Testes específicos (defina o alvo desejado)
+GO_TEST_TARGETS=./internal/auth/... make test
+GO_TEST_TARGETS=./internal/http/... GO_TEST_FLAGS='-run TestRBAC' make test
 ```
 
 **Cobertura Atual:** 58.3% (74.6% auth, 67.4% http)
+- Casos de uso críticos (`pkg/workspace`) possuem testes de validação (status, due dates, approval lock) executáveis com `GO_TEST_TARGETS=./pkg/workspace make test`.
 
 ## 🛠️ Infraestrutura
+
+> 💡 `make infra-test` agora garante que o `cognito-local` esteja rodando e configurado (executa `infra/test-cognito-local.sh`) antes de validar os recursos listados.
 
 ### Recursos AWS (Terraform)
 - Cognito User Pool com grupos (admin, reviewer, user)
@@ -213,9 +293,12 @@ go test ./internal/http/... -v    # Testes de handlers
 
 GitHub Actions configurado com:
 - ✅ Build e testes automáticos
-- ✅ Linting (go vet)
+- ✅ Linting (`go vet ./...`)
+- ✅ Validação do contrato OpenAPI
 - ✅ Cobertura de código
 - ✅ Docker build
+
+> Em execuções locais com `act`, etapas que dependem de rede (ex.: validação OpenAPI via `swagger-cli`) são ignoradas; use `make test` localmente para validar a aplicação.
 - ✅ Execução em push/PR
 
 ---

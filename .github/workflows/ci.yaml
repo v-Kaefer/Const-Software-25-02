@@ -22,8 +22,12 @@ jobs:
     name: Unit and E2E Tests
     needs: build
     uses: ./.github/workflows/tests.yaml
+    with:
+      build-artifact: ${{ needs.build.outputs.artifact-name }}
 
   docker-build:
     name: Docker Build
     needs: [build, unit-and-e2e-tests]
     uses: ./.github/workflows/docker-build.yaml
+    with:
+      build-artifact: ${{ needs.build.outputs.artifact-name }}

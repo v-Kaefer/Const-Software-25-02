@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +14,7 @@ import (
 	appdb "github.com/v-Kaefer/Const-Software-25-02/internal/db"
 	httpapi "github.com/v-Kaefer/Const-Software-25-02/internal/http"
 	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/workspace"
 )
 
 func main() {
@@ -23,28 +24,35 @@ func main() {
 	// 1) Config (env, DSN, env=development|production)
 	cfg := config.Load()
 
+	if cfg.Env == "production" {
+		if cfg.Cognito.JWTIssuer == "" || cfg.Cognito.JWTAudience == "" {
+			log.Fatal("JWT_ISSUER and JWT_AUDIENCE must be set in production")
+		}
+	}
+
 	// 2) DB (GORM + pool + logger)
 	gormDB, err := appdb.Open(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// 3) Migração automática só em dev (para prototipagem)
-	if cfg.Env != "production" {
-		if err := appdb.AutoMigrate(gormDB); err != nil {
-			log.Fatal(err)
-		}
-	}
+	// 3) Migrações são executadas via arquivos SQL em ./migrations/
+	// O Docker monta esses arquivos em /docker-entrypoint-initdb.d/
+	// que são executados automaticamente na primeira inicialização do PostgreSQL.
+	// Não usamos GORM AutoMigrate para evitar conflitos com as migrações SQL.
 
 	// 4) Repositórios e serviços (injeção de dependências)
 	userRepo := user.NewRepo(gormDB)
 	userSvc := user.NewService(gormDB, userRepo)
+	projectSvc := workspace.NewProjectService(gormDB)
+	taskSvc := workspace.NewTaskService(gormDB)
+	timeSvc := workspace.NewTimeEntryService(gormDB)
 
 	// 5) Auth middleware (configuração do Cognito)
 	authMiddleware := httpapi.NewAuthMiddleware(cfg.Cognito)
 
 	// 6) HTTP router (camada de entrega, não conhece GORM)
-	router := httpapi.NewRouter(userSvc, authMiddleware)
+	router := httpapi.NewRouter(userSvc, projectSvc, taskSvc, timeSvc, authMiddleware)
 
 	// 7) CORS middleware
 	handler := corsMiddleware(router)
@@ -78,9 +86,11 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Allow all origins in development, restrict in production
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Type, Content-Language, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type")
 		w.Header().Set("Access-Control-Max-Age", "3600")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		// Handle preflight requests
 		if r.Method == "OPTIONS" {

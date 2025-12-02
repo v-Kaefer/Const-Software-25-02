@@ -15,63 +15,63 @@ func TestRBAC_AdminOnlyRoutes(t *testing.T) {
 	ts := newTestServer(t)
 	defer ts.Close()
 
-	// Test GET /users (list all users) - Admin only
-	t.Run("GET /users requires admin", func(t *testing.T) {
+	// Test GET /api/v1/users (list all users) - Admin only
+	t.Run("GET /api/v1/users requires admin", func(t *testing.T) {
 		// Create a user first
 		body := []byte(`{"email":"test1@example.com","name":"Test User 1"}`)
-		resp, err := http.Post(ts.URL+"/users", "application/json", bytes.NewReader(body))
+		resp, err := http.Post(ts.URL+"/api/v1/users", "application/json", bytes.NewReader(body))
 		if err != nil {
-			t.Fatalf("POST /users: %v", err)
+			t.Fatalf("POST /api/v1/users: %v", err)
 		}
 		defer resp.Body.Close()
-		
-		if resp.StatusCode != http.StatusOK {
-			t.Fatalf("POST status = %d, want 200", resp.StatusCode)
+
+		if resp.StatusCode != http.StatusCreated {
+			t.Fatalf("POST status = %d, want 201", resp.StatusCode)
 		}
 
-		// GET /users should work (mock middleware gives admin role)
-		getResp, err := http.Get(ts.URL + "/users")
+		// GET /api/v1/users should work (mock middleware gives admin role)
+		getResp, err := http.Get(ts.URL + "/api/v1/users")
 		if err != nil {
-			t.Fatalf("GET /users: %v", err)
+			t.Fatalf("GET /api/v1/users: %v", err)
 		}
 		defer getResp.Body.Close()
-		
+
 		if getResp.StatusCode != http.StatusOK {
-			t.Fatalf("GET /users status = %d, want 200", getResp.StatusCode)
+			t.Fatalf("GET /api/v1/users status = %d, want 200", getResp.StatusCode)
 		}
 
 		var users []user.User
 		if err := json.NewDecoder(getResp.Body).Decode(&users); err != nil {
 			t.Fatalf("decode users: %v", err)
 		}
-		
+
 		if len(users) == 0 {
 			t.Fatal("expected at least one user")
 		}
 	})
 
-	// Test POST /users - Admin only
-	t.Run("POST /users requires admin", func(t *testing.T) {
+	// Test POST /api/v1/users - Admin only
+	t.Run("POST /api/v1/users requires admin", func(t *testing.T) {
 		body := []byte(`{"email":"admin-created@example.com","name":"Admin Created"}`)
-		resp, err := http.Post(ts.URL+"/users", "application/json", bytes.NewReader(body))
+		resp, err := http.Post(ts.URL+"/api/v1/users", "application/json", bytes.NewReader(body))
 		if err != nil {
-			t.Fatalf("POST /users: %v", err)
+			t.Fatalf("POST /api/v1/users: %v", err)
 		}
 		defer resp.Body.Close()
-		
+
 		// Should succeed with mock auth (admin role)
-		if resp.StatusCode != http.StatusOK {
-			t.Fatalf("POST status = %d, want 200", resp.StatusCode)
+		if resp.StatusCode != http.StatusCreated {
+			t.Fatalf("POST status = %d, want 201", resp.StatusCode)
 		}
 	})
 
-	// Test DELETE /users/{id} - Admin only
-	t.Run("DELETE /users/{id} requires admin", func(t *testing.T) {
+	// Test DELETE /api/v1/users/{id} - Admin only
+	t.Run("DELETE /api/v1/users/{id} requires admin", func(t *testing.T) {
 		// Create a user to delete
 		body := []byte(`{"email":"to-delete@example.com","name":"To Delete"}`)
-		resp, err := http.Post(ts.URL+"/users", "application/json", bytes.NewReader(body))
+		resp, err := http.Post(ts.URL+"/api/v1/users", "application/json", bytes.NewReader(body))
 		if err != nil {
-			t.Fatalf("POST /users: %v", err)
+			t.Fatalf("POST /api/v1/users: %v", err)
 		}
 		defer resp.Body.Close()
 
@@ -81,14 +81,14 @@ func TestRBAC_AdminOnlyRoutes(t *testing.T) {
 		}
 
 		// Delete the user
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/users/%d", ts.URL, created.ID), nil)
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/v1/users/%d", ts.URL, created.ID), nil)
 		if err != nil {
 			t.Fatalf("create DELETE request: %v", err)
 		}
-		
+
 		delResp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			t.Fatalf("DELETE /users/%d: %v", created.ID, err)
+			t.Fatalf("DELETE /api/v1/users/%d: %v", created.ID, err)
 		}
 		defer delResp.Body.Close()
 
@@ -106,9 +106,9 @@ func TestRBAC_UserOrAdminRoutes(t *testing.T) {
 
 	// Create a test user
 	body := []byte(`{"email":"ownuser@example.com","name":"Own User"}`)
-	resp, err := http.Post(ts.URL+"/users", "application/json", bytes.NewReader(body))
+	resp, err := http.Post(ts.URL+"/api/v1/users", "application/json", bytes.NewReader(body))
 	if err != nil {
-		t.Fatalf("POST /users: %v", err)
+		t.Fatalf("POST /api/v1/users: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -117,11 +117,11 @@ func TestRBAC_UserOrAdminRoutes(t *testing.T) {
 		t.Fatalf("decode created: %v", err)
 	}
 
-	// Test GET /users/{id} - should work with admin (mock gives admin role)
-	t.Run("GET /users/{id} with admin", func(t *testing.T) {
-		getResp, err := http.Get(fmt.Sprintf("%s/users/%d", ts.URL, created.ID))
+	// Test GET /api/v1/users/{id} - should work with admin (mock gives admin role)
+	t.Run("GET /api/v1/users/{id} with admin", func(t *testing.T) {
+		getResp, err := http.Get(fmt.Sprintf("%s/api/v1/users/%d", ts.URL, created.ID))
 		if err != nil {
-			t.Fatalf("GET /users/%d: %v", created.ID, err)
+			t.Fatalf("GET /api/v1/users/%d: %v", created.ID, err)
 		}
 		defer getResp.Body.Close()
 
@@ -139,10 +139,10 @@ func TestRBAC_UserOrAdminRoutes(t *testing.T) {
 		}
 	})
 
-	// Test PUT /users/{id} - should work with admin
-	t.Run("PUT /users/{id} with admin", func(t *testing.T) {
+	// Test PUT /api/v1/users/{id} - should work with admin
+	t.Run("PUT /api/v1/users/{id} with admin", func(t *testing.T) {
 		updateBody := []byte(`{"email":"updated@example.com","name":"Updated Name"}`)
-		req, err := http.NewRequest("PUT", fmt.Sprintf("%s/users/%d", ts.URL, created.ID), bytes.NewReader(updateBody))
+		req, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/v1/users/%d", ts.URL, created.ID), bytes.NewReader(updateBody))
 		if err != nil {
 			t.Fatalf("create PUT request: %v", err)
 		}
@@ -150,7 +150,7 @@ func TestRBAC_UserOrAdminRoutes(t *testing.T) {
 
 		putResp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			t.Fatalf("PUT /users/%d: %v", created.ID, err)
+			t.Fatalf("PUT /api/v1/users/%d: %v", created.ID, err)
 		}
 		defer putResp.Body.Close()
 
@@ -168,10 +168,10 @@ func TestRBAC_UserOrAdminRoutes(t *testing.T) {
 		}
 	})
 
-	// Test PATCH /users/{id} - should work with admin
-	t.Run("PATCH /users/{id} with admin", func(t *testing.T) {
+	// Test PATCH /api/v1/users/{id} - should work with admin
+	t.Run("PATCH /api/v1/users/{id} with admin", func(t *testing.T) {
 		patchBody := []byte(`{"name":"Patched Name"}`)
-		req, err := http.NewRequest("PATCH", fmt.Sprintf("%s/users/%d", ts.URL, created.ID), bytes.NewReader(patchBody))
+		req, err := http.NewRequest("PATCH", fmt.Sprintf("%s/api/v1/users/%d", ts.URL, created.ID), bytes.NewReader(patchBody))
 		if err != nil {
 			t.Fatalf("create PATCH request: %v", err)
 		}
@@ -179,7 +179,7 @@ func TestRBAC_UserOrAdminRoutes(t *testing.T) {
 
 		patchResp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			t.Fatalf("PATCH /users/%d: %v", created.ID, err)
+			t.Fatalf("PATCH /api/v1/users/%d: %v", created.ID, err)
 		}
 		defer patchResp.Body.Close()
 
@@ -195,7 +195,7 @@ func TestRBAC_UserOrAdminRoutes(t *testing.T) {
 		if patched.Name != "Patched Name" {
 			t.Errorf("user name not patched correctly: got %s, want 'Patched Name'", patched.Name)
 		}
-		
+
 		// Email should remain unchanged
 		if patched.Email != "updated@example.com" {
 			t.Errorf("email should not change: got %s, want 'updated@example.com'", patched.Email)
@@ -218,27 +218,27 @@ func TestRBAC_InvalidUserID(t *testing.T) {
 		{
 			name:       "GET with invalid ID",
 			method:     "GET",
-			path:       "/users/invalid",
+			path:       "/api/v1/users/invalid",
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "PUT with invalid ID",
 			method:     "PUT",
-			path:       "/users/abc",
+			path:       "/api/v1/users/abc",
 			body:       `{"email":"test@example.com","name":"Test"}`,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "PATCH with invalid ID",
 			method:     "PATCH",
-			path:       "/users/xyz",
+			path:       "/api/v1/users/xyz",
 			body:       `{"name":"Test"}`,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "DELETE with invalid ID",
 			method:     "DELETE",
-			path:       "/users/notanumber",
+			path:       "/api/v1/users/notanumber",
 			wantStatus: http.StatusBadRequest,
 		},
 	}
@@ -315,7 +315,7 @@ func TestRBAC_NotFoundUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var req *http.Request
 			var err error
-			path := fmt.Sprintf("%s/users/%d", ts.URL, nonExistentID)
+			path := fmt.Sprintf("%s/api/v1/users/%d", ts.URL, nonExistentID)
 
 			if tt.body != "" {
 				req, err = http.NewRequest(tt.method, path, bytes.NewReader([]byte(tt.body)))
@@ -350,9 +350,9 @@ func TestRBAC_CRUDWorkflow(t *testing.T) {
 
 	// 1. Create user (admin only)
 	createBody := []byte(`{"email":"workflow@example.com","name":"Workflow User"}`)
-	createResp, err := http.Post(ts.URL+"/users", "application/json", bytes.NewReader(createBody))
+	createResp, err := http.Post(ts.URL+"/api/v1/users", "application/json", bytes.NewReader(createBody))
 	if err != nil {
-		t.Fatalf("POST /users: %v", err)
+		t.Fatalf("POST /api/v1/users: %v", err)
 	}
 	defer createResp.Body.Close()
 
@@ -363,9 +363,9 @@ func TestRBAC_CRUDWorkflow(t *testing.T) {
 	t.Logf("Created user ID: %d", created.ID)
 
 	// 2. Read user (admin or own user)
-	getResp, err := http.Get(fmt.Sprintf("%s/users/%d", ts.URL, created.ID))
+	getResp, err := http.Get(fmt.Sprintf("%s/api/v1/users/%d", ts.URL, created.ID))
 	if err != nil {
-		t.Fatalf("GET /users/%d: %v", created.ID, err)
+		t.Fatalf("GET /api/v1/users/%d: %v", created.ID, err)
 	}
 	defer getResp.Body.Close()
 
@@ -375,7 +375,7 @@ func TestRBAC_CRUDWorkflow(t *testing.T) {
 
 	// 3. Update user (admin or own user)
 	updateBody := []byte(`{"email":"workflow-updated@example.com","name":"Updated Workflow User"}`)
-	updateReq, err := http.NewRequest("PUT", fmt.Sprintf("%s/users/%d", ts.URL, created.ID), bytes.NewReader(updateBody))
+	updateReq, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/v1/users/%d", ts.URL, created.ID), bytes.NewReader(updateBody))
 	if err != nil {
 		t.Fatalf("create PUT request: %v", err)
 	}
@@ -383,7 +383,7 @@ func TestRBAC_CRUDWorkflow(t *testing.T) {
 
 	updateResp, err := http.DefaultClient.Do(updateReq)
 	if err != nil {
-		t.Fatalf("PUT /users/%d: %v", created.ID, err)
+		t.Fatalf("PUT /api/v1/users/%d: %v", created.ID, err)
 	}
 	defer updateResp.Body.Close()
 
@@ -393,7 +393,7 @@ func TestRBAC_CRUDWorkflow(t *testing.T) {
 
 	// 4. Partial update user (admin or own user)
 	patchBody := []byte(`{"name":"Final Name"}`)
-	patchReq, err := http.NewRequest("PATCH", fmt.Sprintf("%s/users/%d", ts.URL, created.ID), bytes.NewReader(patchBody))
+	patchReq, err := http.NewRequest("PATCH", fmt.Sprintf("%s/api/v1/users/%d", ts.URL, created.ID), bytes.NewReader(patchBody))
 	if err != nil {
 		t.Fatalf("create PATCH request: %v", err)
 	}
@@ -401,7 +401,7 @@ func TestRBAC_CRUDWorkflow(t *testing.T) {
 
 	patchResp, err := http.DefaultClient.Do(patchReq)
 	if err != nil {
-		t.Fatalf("PATCH /users/%d: %v", created.ID, err)
+		t.Fatalf("PATCH /api/v1/users/%d: %v", created.ID, err)
 	}
 	defer patchResp.Body.Close()
 
@@ -410,14 +410,14 @@ func TestRBAC_CRUDWorkflow(t *testing.T) {
 	}
 
 	// 5. Delete user (admin only)
-	deleteReq, err := http.NewRequest("DELETE", fmt.Sprintf("%s/users/%d", ts.URL, created.ID), nil)
+	deleteReq, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/v1/users/%d", ts.URL, created.ID), nil)
 	if err != nil {
 		t.Fatalf("create DELETE request: %v", err)
 	}
 
 	deleteResp, err := http.DefaultClient.Do(deleteReq)
 	if err != nil {
-		t.Fatalf("DELETE /users/%d: %v", created.ID, err)
+		t.Fatalf("DELETE /api/v1/users/%d: %v", created.ID, err)
 	}
 	defer deleteResp.Body.Close()
 
@@ -426,9 +426,9 @@ func TestRBAC_CRUDWorkflow(t *testing.T) {
 	}
 
 	// 6. Verify user is deleted
-	verifyResp, err := http.Get(fmt.Sprintf("%s/users/%d", ts.URL, created.ID))
+	verifyResp, err := http.Get(fmt.Sprintf("%s/api/v1/users/%d", ts.URL, created.ID))
 	if err != nil {
-		t.Fatalf("GET /users/%d after delete: %v", created.ID, err)
+		t.Fatalf("GET /api/v1/users/%d after delete: %v", created.ID, err)
 	}
 	defer verifyResp.Body.Close()
 

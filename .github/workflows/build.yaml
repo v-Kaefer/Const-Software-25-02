@@ -1,26 +1,70 @@
-name: GO Build Test
+name: GO Build
 
 on:
-  push:
-    branches: [ main, develop, feat/Sprint1 ]
-  pull_request:
-    branches: [ main, develop ]
   workflow_call:
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ steps.meta.outputs.artifact-name }}
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.22'
+      - name: Configure Go env for act (skip sumdb TLS)
+        if: ${{ env.ACT }}
+        run: |
+          echo "GOSUMDB=off" >> $GITHUB_ENV
+          echo "GOPRIVATE=*">> $GITHUB_ENV
+          echo "GOINSECURE=*">> $GITHUB_ENV
+          echo "GOPROXY=https://proxy.golang.org,direct" >> $GITHUB_ENV
 
-    - name: Build
-      run: go build -v ./cmd/api/main.go
+      - name: Ensure git is available (act)
+        if: ${{ env.ACT }}
+        run: |
+          if command -v git >/dev/null 2>&1; then
+            exit 0
+          fi
+          if command -v apt-get >/dev/null 2>&1; then
+            set -e
+            apt-get update || true
+            apt-get install -y --no-install-recommends git || true
+            if ! command -v git >/dev/null 2>&1; then
+              echo "deb http://archive.debian.org/debian buster main" > /etc/apt/sources.list
+              apt-get update
+              apt-get install -y --no-install-recommends git
+            fi
+          fi
 
-    - name: Test
-      run: go test -v ./...
+      - name: Disable git SSL verify (act)
+        if: ${{ env.ACT }}
+        run: |
+          git config --global http.sslverify false
+          echo "GIT_SSL_NO_VERIFY=1" >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Go env
+        run: go env
+
+      - name: Go vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build -o cmd/api/usersvc ./cmd/api
+
+      - name: Set artifact name
+        id: meta
+        run: echo "artifact-name=api-binary" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build artifact
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.artifact-name }}
+          path: |
+            cmd/api/usersvc

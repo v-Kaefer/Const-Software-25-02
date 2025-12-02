@@ -23,6 +23,8 @@ Três funções são definidas no sistema:
 - `reviewers-group`: Acesso de leitura aos recursos
 - `user-group`: Acesso limitado ao nível de usuário
 
+> As funções são lidas apenas de `cognito:groups`; não há uso de atributos customizados (ex.: `custom:role`).
+
 ## Configuração
 
 ### Variáveis de Ambiente

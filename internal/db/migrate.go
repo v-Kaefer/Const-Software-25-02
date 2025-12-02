@@ -2,7 +2,9 @@ package db
 
 import (
 	"gorm.io/gorm"
+
 	"github.com/v-Kaefer/Const-Software-25-02/pkg/user"
+	"github.com/v-Kaefer/Const-Software-25-02/pkg/workspace"
 )
 
 // AutoMigrate roda as migrações a partir dos models.
@@ -10,5 +12,8 @@ import (
 func AutoMigrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&user.User{},
+		&workspace.Project{},
+		&workspace.Task{},
+		&workspace.TimeEntry{},
 	)
 }

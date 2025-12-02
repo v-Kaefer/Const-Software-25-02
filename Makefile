@@ -1,4 +1,4 @@
-.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy
+.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-tokens cognito-local-clean cognito-local-ready tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http
 
 # Default target
 help:
@@ -14,11 +14,17 @@ help:
 	@echo "  make localstack-clean    - Remove containers e volumes do LocalStack"
 	@echo ""
 	@echo "Comandos cognito-local (Alternativa Free ao Cognito):"
-	@echo "  make cognito-local-start - Inicia cognito-local"
-	@echo "  make cognito-local-setup - Configura cognito-local com Terraform"
-	@echo "  make cognito-local-test  - Testa configuração do cognito-local"
-	@echo "  make cognito-local-stop  - Para cognito-local"
-	@echo "  make cognito-local-clean - Remove cognito-local e dados"
+	@echo "  make cognito-local-start  - Inicia cognito-local"
+	@echo "  make cognito-local-setup  - Configura cognito-local com Terraform"
+	@echo "  make cognito-local-test   - Testa configuração do cognito-local"
+	@echo "  make cognito-local-tokens - Gera JWT tokens para usar no Swagger"
+	@echo "  make cognito-local-stop   - Para cognito-local"
+	@echo "  make cognito-local-clean  - Remove cognito-local e dados"
+	@echo ""
+	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
+	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (mais rápido)"
+	@echo "  make docker-compose-up   - Inicia todos os serviços (db, api, swagger)"
+	@echo "  make docker-compose-down - Para serviços do Docker Compose"
 	@echo ""
 	@echo "Comandos Terraform Local (infra com tflocal para testes):"
 	@echo "  make tflocal-init        - Inicializa o Terraform Local"
@@ -33,10 +39,14 @@ help:
 	@echo "  make infra-prod-destroy  - Destrói a infraestrutura (produção)"
 	@echo ""
 	@echo "Comandos combinados:"
-	@echo "  make infra-up           - Inicia LocalStack + cognito-local + tflocal"
-	@echo "  make infra-down         - Para tudo (tflocal + cognito-local + LocalStack)"
+	@echo "  make infra-up           - Inicia LocalStack + cognito-local + tflocal + docker-compose"
+	@echo "  make infra-down         - Para tudo (docker-compose + tflocal + cognito-local + LocalStack)"
 	@echo "  make infra-test         - Testa a infraestrutura criada"
 	@echo "  make infra-debug        - Debug da infraestrutura (lista todos os recursos)"
+	@echo ""
+	@echo "Comandos de build/teste da API:"
+	@echo "  make build              - Compila ./cmd/api dentro do container local"
+	@echo "  make test               - Sobe dependências necessárias e executa go test ./..."
 	@echo ""
 	@echo "==================================================================="
 	@echo "IMPORTANTE: Cognito - Integrado automaticamente!"
@@ -86,21 +96,26 @@ localstack-clean:
 	@echo "✅ Limpeza concluída!"
 
 # Combined commands
-infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup tflocal-apply
+infra-up: localstack-start tflocal-init tflocal-apply docker-compose-up
 	@echo "✅ Infraestrutura completa iniciada!"
 	@echo ""
 	@echo "📊 Recursos disponíveis:"
 	@echo "  - S3: http://localhost:4566"
 	@echo "  - DynamoDB: http://localhost:4566"
 	@echo "  - Cognito: http://localhost:9229 (cognito-local)"
+	@echo "  - API: http://localhost:8080"
+	@echo "  - Swagger UI: http://localhost:8081"
 	@echo ""
 	@echo "Para testar os recursos:"
 	@echo "  make infra-test"
+	@echo ""
+	@echo "Para obter tokens JWT:"
+	@echo "  make cognito-local-tokens"
 
-infra-down: tflocal-destroy cognito-local-clean localstack-stop
+infra-down: tflocal-destroy localstack-stop docker-compose-down
 	@echo "✅ Infraestrutura completa parada!"
 
-infra-test:
+infra-test: cognito-local-ready
 	@echo "🧪 Testando infraestrutura LocalStack + cognito-local..."
 	@echo ""
 	@echo "1️⃣ Testando S3..."
@@ -123,6 +138,9 @@ infra-test:
 	@echo ""
 	@echo "7️⃣ Testando Cognito (cognito-local)..."
 	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test aws --endpoint-url=http://localhost:9229 --region us-east-1 cognito-idp list-user-pools --max-results 10 >/dev/null 2>&1 && echo "✅ Cognito User Pool disponível (cognito-local)" || echo "❌ Cognito não disponível"
+	@echo ""
+	@echo "8️⃣ Testando configuração detalhada do cognito-local..."
+	@cd infra && ./test-cognito-local.sh
 	@echo ""
 	@echo "✅ Teste concluído!"
 	@echo ""
@@ -165,9 +183,23 @@ infra-debug:
 	@AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test aws --endpoint-url=http://localhost:4566 --region us-east-1 ec2 describe-instances 2>&1 | head -20 || echo "Erro ao listar EC2"
 
 # cognito-local commands
+cognito-local-ready:
+	@if docker ps --format '{{.Names}}' | grep -q "^cognito-local$$"; then \
+		echo "✅ cognito-local já está em execução"; \
+	else \
+		echo "⚙️  cognito-local não está rodando. Iniciando agora..."; \
+		$(MAKE) --no-print-directory cognito-local-start; \
+	fi
+	@if [ ! -f infra/cognito-local-config/config.json ]; then \
+		echo "⚙️  Configuração do cognito-local não encontrada. Executando setup..."; \
+		$(MAKE) --no-print-directory cognito-local-setup; \
+	else \
+		echo "✅ Configuração do cognito-local encontrada (infra/cognito-local-config/config.json)"; \
+	fi
+
 cognito-local-start:
 	@echo "🚀 Iniciando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml up -d
+	@docker compose up -d cognito-local
 	@echo "⏳ Aguardando cognito-local ficar pronto..."
 	@sleep 10
 	@echo "🔍 Verificando status do container..."
@@ -178,7 +210,7 @@ cognito-local-start:
 
 cognito-local-stop:
 	@echo "🛑 Parando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml down
+	@docker compose stop cognito-local
 	@echo "✅ cognito-local parado!"
 
 cognito-local-setup:
@@ -190,11 +222,104 @@ cognito-local-test:
 	@echo "🧪 Testando configuração do cognito-local..."
 	@cd infra && ./test-cognito-local.sh
 
+cognito-local-tokens:
+	@echo "🔑 Gerando JWT tokens do cognito-local..."
+	@cd infra && ./get-jwt-tokens.sh
+
 cognito-local-clean:
 	@echo "🧹 Limpando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml down -v
+	@docker compose down -v cognito-local 2>/dev/null || true
 	@rm -rf infra/cognito-local-config/*.json
 	@echo "✅ Limpeza concluída!"
+
+# Docker Compose commands for API, Database and Swagger UI
+docker-compose-up:
+	@echo "🚀 Iniciando serviços com Docker Compose..."
+	@echo "🧹 Limpando containers e volumes existentes..."
+	@docker compose down -v --remove-orphans 2>/dev/null || true
+	@docker rm -f swagger userdb usersvc cognito-local 2>/dev/null || true
+	@sleep 1
+	@docker compose up -d --build --remove-orphans
+	@echo "⏳ Aguardando serviços ficarem prontos..."
+	@sleep 10
+	@echo "🔧 Configurando Cognito Local..."
+	@cd infra && ./setup-cognito-local.sh || echo "⚠️  Cognito já configurado ou erro na configuração"
+	@echo ""
+	@echo "✅ Serviços iniciados!"
+	@echo "  - Database: http://localhost:5432"
+	@echo "  - Cognito Local: http://localhost:9229"
+	@echo "  - API: http://localhost:8080"
+	@echo "  - Swagger UI: http://localhost:8081"
+	@echo ""
+	@echo "📝 Para obter tokens JWT para o Swagger:"
+	@echo "   make cognito-local-tokens"
+
+docker-compose-down:
+	@echo "🛑 Parando serviços do Docker Compose..."
+	@docker compose down -v --remove-orphans
+	@docker rm -f swagger userdb usersvc cognito-local 2>/dev/null || true
+	@echo "✅ Serviços parados!"
+
+# Comando simplificado para apenas visualizar o Swagger (sem API)
+swagger-only:
+	@echo "🚀 Iniciando apenas o Swagger UI..."
+	@echo "🧹 Limpando containers existentes..."
+	@docker compose down -v --remove-orphans 2>/dev/null || true
+	@docker rm -f swagger userdb usersvc cognito-local 2>/dev/null || true
+	@sleep 1
+	@docker compose up -d --build --remove-orphans swagger
+	@echo "⏳ Aguardando Swagger ficar pronto..."
+	@sleep 3
+	@echo "✅ Swagger UI iniciado!"
+	@echo "  - Swagger UI: http://localhost:8081"
+	@echo ""
+	@echo "💡 Para visualizar a página do Swagger, acesse: http://localhost:8081"
+
+build:
+	@echo "🔨 Compilando aplicação Go..."
+	@go build -o cmd/api/usersvc ./cmd/api
+
+# Go test workflow
+GO_TEST_CACHE ?= $(CURDIR)/.cache
+GO_MOD_CACHE ?= $(CURDIR)/.gomodcache
+GO_TEST_FLAGS ?=
+GO_TEST_TARGETS ?= ./...
+TEST_DB_SENTINEL ?= $(CURDIR)/.tmp/.db-started-for-test
+
+test: go-test
+
+go-test: test-db-up
+	@set -euo pipefail; \
+	  trap '$(MAKE) --no-print-directory test-db-down' EXIT; \
+	  echo "🧪 Executando testes Go com dependências locais..."; \
+	  GOCACHE="$(GO_TEST_CACHE)" GOMODCACHE="$(GO_MOD_CACHE)" go test $(GO_TEST_FLAGS) $(GO_TEST_TARGETS)
+
+test-workspace:
+	@$(MAKE) --no-print-directory GO_TEST_TARGETS=./pkg/workspace test
+
+test-http:
+	@$(MAKE) --no-print-directory GO_TEST_TARGETS=./internal/http test
+
+test-db-up:
+	@mkdir -p $(dir $(TEST_DB_SENTINEL))
+	@DB_ID=$$(docker compose ps -q db 2>/dev/null || true); \
+	if [ -n "$$DB_ID" ] && docker inspect -f '{{.State.Running}}' "$$DB_ID" 2>/dev/null | grep -q true; then \
+		echo "🐘 Postgres já está em execução (container $$DB_ID)."; \
+		rm -f "$(TEST_DB_SENTINEL)"; \
+	else \
+		echo "🐘 Iniciando Postgres para testes..."; \
+		docker compose up -d db >/dev/null; \
+		echo "started" > "$(TEST_DB_SENTINEL)"; \
+	fi
+
+test-db-down:
+	@if [ -f "$(TEST_DB_SENTINEL)" ]; then \
+		echo "🧹 Parando Postgres utilizado nos testes..."; \
+		docker compose stop db >/dev/null 2>&1 || true; \
+		rm -f "$(TEST_DB_SENTINEL)"; \
+	else \
+		echo "ℹ️  Mantendo Postgres rodando (não foi iniciado pelo make test)."; \
+	fi
 
 # Terraform Local (tflocal) commands for local testing with infra directory
 # EC2 is supported in LocalStack free tier

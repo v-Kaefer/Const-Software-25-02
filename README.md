@@ -41,20 +41,20 @@ https://github.com/v-Kaefer/Const-Software-25-02
 git clone https://github.com/v-Kaefer/Const-Software-25-02.git
 cd Const-Software-25-02
 
-# 2. Inicie todos os serviços (DB, API, Cognito Local, Swagger)
-docker compose up -d --build
+# 2. Inicie toda a infraestrutura (DB, API, Cognito Local, Swagger, LocalStack)
+make infra-up
 
-# 3. Configure os usuários do Cognito Local
-make cognito-local-setup
-
-# 4. Obtenha os tokens JWT para usar no Swagger
+# 3. Obtenha os tokens JWT para usar no Swagger
 make cognito-local-tokens
 
-# 5. Acesse o Swagger UI e use o token para autenticar
+# 4. Acesse o Swagger UI e use o token para autenticar
 # - Swagger UI: http://localhost:8081
 # - Clique em "Authorize" (🔒)
 # - Cole o token (incluindo "Bearer ")
 # - Clique "Authorize" e "Close"
+
+# 5. Para parar tudo
+make infra-down
 ```
 
 ### URLs dos Serviços
@@ -65,6 +65,7 @@ make cognito-local-tokens
 | Swagger UI | http://localhost:8081 | Documentação interativa |
 | Cognito Local | http://localhost:9229 | Emulador de autenticação |
 | PostgreSQL | localhost:5432 | Banco de dados |
+| LocalStack (S3/DynamoDB) | http://localhost:4566 | Emulador AWS |
 
 ### Usuários Pré-configurados (Cognito Local)
 
@@ -74,28 +75,14 @@ make cognito-local-tokens
 | `reviewer@example.com` | `PassTemp123!` | reviewers-group | Cria projetos/tarefas |
 | `user@example.com` | `PassTemp123!` | user-group | Apenas recursos próprios |
 
-### Configuração Detalhada (Opcional)
+### Comandos Principais
 
-1. **Configure as variáveis de ambiente:**
-   ```bash
-   cp .env.example .env
-   # Edite .env com suas configurações
-   ```
-
-2. **Inicie os serviços:**
-   ```bash
-   docker compose up -d --build
-   ```
-
-3. **Configure e obtenha tokens:**
-   ```bash
-   make cognito-local-setup    # Configura usuários e grupos
-   make cognito-local-tokens   # Mostra tokens JWT para usar no Swagger
-   ```
-
-4. **Acesse a API:**
-   - API: http://localhost:8080
-   - Swagger: http://localhost:8081
+```bash
+make infra-up              # Inicia toda a infraestrutura
+make infra-down            # Para toda a infraestrutura
+make cognito-local-tokens  # Gera tokens JWT para usar no Swagger
+make infra-test            # Testa se todos os recursos estão funcionando
+```
 
 > **Nota:** As migrações SQL são executadas automaticamente pelo PostgreSQL na primeira inicialização.
 
@@ -126,15 +113,17 @@ docker compose down          # Para todos os serviços
 docker compose down -v       # Para e remove volumes (reset completo)
 
 # Cognito Local (Autenticação)
-make cognito-local-setup     # Configura usuários e grupos
 make cognito-local-tokens    # Gera JWT tokens para usar no Swagger
 make cognito-local-test      # Testa configuração do cognito-local
-make cognito-local-clean     # Remove cognito-local e dados
 
-# Infraestrutura Local (LocalStack + Cognito)
-make infra-up               # Inicia toda infraestrutura local
+# Infraestrutura Completa
+make infra-up               # Inicia toda infraestrutura (DB, API, Cognito, Swagger, LocalStack)
 make infra-test             # Testa recursos criados
 make infra-down             # Para tudo e limpa recursos
+
+# Docker Compose (apenas containers principais)
+make docker-compose-up      # Inicia DB, API, Cognito Local e Swagger
+make docker-compose-down    # Para containers
 
 # Testes e Build
 make test                   # Sobe Postgres (se necessário) e executa go test ./...

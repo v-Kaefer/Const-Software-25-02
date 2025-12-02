@@ -21,9 +21,9 @@ help:
 	@echo "  make cognito-local-clean - Remove cognito-local e dados"
 	@echo ""
 	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
-	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (mais rápido)"
-	@echo "  make docker-compose-up   - Inicia todos os serviços (db, api, swagger)"
-	@echo "  make docker-compose-down - Para serviços do Docker Compose"
+	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (com --build)"
+	@echo "  make docker-compose-up   - Limpa volumes e inicia com --build"
+	@echo "  make docker-compose-down - Para e limpa volumes (-v --remove-orphans)"
 	@echo ""
 	@echo "Comandos Terraform Local (infra com tflocal para testes):"
 	@echo "  make tflocal-init        - Inicializa o Terraform Local"
@@ -195,7 +195,8 @@ cognito-local-ready:
 
 cognito-local-start:
 	@echo "🚀 Iniciando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml up -d
+	@docker-compose -f docker-compose.cognito-local.yaml down -v --remove-orphans 2>/dev/null || true
+	@docker-compose -f docker-compose.cognito-local.yaml up -d --build
 	@echo "⏳ Aguardando cognito-local ficar pronto..."
 	@sleep 10
 	@echo "🔍 Verificando status do container..."
@@ -206,7 +207,7 @@ cognito-local-start:
 
 cognito-local-stop:
 	@echo "🛑 Parando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml down
+	@docker-compose -f docker-compose.cognito-local.yaml down -v --remove-orphans
 	@echo "✅ cognito-local parado!"
 
 cognito-local-setup:
@@ -220,18 +221,18 @@ cognito-local-test:
 
 cognito-local-clean:
 	@echo "🧹 Limpando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml down -v
+	@docker-compose -f docker-compose.cognito-local.yaml down -v --remove-orphans
 	@rm -rf infra/cognito-local-config/*.json
 	@echo "✅ Limpeza concluída!"
 
 # Docker Compose commands for API, Database and Swagger UI
 docker-compose-up:
 	@echo "🚀 Iniciando serviços com Docker Compose..."
-	@echo "🧹 Limpando containers existentes..."
-	@docker compose down --remove-orphans 2>/dev/null || true
+	@echo "🧹 Limpando containers e volumes existentes..."
+	@docker compose down -v --remove-orphans 2>/dev/null || true
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
 	@sleep 1
-	@docker compose up -d --remove-orphans
+	@docker compose up -d --build
 	@echo "⏳ Aguardando serviços ficarem prontos..."
 	@sleep 5
 	@echo "✅ Serviços iniciados!"
@@ -241,18 +242,18 @@ docker-compose-up:
 
 docker-compose-down:
 	@echo "🛑 Parando serviços do Docker Compose..."
-	@docker compose down --remove-orphans
+	@docker compose down -v --remove-orphans
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
 	@echo "✅ Serviços parados!"
 
 # Comando simplificado para apenas visualizar o Swagger (sem API)
 swagger-only:
 	@echo "🚀 Iniciando apenas o Swagger UI..."
-	@echo "🧹 Limpando containers existentes..."
-	@docker compose down --remove-orphans 2>/dev/null || true
+	@echo "🧹 Limpando containers e volumes existentes..."
+	@docker compose down -v --remove-orphans 2>/dev/null || true
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
 	@sleep 1
-	@docker compose up -d --remove-orphans swagger
+	@docker compose up -d --build swagger
 	@echo "⏳ Aguardando Swagger ficar pronto..."
 	@sleep 3
 	@echo "✅ Swagger UI iniciado!"
@@ -293,14 +294,14 @@ test-db-up:
 		rm -f "$(TEST_DB_SENTINEL)"; \
 	else \
 		echo "🐘 Iniciando Postgres para testes..."; \
-		docker compose up -d db >/dev/null; \
+		docker compose up -d --build db >/dev/null; \
 		echo "started" > "$(TEST_DB_SENTINEL)"; \
 	fi
 
 test-db-down:
 	@if [ -f "$(TEST_DB_SENTINEL)" ]; then \
 		echo "🧹 Parando Postgres utilizado nos testes..."; \
-		docker compose stop db >/dev/null 2>&1 || true; \
+		docker compose down -v --remove-orphans >/dev/null 2>&1 || true; \
 		rm -f "$(TEST_DB_SENTINEL)"; \
 	else \
 		echo "ℹ️  Mantendo Postgres rodando (não foi iniciado pelo make test)."; \

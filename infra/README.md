@@ -80,15 +80,35 @@ terraform destroy
 - **Identity Pool**: `MyIdentityPool`
 - **User Groups**: admin-group, reviewers-group, user-group
 - **IAM Roles**: Para cada grupo de usuários
-- **Senhas temporárias**: geradas automaticamente (veja `terraform output admin_temp_password`, `reviewer_temp_password`, `user_temp_password` após o apply)
+- **Senhas temporárias**: geradas automaticamente
+
+### 🔑 Obter Senhas Geradas
+
+**Produção (após `make infra-prod-apply`):**
+```bash
+make infra-prod-passwords
+```
+
+**Desenvolvimento (cognito-local):**
+```bash
+make cognito-local-passwords
+```
+
+> 💡 Para senhas customizadas no desenvolvimento:
+> `ADMIN_PASSWORD=MinhaS3nha! REVIEWER_PASSWORD=OutraSenha! USER_PASSWORD=Senha123! make cognito-local-setup`
 
 ## 🔧 Comandos Make Disponíveis
 
 | Comando | Descrição |
 |---------|-----------|
+| `make infra-up` | **Reset forçado** + inicia LocalStack, cognito-local, API e Swagger |
+| `make infra-down` | **Reset forçado** + para tudo e limpa volumes/imagens |
+| `make docker-compose-up` | **Reset forçado** + inicia apenas API e Swagger |
+| `make docker-compose-down` | **Reset forçado** + para API e Swagger |
 | `make infra-prod-init` | Inicializa o Terraform |
 | `make infra-prod-plan` | Executa terraform plan |
 | `make infra-prod-apply` | Aplica a infraestrutura |
+| `make infra-prod-passwords` | Exibe senhas geradas pelo Terraform |
 | `make infra-prod-destroy` | Destrói a infraestrutura |
 
 ## 🧪 Testes Locais
@@ -97,7 +117,7 @@ Para testar a infraestrutura localmente antes de aplicar na AWS, use o LocalStac
 
 ```bash
 # Opção 1: Usar comando combinado (recomendado)
-make infra-up  # Inicia LocalStack, cognito-local e aplica infra
+make infra-up  # Reset forçado + inicia LocalStack, cognito-local e aplica infra
 
 # Opção 2: Passo a passo
 make localstack-start
@@ -109,9 +129,15 @@ make tflocal-apply
 # Testar os recursos
 make infra-test
 
-# Destruir quando terminar
-make infra-down  # Para tudo automaticamente
+# Destruir quando terminar (reset forçado - limpa volumes e imagens)
+make infra-down
 ```
+
+> ✅ **Reset Forçado Automático**: Os comandos `make infra-up` e `make infra-down` agora fazem reset forçado automaticamente:
+> - Limpam volumes Docker
+> - Removem imagens antigas da API
+> - Reconstroem containers com código atualizado
+> - Garantem que a versão mais recente está sempre em execução
 
 **💡 Notas sobre recursos**: 
 - **EC2**: Suportado no LocalStack free tier com AMI mock automático

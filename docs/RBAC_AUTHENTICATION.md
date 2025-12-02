@@ -41,14 +41,26 @@ COGNITO_USER_POOL_ID=seu-user-pool-id
 A infraestrutura já está definida em `infra/cognito.tf`. Para implantar:
 
 ```bash
-# Para testes locais com cognito-local
-make cognito-local-start
-make cognito-local-setup
+# Desenvolvimento (cognito-local) - Recomendado
+make infra-up                # Reset forçado + inicia tudo automaticamente
+make cognito-local-passwords # Exibe senhas dos usuários
 
-# Para produção
-cd infra
-terraform apply
+# Produção (AWS)
+make infra-prod-apply
+make infra-prod-passwords    # Exibe senhas geradas pelo Terraform
 ```
+
+> ✅ **Reset Forçado Automático**: O comando `make infra-up` faz reset forçado automaticamente (limpa volumes, remove imagens antigas e reconstrói tudo).
+
+### Usuários Pré-configurados
+
+| Usuário | Grupo | Permissões |
+|---------|-------|------------|
+| admin@example.com | admin-group | Acesso completo |
+| reviewer@example.com | reviewers-group | Leitura de recursos |
+| user@example.com | user-group | Acesso limitado |
+
+> 💡 **Senhas customizadas:** `ADMIN_PASSWORD=MinhaS3nha! make cognito-local-setup`
 
 ## Uso
 
@@ -84,22 +96,24 @@ curl -H "Authorization: Bearer <seu-jwt-token>" \
 
 ### Obtendo um Token
 
-Para obter um token JWT do Cognito:
-
+**Desenvolvimento (cognito-local):**
 ```bash
-# Usando AWS CLI
+# Verificar senhas e testar autenticação
+make cognito-local-passwords
+make cognito-local-test
+```
+
+**Produção (AWS Cognito):**
+```bash
+# Obter senhas geradas
+make infra-prod-passwords
+
+# Autenticar
 aws cognito-idp initiate-auth \
   --auth-flow USER_PASSWORD_AUTH \
   --client-id <seu-client-id> \
-  --auth-parameters USERNAME=usuario@example.com,PASSWORD=SuaSenha123! \
+  --auth-parameters USERNAME=admin@example.com,PASSWORD=<senha-gerada> \
   --region us-east-1
-```
-
-Ou para testes locais com cognito-local:
-
-```bash
-# Veja infra/test-cognito-local.sh para exemplo
-make cognito-local-test
 ```
 
 ## Detalhes de Implementação

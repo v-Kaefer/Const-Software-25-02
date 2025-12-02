@@ -22,6 +22,11 @@ export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-local}"
 export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-local}"
 export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 
+# User passwords - can be overridden via environment variables
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-AdminTemp123!}"
+REVIEWER_PASSWORD="${REVIEWER_PASSWORD:-PassTemp123!}"
+USER_PASSWORD="${USER_PASSWORD:-PassTemp123!}"
+
 echo -e "${GREEN}╔═══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║     Setup cognito-local (Alternativa ao LocalStack Pro)   ║${NC}"
 echo -e "${GREEN}╚═══════════════════════════════════════════════════════════╝${NC}"
@@ -178,7 +183,7 @@ aws cognito-idp admin-create-user \
     --user-pool-id "$USER_POOL_ID" \
     --username "admin@example.com" \
     --user-attributes "Name=email,Value=admin@example.com" "Name=name,Value=Admin User" "Name=custom:role,Value=admin" \
-    --temporary-password "AdminTemp123!" \
+    --temporary-password "$ADMIN_PASSWORD" \
     --message-action "SUPPRESS" \
     --endpoint-url "$ENDPOINT" \
     --region "$REGION" > /dev/null 2>&1
@@ -197,7 +202,7 @@ aws cognito-idp admin-create-user \
     --user-pool-id "$USER_POOL_ID" \
     --username "reviewer@example.com" \
     --user-attributes "Name=email,Value=reviewer@example.com" "Name=name,Value=Reviewer User" "Name=custom:role,Value=reviewer" \
-    --temporary-password "PassTemp123!" \
+    --temporary-password "$REVIEWER_PASSWORD" \
     --message-action "SUPPRESS" \
     --endpoint-url "$ENDPOINT" \
     --region "$REGION" > /dev/null 2>&1
@@ -216,7 +221,7 @@ aws cognito-idp admin-create-user \
     --user-pool-id "$USER_POOL_ID" \
     --username "user@example.com" \
     --user-attributes "Name=email,Value=user@example.com" "Name=name,Value=Main User" \
-    --temporary-password "PassTemp123!" \
+    --temporary-password "$USER_PASSWORD" \
     --message-action "SUPPRESS" \
     --endpoint-url "$ENDPOINT" \
     --region "$REGION" > /dev/null 2>&1
@@ -241,9 +246,9 @@ echo -e "   App Client ID: ${GREEN}${CLIENT_ID}${NC}"
 echo -e "   Endpoint: ${GREEN}${ENDPOINT}${NC}"
 echo ""
 echo -e "${YELLOW}👥 Usuários criados:${NC}"
-echo -e "   ${GREEN}admin@example.com${NC} (senha temporária: AdminTemp123!)"
-echo -e "   ${GREEN}reviewer@example.com${NC} (senha temporária: PassTemp123!)"
-echo -e "   ${GREEN}user@example.com${NC} (senha temporária: PassTemp123!)"
+echo -e "   ${GREEN}admin@example.com${NC} (senha: $ADMIN_PASSWORD)"
+echo -e "   ${GREEN}reviewer@example.com${NC} (senha: $REVIEWER_PASSWORD)"
+echo -e "   ${GREEN}user@example.com${NC} (senha: $USER_PASSWORD)"
 echo ""
 echo -e "${YELLOW}📝 Grupos criados:${NC}"
 echo -e "   ${GREEN}admin-group${NC}"

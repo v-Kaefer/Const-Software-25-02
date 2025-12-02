@@ -44,16 +44,5 @@ services:
     # Se você precisa de um comando específico, descomente/ajuste:
     # command: ["/app/usersvc"]
 
-  swagger:
-    image: swaggerapi/swagger-ui:latest
-    container_name: swagger
-    environment:
-      SWAGGER_JSON: /openapi/openapi.yaml
-    volumes:
-      - ./openapi:/openapi:ro
-    ports:
-      - "8081:8080"
-    restart: unless-stopped
-
 volumes:
   pgdata: {}

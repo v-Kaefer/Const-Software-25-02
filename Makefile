@@ -1,4 +1,4 @@
-.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http
+.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down build test go-test test-db-up test-db-down test-workspace test-http
 
 # Default target
 help:
@@ -20,9 +20,8 @@ help:
 	@echo "  make cognito-local-stop  - Para cognito-local"
 	@echo "  make cognito-local-clean - Remove cognito-local e dados"
 	@echo ""
-	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
-	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (mais rápido)"
-	@echo "  make docker-compose-up   - Inicia todos os serviços (db, api, swagger)"
+	@echo "Comandos Docker Compose (API e Database):"
+	@echo "  make docker-compose-up   - Inicia db e api (Swagger em /docs)"
 	@echo "  make docker-compose-down - Para serviços do Docker Compose"
 	@echo ""
 	@echo "Comandos Terraform Local (infra com tflocal para testes):"
@@ -102,8 +101,8 @@ infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup 
 	@echo "  - S3: http://localhost:4566"
 	@echo "  - DynamoDB: http://localhost:4566"
 	@echo "  - Cognito: http://localhost:9229 (cognito-local)"
-	@echo "  - API: http://localhost:8080"
-	@echo "  - Swagger UI: http://localhost:8081"
+	@echo "  - API + Swagger UI: http://localhost:8080"
+	@echo "  - Swagger UI: http://localhost:8080/docs"
 	@echo ""
 	@echo "Para testar os recursos:"
 	@echo "  make infra-test"
@@ -224,7 +223,7 @@ cognito-local-clean:
 	@rm -rf infra/cognito-local-config/*.json
 	@echo "✅ Limpeza concluída!"
 
-# Docker Compose commands for API, Database and Swagger UI
+# Docker Compose commands for API and Database
 docker-compose-up:
 	@echo "🚀 Iniciando serviços com Docker Compose..."
 	@echo "🧹 Limpando containers existentes..."
@@ -237,28 +236,13 @@ docker-compose-up:
 	@echo "✅ Serviços iniciados!"
 	@echo "  - Database: http://localhost:5432"
 	@echo "  - API: http://localhost:8080"
-	@echo "  - Swagger UI: http://localhost:8081"
+	@echo "  - Swagger UI: http://localhost:8080/docs"
 
 docker-compose-down:
 	@echo "🛑 Parando serviços do Docker Compose..."
 	@docker compose down --remove-orphans
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
 	@echo "✅ Serviços parados!"
-
-# Comando simplificado para apenas visualizar o Swagger (sem API)
-swagger-only:
-	@echo "🚀 Iniciando apenas o Swagger UI..."
-	@echo "🧹 Limpando containers existentes..."
-	@docker compose down --remove-orphans 2>/dev/null || true
-	@docker rm -f swagger userdb usersvc 2>/dev/null || true
-	@sleep 1
-	@docker compose up -d --remove-orphans swagger
-	@echo "⏳ Aguardando Swagger ficar pronto..."
-	@sleep 3
-	@echo "✅ Swagger UI iniciado!"
-	@echo "  - Swagger UI: http://localhost:8081"
-	@echo ""
-	@echo "💡 Para visualizar a página do Swagger, acesse: http://localhost:8081"
 
 build:
 	@echo "🔨 Compilando aplicação Go..."

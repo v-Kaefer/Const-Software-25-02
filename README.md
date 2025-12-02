@@ -55,8 +55,7 @@ https://github.com/v-Kaefer/Const-Software-25-02
 
 4. **Acesse a API:**
    - API: http://localhost:8080
-   - Swagger UI: http://localhost:8081 (container separado)
-   - Swagger UI: http://localhost:8080/docs (integrado na API)
+   - Swagger UI: http://localhost:8080/docs
 
 ## 🧩 Domínio e fluxos implementados
 

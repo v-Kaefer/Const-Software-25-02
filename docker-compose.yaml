@@ -38,15 +38,12 @@ services:
     ports:
       - "8080:8080"
     restart: unless-stopped
-    # Se quiser bind-mount do código em dev, descomente:
-    # volumes:
-    #   - ./:/app
-    # Se você precisa de um comando específico, descomente/ajuste:
-    # command: ["/app/usersvc"]
 
   swagger:
     image: swaggerapi/swagger-ui:latest
     container_name: swagger
+    depends_on:
+      - api
     environment:
       SWAGGER_JSON: /openapi/openapi.yaml
     volumes:

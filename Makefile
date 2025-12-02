@@ -96,7 +96,7 @@ localstack-clean:
 	@echo "✅ Limpeza concluída!"
 
 # Combined commands
-infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup tflocal-apply docker-compose-up
+infra-up: localstack-start tflocal-init tflocal-apply docker-compose-up
 	@echo "✅ Infraestrutura completa iniciada!"
 	@echo ""
 	@echo "📊 Recursos disponíveis:"
@@ -108,8 +108,11 @@ infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup 
 	@echo ""
 	@echo "Para testar os recursos:"
 	@echo "  make infra-test"
+	@echo ""
+	@echo "Para obter tokens JWT:"
+	@echo "  make cognito-local-tokens"
 
-infra-down: tflocal-destroy cognito-local-clean localstack-stop docker-compose-down
+infra-down: tflocal-destroy localstack-stop docker-compose-down
 	@echo "✅ Infraestrutura completa parada!"
 
 infra-test: cognito-local-ready
@@ -196,7 +199,7 @@ cognito-local-ready:
 
 cognito-local-start:
 	@echo "🚀 Iniciando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml up -d
+	@docker compose up -d cognito-local
 	@echo "⏳ Aguardando cognito-local ficar pronto..."
 	@sleep 10
 	@echo "🔍 Verificando status do container..."
@@ -207,7 +210,7 @@ cognito-local-start:
 
 cognito-local-stop:
 	@echo "🛑 Parando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml down
+	@docker compose stop cognito-local
 	@echo "✅ cognito-local parado!"
 
 cognito-local-setup:
@@ -225,39 +228,46 @@ cognito-local-tokens:
 
 cognito-local-clean:
 	@echo "🧹 Limpando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml down -v
+	@docker compose down -v cognito-local 2>/dev/null || true
 	@rm -rf infra/cognito-local-config/*.json
 	@echo "✅ Limpeza concluída!"
 
 # Docker Compose commands for API, Database and Swagger UI
 docker-compose-up:
 	@echo "🚀 Iniciando serviços com Docker Compose..."
-	@echo "🧹 Limpando containers existentes..."
-	@docker compose down --remove-orphans 2>/dev/null || true
-	@docker rm -f swagger userdb usersvc 2>/dev/null || true
+	@echo "🧹 Limpando containers e volumes existentes..."
+	@docker compose down -v --remove-orphans 2>/dev/null || true
+	@docker rm -f swagger userdb usersvc cognito-local 2>/dev/null || true
 	@sleep 1
-	@docker compose up -d --remove-orphans
+	@docker compose up -d --build --remove-orphans
 	@echo "⏳ Aguardando serviços ficarem prontos..."
-	@sleep 5
+	@sleep 10
+	@echo "🔧 Configurando Cognito Local..."
+	@cd infra && ./setup-cognito-local.sh || echo "⚠️  Cognito já configurado ou erro na configuração"
+	@echo ""
 	@echo "✅ Serviços iniciados!"
 	@echo "  - Database: http://localhost:5432"
+	@echo "  - Cognito Local: http://localhost:9229"
 	@echo "  - API: http://localhost:8080"
 	@echo "  - Swagger UI: http://localhost:8081"
+	@echo ""
+	@echo "📝 Para obter tokens JWT para o Swagger:"
+	@echo "   make cognito-local-tokens"
 
 docker-compose-down:
 	@echo "🛑 Parando serviços do Docker Compose..."
-	@docker compose down --remove-orphans
-	@docker rm -f swagger userdb usersvc 2>/dev/null || true
+	@docker compose down -v --remove-orphans
+	@docker rm -f swagger userdb usersvc cognito-local 2>/dev/null || true
 	@echo "✅ Serviços parados!"
 
 # Comando simplificado para apenas visualizar o Swagger (sem API)
 swagger-only:
 	@echo "🚀 Iniciando apenas o Swagger UI..."
 	@echo "🧹 Limpando containers existentes..."
-	@docker compose down --remove-orphans 2>/dev/null || true
-	@docker rm -f swagger userdb usersvc 2>/dev/null || true
+	@docker compose down -v --remove-orphans 2>/dev/null || true
+	@docker rm -f swagger userdb usersvc cognito-local 2>/dev/null || true
 	@sleep 1
-	@docker compose up -d --remove-orphans swagger
+	@docker compose up -d --build --remove-orphans swagger
 	@echo "⏳ Aguardando Swagger ficar pronto..."
 	@sleep 3
 	@echo "✅ Swagger UI iniciado!"

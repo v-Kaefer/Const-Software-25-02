@@ -19,6 +19,22 @@ services:
       timeout: 3s
       retries: 10
 
+  cognito-local:
+    image: jagregory/cognito-local:latest
+    container_name: cognito-local
+    ports:
+      - "9229:9229"
+    volumes:
+      - ./infra/cognito-local-config:/app/.cognito
+    environment:
+      - COGNITO_LOCAL_DATABASE=/app/.cognito/db.json
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9229/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     build:
       context: .
@@ -26,6 +42,8 @@ services:
     container_name: usersvc
     depends_on:
       db:
+        condition: service_healthy
+      cognito-local:
         condition: service_healthy
     environment:
       APP_ENV: ${APP_ENV:-development}
@@ -35,6 +53,12 @@ services:
       DB_PASS: ${DB_PASS:-app}
       DB_NAME: ${DB_NAME:-app}
       DB_SSLMODE: "disable"
+      # Cognito Local configuration - User Pool ID will be set after setup
+      COGNITO_REGION: "us-east-1"
+      # JWKS URI pointing to cognito-local container
+      # Note: User Pool ID is dynamically created by cognito-local-setup
+      # The middleware will use this URI to fetch JWKS
+      JWKS_URI: "http://cognito-local:9229/${COGNITO_USER_POOL_ID:-local_userPoolId}/.well-known/jwks.json"
     ports:
       - "8080:8080"
     restart: unless-stopped

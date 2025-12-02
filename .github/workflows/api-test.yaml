@@ -1,0 +1,125 @@
+name: API Integration Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'openapi/**'
+      - 'docker-compose.yaml'
+      - 'Dockerfile'
+      - '.github/workflows/api-test.yaml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'openapi/**'
+      - 'docker-compose.yaml'
+      - 'Dockerfile'
+      - '.github/workflows/api-test.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-integration-test:
+    name: API Integration Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start services
+        run: |
+          docker compose up -d --build
+          echo "Waiting for services to be ready..."
+          sleep 10
+
+      - name: Check API health
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/api/v1/health | grep -q '"status":"ok"'; then
+              echo "API is healthy!"
+              break
+            fi
+            echo "Waiting for API... attempt $i"
+            sleep 2
+          done
+
+      - name: Test CORS preflight (OPTIONS)
+        run: |
+          echo "Testing CORS preflight request..."
+          RESPONSE=$(curl -s -I -X OPTIONS http://localhost:8080/api/v1/users \
+            -H "Origin: http://localhost:8081" \
+            -H "Access-Control-Request-Method: POST" \
+            -H "Access-Control-Request-Headers: Content-Type,Authorization")
+          echo "$RESPONSE"
+          
+          if echo "$RESPONSE" | grep -qi "Access-Control-Allow-Origin"; then
+            echo "✅ CORS headers present"
+          else
+            echo "❌ CORS headers missing"
+            exit 1
+          fi
+
+      - name: Test POST /api/v1/users (create user)
+        run: |
+          echo "Testing user creation..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/v1/users \
+            -H "Content-Type: application/json" \
+            -H "Origin: http://localhost:8081" \
+            -d '{"email":"test-ci@example.com","name":"CI Test User"}')
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Body: $BODY"
+          
+          if [ "$HTTP_CODE" = "201" ]; then
+            echo "✅ User created successfully"
+          else
+            echo "❌ Failed to create user (expected 201, got $HTTP_CODE)"
+            exit 1
+          fi
+
+      - name: Test GET /api/v1/users (list users)
+        run: |
+          echo "Testing user listing..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET http://localhost:8080/api/v1/users \
+            -H "Origin: http://localhost:8081")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Body: $BODY"
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Users listed successfully"
+          else
+            echo "❌ Failed to list users (expected 200, got $HTTP_CODE)"
+            exit 1
+          fi
+
+      - name: Show API logs on failure
+        if: failure()
+        run: |
+          echo "=== API Logs ==="
+          docker compose logs api
+          echo ""
+          echo "=== All Container Status ==="
+          docker compose ps -a
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v

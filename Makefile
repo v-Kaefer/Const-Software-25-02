@@ -1,4 +1,4 @@
-.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready cognito-local-passwords infra-prod-passwords tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http
+.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready cognito-local-passwords infra-prod-passwords tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http test-api
 
 # Default target
 help:
@@ -48,6 +48,7 @@ help:
 	@echo "Comandos de build/teste da API:"
 	@echo "  make build              - Compila ./cmd/api dentro do container local"
 	@echo "  make test               - Sobe dependências necessárias e executa go test ./..."
+	@echo "  make test-api           - Testa a API com requisições HTTP (simula Swagger UI)"
 	@echo ""
 	@echo "==================================================================="
 	@echo "IMPORTANTE: Cognito - Integrado automaticamente!"
@@ -309,6 +310,72 @@ test-workspace:
 
 test-http:
 	@$(MAKE) --no-print-directory GO_TEST_TARGETS=./internal/http test
+
+# Teste de API simulando requisições do Swagger UI (inclui CORS preflight)
+test-api:
+	@echo "🧪 Testando API com requisições HTTP (simula Swagger UI)..."
+	@echo ""
+	@echo "1️⃣ Verificando se a API está rodando..."
+	@if ! curl -s http://localhost:8080/api/v1/health > /dev/null 2>&1; then \
+		echo "❌ API não está rodando. Execute 'make docker-compose-up' primeiro."; \
+		exit 1; \
+	fi
+	@echo "✅ API está rodando!"
+	@echo ""
+	@echo "2️⃣ Testando endpoint /api/v1/health..."
+	@HEALTH_RESPONSE=$$(curl -s http://localhost:8080/api/v1/health); \
+	echo "   Resposta: $$HEALTH_RESPONSE"; \
+	if echo "$$HEALTH_RESPONSE" | grep -q '"status":"ok"'; then \
+		echo "   ✅ Health check OK"; \
+	else \
+		echo "   ❌ Health check falhou"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "3️⃣ Testando CORS preflight (OPTIONS) para /api/v1/users..."
+	@OPTIONS_RESPONSE=$$(curl -s -I -X OPTIONS http://localhost:8080/api/v1/users \
+		-H "Origin: http://localhost:8081" \
+		-H "Access-Control-Request-Method: POST" \
+		-H "Access-Control-Request-Headers: Content-Type,Authorization"); \
+	echo "   $$OPTIONS_RESPONSE" | head -5; \
+	if echo "$$OPTIONS_RESPONSE" | grep -qi "Access-Control-Allow-Origin"; then \
+		echo "   ✅ CORS headers presentes"; \
+	else \
+		echo "   ❌ CORS headers ausentes"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "4️⃣ Testando POST /api/v1/users (criar usuário)..."
+	@POST_RESPONSE=$$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/v1/users \
+		-H "Content-Type: application/json" \
+		-H "Origin: http://localhost:8081" \
+		-d '{"email":"test-'$$RANDOM'@example.com","name":"Test User"}'); \
+	HTTP_CODE=$$(echo "$$POST_RESPONSE" | tail -1); \
+	BODY=$$(echo "$$POST_RESPONSE" | head -n -1); \
+	echo "   HTTP Status: $$HTTP_CODE"; \
+	echo "   Body: $$BODY"; \
+	if [ "$$HTTP_CODE" = "201" ]; then \
+		echo "   ✅ Usuário criado com sucesso"; \
+	else \
+		echo "   ❌ Falha ao criar usuário (esperado 201, recebido $$HTTP_CODE)"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "5️⃣ Testando GET /api/v1/users (listar usuários)..."
+	@GET_RESPONSE=$$(curl -s -w "\n%{http_code}" -X GET http://localhost:8080/api/v1/users \
+		-H "Origin: http://localhost:8081"); \
+	HTTP_CODE=$$(echo "$$GET_RESPONSE" | tail -1); \
+	BODY=$$(echo "$$GET_RESPONSE" | head -n -1); \
+	echo "   HTTP Status: $$HTTP_CODE"; \
+	echo "   Body: $$BODY" | head -c 200; echo "..."; \
+	if [ "$$HTTP_CODE" = "200" ]; then \
+		echo "   ✅ Lista de usuários OK"; \
+	else \
+		echo "   ❌ Falha ao listar usuários (esperado 200, recebido $$HTTP_CODE)"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "✅ Todos os testes de API passaram!"
 
 test-db-up:
 	@mkdir -p $(dir $(TEST_DB_SENTINEL))

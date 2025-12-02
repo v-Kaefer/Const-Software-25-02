@@ -50,7 +50,7 @@ make cognito-local-tokens
 # 4. Acesse o Swagger UI e use o token para autenticar
 # - Swagger UI: http://localhost:8081
 # - Clique em "Authorize" (🔒)
-# - Cole o token (incluindo "Bearer ")
+# - Cole o token (sem o "Bearer "), cuidado com espaços.
 # - Clique "Authorize" e "Close"
 
 # 5. Para parar tudo

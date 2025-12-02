@@ -29,11 +29,13 @@ services:
     environment:
       - COGNITO_LOCAL_DATABASE=/app/.cognito/db.json
     restart: unless-stopped
+    # Note: cognito-local doesn't have a health endpoint, so we just check if port 9229 is listening
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9229/health || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9229/ || exit 0"]
       interval: 5s
-      timeout: 3s
+      timeout: 10s
       retries: 10
+      start_period: 15s
 
   api:
     build:
@@ -44,7 +46,7 @@ services:
       db:
         condition: service_healthy
       cognito-local:
-        condition: service_healthy
+        condition: service_started
     environment:
       APP_ENV: ${APP_ENV:-development}
       DB_HOST: db

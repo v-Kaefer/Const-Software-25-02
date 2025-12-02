@@ -1,4 +1,4 @@
-.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down docker-compose-reset swagger-only build test go-test test-db-up test-db-down test-workspace test-http
+.PHONY: help localstack-start localstack-stop localstack-status localstack-logs localstack-clean infra-up infra-down infra-test infra-debug cognito-local-start cognito-local-stop cognito-local-setup cognito-local-test cognito-local-clean cognito-local-ready tflocal-init tflocal-plan tflocal-apply tflocal-destroy infra-prod-init infra-prod-plan infra-prod-apply infra-prod-destroy docker-compose-up docker-compose-down swagger-only build test go-test test-db-up test-db-down test-workspace test-http
 
 # Default target
 help:
@@ -21,10 +21,9 @@ help:
 	@echo "  make cognito-local-clean - Remove cognito-local e dados"
 	@echo ""
 	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
-	@echo "  make docker-compose-up    - Inicia todos os serviços (db, api, swagger)"
-	@echo "  make docker-compose-down  - Para serviços do Docker Compose"
-	@echo "  make docker-compose-reset - Reset completo (apaga dados e reaplica migrações)"
-	@echo "  make swagger-only         - Inicia APENAS o Swagger UI (mais rápido)"
+	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (mais rápido)"
+	@echo "  make docker-compose-up   - Inicia todos os serviços (db, api, swagger)"
+	@echo "  make docker-compose-down - Para serviços do Docker Compose"
 	@echo ""
 	@echo "Comandos Terraform Local (infra com tflocal para testes):"
 	@echo "  make tflocal-init        - Inicializa o Terraform Local"
@@ -196,9 +195,7 @@ cognito-local-ready:
 
 cognito-local-start:
 	@echo "🚀 Iniciando cognito-local..."
-	@echo "🔗 Garantindo que a rede app-network existe..."
-	@docker network create app-network 2>/dev/null || true
-	@docker-compose -f docker-compose.cognito-local.yaml up -d --remove-orphans
+	@docker-compose -f docker-compose.cognito-local.yaml up -d
 	@echo "⏳ Aguardando cognito-local ficar pronto..."
 	@sleep 10
 	@echo "🔍 Verificando status do container..."
@@ -209,7 +206,7 @@ cognito-local-start:
 
 cognito-local-stop:
 	@echo "🛑 Parando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml down --remove-orphans
+	@docker-compose -f docker-compose.cognito-local.yaml down
 	@echo "✅ cognito-local parado!"
 
 cognito-local-setup:
@@ -223,7 +220,7 @@ cognito-local-test:
 
 cognito-local-clean:
 	@echo "🧹 Limpando cognito-local..."
-	@docker-compose -f docker-compose.cognito-local.yaml down -v --remove-orphans
+	@docker-compose -f docker-compose.cognito-local.yaml down -v
 	@rm -rf infra/cognito-local-config/*.json
 	@echo "✅ Limpeza concluída!"
 
@@ -241,30 +238,12 @@ docker-compose-up:
 	@echo "  - Database: http://localhost:5432"
 	@echo "  - API: http://localhost:8080"
 	@echo "  - Swagger UI: http://localhost:8081"
-	@echo ""
-	@echo "💡 Migrações SQL são executadas automaticamente pelo PostgreSQL"
-	@echo "   na primeira inicialização (arquivos em ./migrations/)"
 
 docker-compose-down:
 	@echo "🛑 Parando serviços do Docker Compose..."
 	@docker compose down --remove-orphans
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
 	@echo "✅ Serviços parados!"
-
-# Reset completo do banco de dados (remove volumes e recria)
-docker-compose-reset:
-	@echo "🔄 Resetando banco de dados..."
-	@echo "⚠️  Isso irá APAGAR todos os dados do banco!"
-	@docker compose down -v --remove-orphans
-	@docker rm -f swagger userdb usersvc 2>/dev/null || true
-	@sleep 1
-	@docker compose up -d --build --remove-orphans
-	@echo "⏳ Aguardando serviços ficarem prontos..."
-	@sleep 8
-	@echo "✅ Banco de dados resetado e migrações aplicadas!"
-	@echo "  - Database: http://localhost:5432"
-	@echo "  - API: http://localhost:8080"
-	@echo "  - Swagger UI: http://localhost:8081"
 
 # Comando simplificado para apenas visualizar o Swagger (sem API)
 swagger-only:

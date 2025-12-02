@@ -34,56 +34,7 @@ https://github.com/v-Kaefer/Const-Software-25-02
 
 ## 🚀 Início Rápido
 
-### Quick Start (Copiar e Colar)
-
-```bash
-# 1. Clone e entre no diretório
-git clone https://github.com/v-Kaefer/Const-Software-25-02.git
-cd Const-Software-25-02
-
-# 2. Inicie todos os serviços
-docker compose down -v --remove-orphans
-docker compose up -d --build
-
-# 3. Aguarde os serviços iniciarem (~10 segundos)
-sleep 10
-
-# 4. Acesse
-# - API: http://localhost:8080
-# - Swagger UI: http://localhost:8081
-```
-
-### Configuração com Cognito Local (Autenticação)
-
-```bash
-# 1. Inicie o Cognito Local
-make cognito-local-start
-
-# 2. Configure usuários e grupos
-make cognito-local-setup
-
-# 3. Teste e obtenha tokens JWT
-make cognito-local-test
-```
-
-#### Usuários Pré-configurados (Cognito Local)
-
-| Usuário | Senha | Grupo | Permissões |
-|---------|-------|-------|------------|
-| `admin@example.com` | `AdminTemp123!` | admin-group | Acesso total, aprova lançamentos |
-| `reviewer@example.com` | `PassTemp123!` | reviewers-group | Cria projetos/tarefas |
-| `user@example.com` | `PassTemp123!` | user-group | Apenas recursos próprios |
-
-### URLs dos Serviços
-
-| Serviço | URL | Descrição |
-|---------|-----|-----------|
-| API | http://localhost:8080 | API REST principal |
-| Swagger UI | http://localhost:8081 | Documentação interativa |
-| Cognito Local | http://localhost:9229 | Emulador de autenticação |
-| PostgreSQL | localhost:5432 | Banco de dados |
-
-### Configuração Completa (Opcional)
+### Configuração Inicial
 
 1. **Configure as variáveis de ambiente:**
    ```bash
@@ -93,14 +44,18 @@ make cognito-local-test
 
 2. **Inicie os serviços:**
    ```bash
-   docker compose up -d --build
+   # Banco de dados + API
+   docker compose up -d
    ```
 
-3. **Acesse a API:**
+3. **Aplique as migrações:**
+   ```bash
+   docker compose exec -T db psql -U app -d app -f /migrations/0001_init.sql
+   ```
+
+4. **Acesse a API:**
    - API: http://localhost:8080
    - Swagger: http://localhost:8081
-
-> **Nota:** As migrações SQL são executadas automaticamente pelo PostgreSQL na primeira inicialização.
 
 ## 🧩 Domínio e fluxos implementados
 

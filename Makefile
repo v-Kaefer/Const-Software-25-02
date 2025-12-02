@@ -20,10 +20,10 @@ help:
 	@echo "  make cognito-local-stop  - Para cognito-local"
 	@echo "  make cognito-local-clean - Remove cognito-local e dados"
 	@echo ""
-	@echo "Comandos Docker Compose (API e Database):"
-	@echo "  make docker-compose-up   - Inicia db e api (Swagger integrado em /docs)"
+	@echo "Comandos Docker Compose (API, Database e Swagger UI):"
+	@echo "  make swagger-only        - Inicia APENAS o Swagger UI (mais rápido)"
+	@echo "  make docker-compose-up   - Inicia todos os serviços (db, api, swagger)"
 	@echo "  make docker-compose-down - Para serviços do Docker Compose"
-	@echo "  make swagger-only        - [Legacy] Inicia container Swagger separado"
 	@echo ""
 	@echo "Comandos Terraform Local (infra com tflocal para testes):"
 	@echo "  make tflocal-init        - Inicializa o Terraform Local"
@@ -103,8 +103,7 @@ infra-up: localstack-start cognito-local-start tflocal-init cognito-local-setup 
 	@echo "  - DynamoDB: http://localhost:4566"
 	@echo "  - Cognito: http://localhost:9229 (cognito-local)"
 	@echo "  - API: http://localhost:8080"
-	@echo "  - Swagger UI (integrado): http://localhost:8080/docs"
-	@echo "  - OpenAPI Spec: http://localhost:8080/openapi.yaml"
+	@echo "  - Swagger UI: http://localhost:8081"
 	@echo ""
 	@echo "Para testar os recursos:"
 	@echo "  make infra-test"
@@ -238,7 +237,7 @@ docker-compose-up:
 	@echo "✅ Serviços iniciados!"
 	@echo "  - Database: http://localhost:5432"
 	@echo "  - API: http://localhost:8080"
-	@echo "  - Swagger UI (integrado): http://localhost:8080/docs"
+	@echo "  - Swagger UI: http://localhost:8081"
 
 docker-compose-down:
 	@echo "🛑 Parando serviços do Docker Compose..."
@@ -246,22 +245,20 @@ docker-compose-down:
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
 	@echo "✅ Serviços parados!"
 
-# Comando legado para o container Swagger separado (não mais necessário)
-# O Swagger UI agora está integrado na API em http://localhost:8080/docs
+# Comando simplificado para apenas visualizar o Swagger (sem API)
 swagger-only:
-	@echo "🚀 Iniciando Swagger UI legacy (porta 8081)..."
-	@echo "💡 NOTA: O Swagger UI agora está integrado na API em http://localhost:8080/docs"
+	@echo "🚀 Iniciando apenas o Swagger UI..."
 	@echo "🧹 Limpando containers existentes..."
 	@docker compose down --remove-orphans 2>/dev/null || true
 	@docker rm -f swagger userdb usersvc 2>/dev/null || true
 	@sleep 1
-	@docker compose --profile legacy up -d --remove-orphans swagger
+	@docker compose up -d --remove-orphans swagger
 	@echo "⏳ Aguardando Swagger ficar pronto..."
 	@sleep 3
-	@echo "✅ Swagger UI legacy iniciado!"
-	@echo "  - Swagger UI (legacy): http://localhost:8081"
+	@echo "✅ Swagger UI iniciado!"
+	@echo "  - Swagger UI: http://localhost:8081"
 	@echo ""
-	@echo "💡 Recomendado: Use o Swagger integrado na API em http://localhost:8080/docs"
+	@echo "💡 Para visualizar a página do Swagger, acesse: http://localhost:8081"
 
 build:
 	@echo "🔨 Compilando aplicação Go..."

@@ -44,14 +44,9 @@ services:
     # Se você precisa de um comando específico, descomente/ajuste:
     # command: ["/app/usersvc"]
 
-  # NOTA: O Swagger UI agora é servido diretamente pela API em http://localhost:8080/docs
-  # Este container é mantido para compatibilidade retroativa, mas não é mais necessário.
-  # Para usar o Swagger UI integrado na API, acesse: http://localhost:8080/docs
   swagger:
     image: swaggerapi/swagger-ui:latest
     container_name: swagger
-    profiles:
-      - legacy
     environment:
       SWAGGER_JSON: /openapi/openapi.yaml
     volumes:
